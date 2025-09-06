@@ -1,0 +1,2 @@
+sudo chown -R mz my\ config/
+sudo cp -r ~/.config/fish/aliases.fish ~/my\ config/myroot/myhome/.config/fish/

@@ -1,0 +1,85 @@
+conky.config = {
+    double_buffer = true,
+    no_buffers = true,
+
+    own_window_class = 'Conky',
+    own_window = true,
+    own_window_argb_visual = true,
+    own_window_transparent = true,
+    own_window_argb_value = 0,
+    own_window_hints = 'undecorated,below,skip_taskbar,sticky,skip_pager',
+
+    update_interval = 1.0,
+    net_avg_samples = 2,
+    cpu_avg_samples = 2,
+
+    alignment = 'bottom_left',
+    gap_x = 30,
+    gap_y = 30,
+    
+    default_color = 'white',
+    default_outline_color = 'white',
+    default_shade_color = 'black',
+    color0 = 'ffffff',
+    color1 = 'b3e5fc',
+    color2 = '4783fc'
+}
+
+conky.text = [[
+${font :size=36}
+${font}${voffset -20}${alignc}${time %A %d %B %Y}
+${color2}${hr 2}
+${color}Kernel: ${alignr}${kernel}
+Distro: ${alignr}${execi 6000 lsb_release -d | grep 'Descr'|awk {'print $2 " " $3" " $4"" $5'}}
+#------------+
+#CPU
+#------------+
+${color2}PROCESSOR ${hr 2}
+${color0}${voffset 5}Name: $alignr${execi 6000 cat /proc/cpuinfo | grep 'model name' | sed -e 's/model name.*: //'| uniq | cut -c 1-16}
+Freq: ${alignr}${freq_g} GHz
+Usage: ${alignr}${cpu}%
+${cpugraph 32}
+#------------+
+#MEMORY
+#------------+
+${color2}MEMORY ${hr 2}
+${color0}${voffset 5}Used: ${mem} ($memperc%)${alignr}Free: ${memeasyfree}
+${membar}
+#------------+
+#NETWORK
+#------------+
+${color2}NETWORK ${hr 2}
+${color0}${voffset 5}${addr wlp0s29u1u1}${alignr}${if_existing /sys/class/net/wlp0s29u1u1/operstate up}ONLINE${else}OFFLINE${endif}
+#Established: ${goto 345}${execi 5 netstat -tuapn | grep -iE 'established' | wc -l}
+Signal: ${alignr}${color lightgrey}${wireless_link_bar 4,140 wlp0s29u1u1}  ${wireless_link_qual wlp0s29u1u1}%
+Down: ${downspeed wlp0s29u1u1}/s  ${alignr} Total: ${totaldown wlp0s29u1u1}
+${downspeedgraph wlan0 30}
+Up: ${upspeed wlp0s29u1u1}/s      ${alignr} Total: ${totalup wlp0s29u1u1}
+${upspeedgraph wlp0s29u1u1 30 }
+#------------+
+#FS
+#------------+
+${color2}STORAGE ${hr 2}
+${color0}${voffset 5}/dev/nvme0n1p6:${alignr}${fs_used /} / ${fs_size /}
+${fs_bar  /}
+Read: ${alignr}${diskio_read /dev/sda}
+Write: ${alignr}${diskio_write /dev/sda}
+#------------+
+#PROCESSES
+#------------+
+${color2}PROCESS ${hr 2}
+${color0}Name${goto 215}MEM%${alignr}CPU%
+${color1}${top name 1}${goto 200}${top mem 1}${alignr}${top cpu 1}
+${color1}${top name 2}${goto 200}${top mem 2}${alignr}${top cpu 2}
+${color1}${top name 3}${goto 200}${top mem 3}${alignr}${top cpu 3}
+${color1}${top name 4}${goto 200}${top mem 4}${alignr}${top cpu 4}
+${color1}${top name 5}${goto 200}${top mem 5}${alignr}${top cpu 5}
+${color1}${top name 6}${goto 200}${top mem 6}${alignr}${top cpu 6}${voffset 10}
+${color0}Processes: ${alignr}${processes} (${running_processes})
+${color0}Threads: ${alignr}${threads} (${running_threads})
+#------------+
+#DEVICES
+#------------+
+${color2}DEVICES ${hr 2}
+${color1}${execi 1800 sudo nmap -sP 192.168.1.0/24 | grep  "Nmap scan report for" | awk -F ' '  '{print $5, $6}'} 
+]]

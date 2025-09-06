@@ -1,0 +1,8 @@
+my-config
+.gitignore
+.git
+.stow-local-ignore
+install.sh
+packages.txt
+README.md
+.config/dwm

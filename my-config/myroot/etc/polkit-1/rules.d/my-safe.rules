@@ -1,0 +1,10 @@
+polkit.addRule(function(action, subject) {
+  if (subject.user == "mz" &&
+      (action.id == "org.freedesktop.login1.reboot" ||
+       action.id == "org.freedesktop.login1.poweroff" ||
+       action.id == "org.freedesktop.login1.suspend" ||
+       action.id == "org.freedesktop.login1.zzz")) {
+    return polkit.Result.YES;
+  }
+});
+
