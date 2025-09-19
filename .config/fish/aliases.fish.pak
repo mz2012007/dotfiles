@@ -1,0 +1,115 @@
+function history
+    nvim ~/.local/share/fish/fish_history
+end
+######################################
+function edit
+    nvim ~/.config/fish/aliases.fish
+end
+######################################
+function search
+    sudo xbps-query -Rs $argv
+end
+complete -c xi -w search
+######################################
+function u
+    sudo xbps-install -Su
+end
+complete -c xi -w u
+######################################
+function i
+    sudo xbps-install -S $argv
+end
+complete -c xi -w i
+######################################
+function r
+    sudo xbps-remove $argv
+end
+complete -c xi -w r
+######################################
+function q
+    sudo xbps-query -Rs $argv
+end
+complete -c xi -w q
+######################################
+function up
+    sudo sv up $argv
+end
+complete -c xi -w up
+######################################
+function down
+    sudo sv down $argv
+end
+complete -c xi -w down
+######################################
+function stop
+    sudo sv stop $argv
+end
+complete -c xi -w stop
+######################################
+function start
+    sudo sv start $argv
+end
+complete -c xi -w start
+######################################
+function restart
+    sudo sv restart $argv
+end
+complete -c xi -w restart
+######################################
+function hipernate
+    ~/.config/scripts/zzz
+end
+######################################
+function 1
+    fastfetch
+end
+######################################
+function 2
+    tmux
+end
+######################################
+function 3
+    tmux attach
+end
+######################################
+function n
+    nvim $argv
+end
+complete -c xi -w n
+######################################
+function cat
+    bat $argv
+end
+complete -c xi -w cat
+######################################
+function 4
+    $HOME/.config/polybar/scripts/wallz.py
+end
+######################################
+function +x
+    sudo chmod +x $argv
+end
+complete -c xi -w +x
+######################################
+function h
+    history
+end
+######################################
+function logs
+    sudo tail -f /var/log/messages | ccze -A | awk '{ $1=strftime("%b %d %H:%M:%S"); print }' $argv
+end
+complete -c xi -w logs
+######################################
+function l
+    eza --color-scale-mode=gradient --icons --hyperlink -AlMHlioF --total-size --show-symlinks $argv
+end
+complete -c xi -w l
+######################################
+function ch
+    sudo ~/scripts/chroot.sh $argv
+end
+complete -c xi -w ch
+######################################
+function s
+    ~/scripts/services.sh
+end

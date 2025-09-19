@@ -1,0 +1,195 @@
+#version: "3.8"
+
+networks:
+  frontend_net:
+    driver: bridge
+    ipam:
+     config:
+       - subnet: 172.30.1.0/24
+  backend_net:
+    driver: bridge
+    ipam:
+     config:
+       - subnet: 172.40.0.0/24
+
+services:
+
+ # =====================================
+  portainer:
+    image: portainer/portainer-ce
+    container_name: portainer
+    networks:
+      - backend_net
+    command: --no-analytics
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /mnt/srv/docker/cont/portainer:/data
+    # - /etc/timezone:/etc/timezone:ro
+    # - /etc/localtime:/etc/localtime:ro
+    expose:
+      - 9000
+ # ports:
+  #   - 9000:9000
+  #   - 8000:8000
+  #   - 9443:9443
+    restart: always
+  # =====================================
+  nginx:
+    image: lscr.io/linuxserver/nginx
+    container_name: nginx
+    networks:
+      - frontend_net
+      - backend_net
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Africa/Cairo
+    volumes:
+      - /mnt/srv/docker/cont/nginx:/config
+    ports:
+      - 8082:80
+      #- 443:443
+    restart: unless-stopped
+ # =====================================
+  nextcloud:
+    image: nextcloud:25
+    container_name: nextcloud
+    user: 1000:1000
+    networks:
+      - backend_net
+    links:
+      - nextcloud-db
+    hostname: mz
+    environment:
+      - TZ=Africa/Cairo
+      - POSTGRES_DB=nextcloud
+      - POSTGRES_USER=nextcloud
+      - POSTGRES_PASSWORD=nextcloud
+      - POSTGRES_HOST=nextcloud-db
+      - NEXTCLOUD_TRUSTED_DOMAINS=localhost nextcloud 192.168.1.2:8080 mz *.mz
+    # - NEXTCLOUD_ADMIN_USER=mbesar
+    # - NEXTCLOUD_ADMIN_PASSWORD=password
+    # - NEXTCLOUD_DATA_DIR=/var/www/html/data # if you need to change data folder
+    volumes:
+      - /mnt/srv/docker/cont/nextcloud/html:/var/www/html
+      - /mnt/srv/data/media:/var/www/html/data
+    expose:
+      - 80
+  # ports:
+  #   - 8080:80
+    restart: unless-stopped
+ #--------------------------------------
+  nextcloud-db:
+    image: postgres:15
+    container_name: nextcloud-db
+    user: 1000:1000
+    networks:
+      - backend_net
+    environment:
+      - POSTGRES_USER=nextcloud
+      - POSTGRES_PASSWORD=nextcloud
+      - POSTGRES_DB=nextcloud
+    volumes:
+      - /mnt/srv/docker/cont/nextcloud/db:/var/lib/postgresql/data
+      - /mnt/srv/docker/cont/nextcloud/db-backup:/var/lib/postgresql/backup
+    # - /etc/timezone:/etc/timezone:ro
+    # - /etc/localtime:/etc/localtime:ro
+    restart: unless-stopped
+ #-------------------------------------- 
+  jellyfin:
+    image: lscr.io/linuxserver/jellyfin
+    container_name: jellyfin
+    networks:
+      - backend_net
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Africa/Cairo
+      - JELLYFIN_PublishedServerUrl=http://jellyfin.vs-yt.mm #optional
+    volumes:
+      - /mnt/srv/docker/cont/jellyfin/config:/config
+      - /mnt/srv/data/media:/data/media
+    expose: 
+      - 8096
+  # ports:
+  #   - 8096:8096
+  #   - 8920:8920 #optional
+  #   - 7359:7359/udp #optional
+  #   - 1900:1900/udp #optional
+    restart: unless-stopped
+ # =====================================
+  pyload:
+    image: lscr.io/linuxserver/pyload-ng:latest
+    container_name: pyload
+    networks:
+      - backend_net
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Africa/Cairo
+    volumes:
+      - /mnt/srv/docker/cont/pyload:/config
+      - /mnt/srv/downloads/pyload:/downloads
+    expose:
+      - 8000
+  # ports:
+  #   - 8001:8000
+  #   - 9666:9666 #optional
+    restart: unless-stopped
+ # =====================================
+  npm:
+    image: jc21/nginx-proxy-manager:latest
+    container_name: npm
+    networks:
+      - backend_net
+      - frontend_net 
+    environment:
+      - DISABLE_IPV6=true # Uncomment this if IPv6 is not enabled on your host
+      - TZ=Africa/Cairo
+    volumes:
+      - /mnt/srv/docker/cont/npm/data:/data
+      - /mnt/srv/docker/cont/npm/letsencrypt:/etc/letsencrypt
+    ports:
+      - 80:80
+      - 443:443
+      - 81:81
+    restart: always
+ # =====================================
+  syncthing:
+    image: lscr.io/linuxserver/syncthing:latest
+    container_name: syncthing
+    networks:
+      - backend_net
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: Africa/Cairo
+    volumes:
+      - /mnt/srv/docker/cont/syncthing/config:/config
+      - /mnt/srv/data:/data
+    expose:
+      - 8384
+  # ports:
+  #   - 8384:8384
+  #   - 22000:22000/tcp
+  #   - 22000:22000/udp
+  #   - 21027:21027/udp
+    restart: always
+ # =====================================
+  heimdall:
+    image: lscr.io/linuxserver/heimdall:latest
+    container_name: heimdall
+    networks:
+      - backend_net
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Africa/Cairo
+    volumes:
+      - /mnt/srv/docker/cont/heimdall/config:/config
+    expose:
+      - 80  
+  # ports:
+  #   - 8080:80
+  #   - 8443:443
+    restart: unless-stopped

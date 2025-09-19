@@ -1,0 +1,11 @@
+.config/mpv/scripts/
+setup.log
+.config/chromium/
+.config/glib-2.0/
+.config/htop/htoprc.tmp.rurBXO
+.config/pulse/
+.config/rsyslog/
+.config/tmux/
+mpv/
+.config/xfce4/
+Pictures/backgrounds

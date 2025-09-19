@@ -1,0 +1,697 @@
+                   [ bash scripting ] 
+#!/usr/bin/env bash
+
+
+
+==  !=  >  <  -z  -n  
+-eq  -ne  -gt  -lt  -ge  -le 
+-e  -f  -L  -h  -r  -w  -x  -s  -k  -c  -b 
+&&  ||    
+
+!  $0 $1 $$ $# $? $@ $* 
+
+read -t 10 -sp "What is your password : " user_password
+
+date +"%Y-%m-%d %I:%H:%M %P"
+
+#-----------------------------------------------------------------------------------------------
+
+var="Mohamed"
+var2="Zaki"
+
+if [ "var" = "var2" ] && [ "var" > "var2" ]; then
+  echo $var
+elif [[ var != var2 && (var > var2 || var == var2) ]]; then
+  echo
+elif [ "var" != "var2" -a \( "var" > "var2" -o "var" == "var2" \) ]; then
+  exit 1
+else 
+  echo $(date)
+fi
+
+#-----------------------------------------------------------------------------------------------
+
+my_func(){
+local var="m       p"
+echo "$var"
+}
+
+my_func
+
+#-----------------------------------------------------------------------------------------------
+
+base_dir=$(mktemp -d)
+trap "rm -rf $base_dir" EXIT
+
+#-----------------------------------------------------------------------------------------------
+
+for s in /var/service/*; do
+  service=$(basename "$s")
+  status=$(sudo sv status "$service")
+  if [[ $status == down* ]]; then
+    sudo mkdir "$base_dir/$service"
+  fi
+done
+
+#-----------------------------------------------------------------------------------------------
+
+sudo -v             # يطلب باسورد ويفتح صلاحية sudo
+while true; do
+  sudo -v
+  sleep 60
+done &
+SUDO_REFRESH_PID=$!
+
+#-----------------------------------------------------------------------------------------------
+
+    case $option in
+    e) sudo ln -s "/etc/sv/$service" "/var/service/" && echo "$service has been enabled" ;;
+    d) sudo unlink -- "/var/service/$service" && echo "$service has been disabled" ;;
+    s) sudo sv shutdown $service && echo "$service has been shutdown" ;;
+    u) sudo sv up $service && echo "$service has been started" ;;
+    r) sudo sv restart $service && echo "$service has been restarted" ;;
+    esac
+
+#-----------------------------------------------------------------------------------------------
+
+    if [[ -z "$service" ]]; then
+      echo "Empty service name, skipping..."
+      continue
+    elif [[ ! -e "/etc/sv/$service" ]]; then
+      echo "Service '$service' not found in /etc/sv/, skipping..."
+      continue
+    fi
+
+#-----------------------------------------------------------------------------------------------
+
+
+
+who | awk ' { print $1 } ' | sort | uniq 
+
+who | sed 's/[^[:alnum:]].*//' | sort | uniq 
+
+who > ~/tmp 
+
+wc -l  < ~/tmp 
+
+cat > file_name
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ip addr
+iw dev wlp2s0 scan
+sudo netctl start wlp2s0-crag
+sudo wifi-menu
+netctl start wlp2s0-crag 
+systemctl status netctl.service
+
+sudo nano /etc/NetworkManager/conf.d/iwd.conf
+iwconfig && mokutil --sb-state 
+sudo sed -i 's/3/2/' /etc/NetworkManager/conf.d/default-wifi-powersave-on.conf
+
+
+
+
+
+
+
+
+crontab -e 
+echo 2 > /proc/sys/vm/drop_cashes
+
+
+sudo apt-add-repository --list
+sudo apt-add-repository --remove <REPO-NAME>
+libavcodec-extra gstreamer1.0-libav gstreamer1.0-plugins-ugly gstreamer1.0-vaapi vlc
+ttf-mscorefonts-installer fonts-crosextra-caladea fonts-crosextra-carlito
+gufw
+sudo ufw enable
+htop neofetch
+flatpak
+sudo apt full-upgrade
+sudo sed -i "s/bullseye/bookworm/g" /etc/apt/sources.list
+
+sudo nano /etc/apt/sources.list
+ls /etc/apt/sources.list.d/
+lspci
+firmware-realtek
+sudo modprobe -r r8169
+sudo modprobe r8169
+
+etc/lightdm/lightdm.conf
+
+nmtui
+
+
+
+
+
+
+
+
+
+
+
+
+git clone https://github.com/ilikenwf/apt-fast.git
+
+wget https://github.com/ryanoasis/nerd-fonts/releases/latest/download/Iosevka.zip
+
+wget https://github.com/AT-UI/feather-font/raw/master/fonts/feather.ttf
+
+git clone https://github.com/nvim-lua/kickstart.nvim.git "${XDG_CONFIG_HOME:-$HOME/.config}"/nvim
+
+
+wget https://github.com/fastfetch-cli/fastfetch/releases/download/$NEO_VERSION/fastfetch-linux-$CPU_ARCH.deb -O fastfetch.deb
+
+git clone https://github.com/christitustech/mybash
+
+git clone https://www.github.com/Airblader/i3 i3-gaps
+
+wget https://raw.githubusercontent.com/nwg-piotr/autotiling/master/main.py -O autotiling
+
+glxinfo | grep "OpenGL renderer"
+
+                   [ touchpad ]
+~/.config/autostart/touchpad.desktop
+/etc/systemd/system/enable-touchpad.service
+sudo systemctl daemon-reload
+sudo systemctl enable enable-touchpad.service
+~/.xprofile
+dmesg | grep -i touchpad
+xinput list
+xinput enable id 
+xinput enable "SynPS/2 Synaptics TouchPad"
+xinput list-props "SynPS/2 Synaptics TouchPad"
+~/.config/xorg/40-libinput.conf
+/etc/X11/xorg.conf.d/40-libinput.conf
+/etc/X11/xorg.conf.d/70-synaptics.conf
+
+                   [ language ]
+setxkbmap -layout us,ara
+/etc/profile
+sudo nano /etc/locale.conf
+locale -a
+sudo localedef -i ar_EG -f UTF-8 ar_EG.utf8
+export LANG=ar_EG.utf8
+export LC_ALL=ar_EG.utf8
+/usr/lib/locale
+
+                   [ shell ]
+chsh -s /usr/bin/fish
+echo $SHELL
+
+                   [ file system ]
+sudo rsync -aAXv /mnt/oldroot/ /mnt/newroot/
+
+
+                   [ git ]
+git config --global user.name "name"
+git config --global user.email "example@gmail.com"
+git config --global credential.helper store
+git init
+git add .
+git commit -m "first commit"
+git status
+git log
+git checkout
+git branch -M main
+git remote add origin https://github.com/USERNAME/dotfiles.git
+git pull --rebase origin main
+git push -u origin main
+git commit --amend --no-edit
+git push --force
+git push --dry-run
+git fetch origin
+git diff my/main --shortstat
+
+curl -L -o ~/.config/mpv/scripts  https://raw.githubusercontent.com/mz2012007/mpv/scripts
+
+git clone --depth 1 --filter=blob:none --sparse https://github.com/mz2012007/mpv.git
+cd mpv
+git sparse-checkout set scripts
+
+                   [ curl ]
+curl -# -O https://example.com/file.zip
+curl -u username:password -O https://example.com/file.zip
+curl -A "Mozilla/5.0" -O https://example.com/file.zip
+
+curl -L https://download-directory.github.io/?url=https://github.com/username/repo/tree/main/foldername -o folder.zip
+
+curl -C - -O https://example.com/bigfile.iso
+curl -O https://example.com/file.zip
+curl -o song.mp3 https://site.com/music/song.mp3
+
+                   [ proccess ]
+ps -ef | grep mpd
+pkill -u mz mpd
+
+                   [ fish ]
+~/.local/share/fish/fish_history
+ .config/fish/aliases.fish
+
+                   [ vim ]
+i a v R :                   
+A 0 ^ $ w b 
+dw db dd u
+/ n N
+H M L
+== zz
+V + num +
+funcution + i + }
+funcution + a + "
+? n + .
+:set rnu
+:s/omar/mohamed/g
+:%s/omar/mohamed/g%
+
+                   [ timeshift ]
+timeshift --create   --comments "frish" --target /mnt/pak/		   
+timeshift --list
+timeshift --restore
+ 
+                   [ time ]
+sudo date -s "2025-08-19 13:00:00"
+sudo chronyc makestep
+fake-hwclock
+hwclock --systohc --localtime
+sudo ln -sf /usr/share/zoneinfo/Africa/Cairo /etc/localtime
+/etc/chrony/chrony.conf
+chronyc tracking
+chronyc sources -v
+
+                   [ picom ]
+xprop | grep WM_CLASS
+
+                   [ fstab ]
+UUID=a830b6a5-fceb-4799-bec0-524bb93b6198 / ext4 defaults,noatime,nodiratime,commit=60,barrier=0 0 1
+UUID=6f5603ad-73fc-495e-8754-de707163d59a /home ext4 defaults,noatime,nodiratime,commit=60,barrier=0 0 2
+UUID=e76e97e3-b44c-46cf-899b-5df1eafcccc1 /var ext4 defaults,noatime,nodiratime,commit=60,barrier=0 0 2
+tmpfs /tmp tmpfs defaults,nosuid,nodev,mode=1777 0 0
+UUID=58f70d2d-2568-4f67-a199-2692b479d415  none    swap    sw      0       0
+
+                   [ dunst ]
+notify-send -i system-run ""
+
+                   [ fcron ]
+sudo xbps-install -S fcron
+sudo ln -s /etc/sv/fcron /var/service/
+fcrontab -e
+fcrontab -l
+minute houre dayofmonth month dow options command
+dow ==> 1,3,5 1-5      0 = sunday
+
+
+                   [ ca-certificates ]
+/etc/xbps.d/*
+sudo rm -rf /etc/ssl/certs/*
+wget --no-check-certificate https://letsencrypt.org/certs/isrgrootx1.pem -O /tmp/isrgrootx1.pem
+sudo cp /tmp/isrgrootx1.pem /etc/ssl/certs/
+cd /etc/ssl/certs
+sudo ln -s isrgrootx1.pem $(openssl x509 -hash -noout -in isrgrootx1.pem).0
+sudo update-ca-certificates
+
+sudo xbps-install -S ca-certificates
+
+                   [ phone ]
+android ==> gvfs-mtp mtpfs jmtpfs
+mkdir ~/Phone
+jmtpfs ~/Phone
+fusermount -u ~/Phone
+
+iphone ==> ifuse libimobiledevice usbmuxd
+idevicepair pair
+mkdir ~/iPhone
+ifuse ~/iPhone
+                   
+                   [ bluetooth ]
+bluetooth ==> bluez blueman
+bluetoothctl
+power on
+agent on 
+default-agent
+scan on
+pair <MAC_ADDRESS>
+connect <MAC_ADDRESS>
+trust <MAC_ADDRESS>
+quit
+
+                   [ packegs ]
+void ==>  void-repo- *
+flatpak ==> gnome-software gnome-software-plugin-flatpak
+apt ==> software-properties-common apt-transport-https
+fonts ==> setxkbmap fonts-font-awesome fonts-noto fonts-noto-color-emoji fonts-hack-ttf fonts-font-awesome fonts-iosevka
+bash-completion bat multitail neovim trash-cli tree fzf fzi zoxide
+systemd-timesyncd i3 polybar nala rfkill ufw
+netselect-apt alacritty apt-fast
+pipx xinput 
+build-essential linux-headers-$(uname -r) dkms
+xserver-xorg-input-libinput xserver-xorg-input-synaptics libnotify-bin 
+firmware-realtek firmware-iwlwifi firmware-linux-nonfree broadcom-sta-dkms firmware-b43-installer
+mtpaint locate flatpak 
+materia-gtk-theme numix-gtk-theme arc-theme adwaita-gtk-theme aqua-gtk-theme
+lightdm-gtk-greeter-settings lightdm-gtk-greeter
+make gcc
+ripgrep unzip rar unrar git xclip curl timeshift-gtk  chromium 
+python3-i3ipc libxkbcommon-x11-dev xkbcommon-x11 
+i3-gaps libavcodec-extra gstreamer1.0-libav gstreamer1.0-plugins-ugly gstreamer1.0-vaapi vlc parole earlyoom lxpolkit
+
+                   [nix]
+sh <(curl -L https://nixos.org/nix/install)
+nix-env --version
+nix-env -e i3
+nix-env -q
+nix-env -iA nixpkgs.i3-gap
+
+                   [ priviligs ]
+sudo usermod -aG groub-name user-name
+chmod u=rwx        g+r        o-w  +t
+
+                   [ polkit ]
+/etc/polkit-1/rules.d/my-safe.rule
+
+                   [ files ]
+ln -s
+chattr +i
+chattr -i
+df -h
+lsblk
+chown user file
+chmod +x
+chmod u+s
+sudo btrfs subvolume list /
+sudo btrfs check /dev/sda5             
+
+                   [ live iso ]
+git clone https://github.com/void-linux/void-mklive.git
+sudo mkdir /mnt/remaster
+sudo rsync -aAXv /* /mnt/remaster \
+    --exclude={"/dev/*","/proc/*","/sys/*","/tmp/*","/run/*","/mnt/*","/media/*","/lost+found"}
+sudo chroot /mnt/remaster xbps-install -Sy linux6.6 void-artwork grub
+sudo chroot /mnt/remaster dracut --force
+cd ~/void-mklive
+sudo ./mklive.sh -r /mnt/remaster -o void-remastered.iso
+sudo dd if=void-remastered.iso of=/dev/sdX bs=4M status=progress oflag=sync
+
+                   [ defrag and fix ]
+fsck.ext4 -y -f /dev/sd*
+e4defrag -v /mnt/root
+e4defrag -c /mnt/root
+
+                   [ docker ]
+containerd docker docker-cli  docker-compose
+sudo usermod -aG docker $USER
+sudo mkdir -p /mnt/srv/{docker/{comp,cont},data}
+sudo chown -R $USER:$USER /mnt/srv/{docker,data}
+mkdir -p /mnt/srv/docker/cont/{nginx,portainer}
+nano /mnt/srv/docker/comp/docker-compose.yml
+docker compose -f /mnt/srv/docker/comp/docker-compose.yml up -d
+
+
+                   [ grub ]
+grub-install --force --target=i386-pc --boot-directory=/boot /dev/vda2
+update-grub
+sudo apt install os-prober
+sudo nano /etc/default/grub
+sudo os-prober
+sudo update-grub 
+
+                   [ wifi ] 
+ip a
+ip addr
+lspci
+lspci | grep -i wireless
+lspci -knn | grep Net -A 3
+lspci -nnk | grep -iA3 network
+lspci -knn | grep Net -A 3
+lsmod | grep wifi
+lspci
+sudo dmesg
+modinfo brcmsmac
+firmware-realtek
+rtl8192cu
+modprobe brcmsmac
+modprobe -r bcma brcmsmac
+lsmod | grep bcma
+modprobe wl
+modprobe -r wl brcmsmac b43 bcma
+/etc/modprobe.d/blacklist.conf
+
+                   [ openrc ]
+sudo service nom_service start
+sudo /etc/init.d/nom_service start
+sudo service nom_service stop
+sudo /etc/init.d/nom_service stop
+sudo service nom_service restart
+sudo service nom_service status
+sudo update-rc.d nom_service enable
+sudo update-rc.d nom_service disable
+etc/network/interfaces/
+/etc/init.d/
+
+                   [ systemd ]
+sudo rm -f /var/lib/apt/lists/lock
+sudo rm -f /var/cache/apt/archives/lock
+sudo rm -f /var/lib/dpkg/lock*
+
+sudo systemctl set-default multi-user.target
+sudo systemctl set-default graphical.target
+
+                   [ kernel ]
+GRUB_CMDLINE_LINUX_DEFAULT="quiet zswap.enabled=1 zswap.compressor=lz4 zswap.max_pool_percent=20 zswap.zpool=z3fold
+
+                   [ symplolink ]
+sudo ln -s 
+find -L $HOME -type l -exec sudo rm -v {} +
+
+                   [ flatpak ]
+flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+
+                   [ logs ]
+/var/log/messages 
+/var/log/auth.log
+tail -f /var/log/messages | ccze -A | grep "ERROR"
+multitail ==> /etc/multitail.conf
+multitail -cS syslog /var/log/messages /var/log/auth.log
+sudo multitail -cS syslog /var/log/messages 
+
+                   [ @void-linux ]
+nvim /etc/hostname
+nvim /etc/hosts
+hostname
+
+                   [ find ]
+sudo find /usr -name '*ccze*'             
+
+                   [ build ]
+ldd /usr/bin/"binary"
+./configure --prefix=/usr
+make
+sudo make clean install
+
+                   [ xbps ]
+sudo xbps-pkgdb -a | grep -i "ERROR\|MISSING\|mismatch"
+sudo xbps-query -Rs 
+sudo xbps-install -Su
+sudo xbps-remove 
+sudo xbps-remove -oO 
+sudo xbps-query -m
+bsdtar -tf ccze-2.19_1.x86_64.xbps
+
+sudo xbps-create -A x86_64 -n ccze-2.19_1 -s "Colorizing log viewer" ~/4
+xbps-rindex -a *.xbps
+xbps-install --repository=$PWD pkgname
+
+make clean      
+make distclean  
+
+sudo xbps-install -S void-packages
+sudo xbps-install -S xtools git
+mkdir -p srcpkgs/mypkg
+curl -o srcpkgs/mypkg/template https://raw.githubusercontent.com/<user>/<repo>/<branch>/template
+./xbps-src binary-bootstrap
+./xbps-src pkg mypkg
+xbps-install -R hostdir/binpkgs mypkg
+
+
+                   [ pacman ]
+pacman -S archlinux-keyring
+sudo pacman -Syyu
+sudo pacman -Sy archlinux-keyring && sudo pacman -Su
+sudo pacman -Syu
+sudo pacman -S --needed git base-devel && git clone https://aur.archlinux.org/yay.git && cd yay && makepkg -si
+
+                   [ apt ]
+sudo dpkg -i
+sudo apt --fix-broken install
+/etc/apt/sources.list.d/
+/etc/apt/sources.list.d/debian-live-media.list
+/etc/apt/sources.list
+/etc/apt/sources.list.d/live.list
+sudo apt-add-repository contrib non-free non-free-firmware
+nala fetch ,nala update ,nala upgrade
+sudo nala fetch --debian bookworm --devuan stable --non-free
+
+                   [ tar ]
+tar -xvjf *.tar.bz2
+tar -xvf file.tar   *.tar 
+tar -cvf file.tar folder/
+
+                   [ audio ] 
+pactl info
+pactl set-sink-volume @DEFAULT_SINK@ +10%
+pactl set-sink-volume @DEFAULT_SINK@ -10%
+pactl list short sinks    (speakers/headphones)
+pactl list short sources  (mic)
+pactl set-default-sink <sink_name>
+pactl info | grep "Server Name"
+
+                   [ ports ]
+sudo lsof -i :6600
+
+                   [ fonts ]
+~/.fonts
+~/.local/share/fonts
+fc-cache -fv
+fc-list :charset=
+fc-list :lang=US,AR
+fc-list | grep -i "اسم_الخط"
+fc-list | cut -d: -f2 | sort -u
+
+                   [ groups ]
+cat /etc/group
+
+                   [ themes ]
+/usr/share/themes/
+/usr/share/icons/
+/usr/share/fonts/
+~/.config/gtk-3.0/settings.ini
+
+catppuccin
+
+                   [ dark theme  ]
+/.config/gtk-3.0/settings.ini
+[Settings]
+gtk-application-prefer-dark-theme=1
+
+                   [ hyprland ]
+packegs >> wayland   wayland-protocols   libxkbcommon   libinput   xdg-desktop-portal  xdg-desktop-portal-wlr wlroots xdg-utils
+SwiftShader
+
+                   [ chroot ]
+sudo mount /dev/sda9 /mnt/win
+sudo mount --bind /dev /mnt/win/dev
+sudo mount --bind /dev/pts /mnt/win/dev/pts
+sudo mount --bind /proc /mnt/win/proc
+sudo mount --bind /sys /mnt/win/sys
+sudo mount --bind /run /mnt/win/run
+sudo mount --bind /var /mnt/win/var   
+su - mz
+sudo chroot --userspec=mz:mz /mnt/win /bin/bash
+
+                   [ cpu ]
+performance powersave ondemand schedutil conservative
+cat /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
+
+for cpu in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do
+    echo performance | sudo tee $cpu
+done
+sudo cpupower frequency-set -g 
+/etc/runit/sv/local/
+nano /etc/rc.local
+
+cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_available_frequencies
+
+for cpu in /sys/devices/system/cpu/cpu*/cpufreq/scaling_max_freq; do
+    echo 2000000 | sudo tee $cpu  
+done
+sudo cpupower frequency-set -u 2GHz
+cpupower frequency-info
+
+                   [ swap and zwap and hipernate ]
+sudo fallocate -l 4G /swapfile
+#sudo dd if=/dev/zero of=/swapfile bs=1024 count=4194304
+sudo dd if=/dev/zero of=/swapfile bs=1M count=8192 status=progress
+
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon ~/swapfile
+sudo swapon --show
+swapon --show
+
+sudo nano /etc/fstab 
+sudo echo -e "ALGO=lz4\nPERCENT=70" | sudo tee -a /etc/default/zramswap
+
+sudo mkdir -p /swap
+sudo chattr +C /swap
+
+blkid /swapfile
+sudo e4defrag /swapfile
+sudo filefrag -v /swapfile 
+resume=UUID=95a55212-167e-497e-95ae-e2db142d8483 resume_offset=4126720
+sudo grub-mkconfig -o /boot/grub/grub.cfg
+sudo grub-install --target=i386-pc /dev/sda
+sudo grub-mkconfig -o /boot/grub/grub.cfg
+sudo dracut --force /boot/initramfs-6.16.3-1-liquorix-amd64.img 6.16.3-1-liquorix-amd64
+echo 4126720 > /sys/power/resume_offset
+sudo grub-mkconfig -o /boot/grub/grub.cfg
+
+sudo grub-mkconfig -o /boot/grub/grub.cfg
+sudo mkdir -p /etc/dracut.conf.d
+echo 'add_dracutmodules+=" resume "' | sudo tee /etc/dracut.conf.d/resume.conf
+echo 'kernel_cmdline="resume=UUID=379f14be-6231-4c1c-8de5-73b47536a08b resume_offset=4126720"' | sudo tee -a /etc/dracut.conf.d/resume.conf
+
+                   [ defrag ]
+sudo e4defrag -c /
+sudo e4defrag  /
+
+
+                   [ cache ]
+sudo nano /etc/sysctl.conf
+vm.swappiness=10
+vm.vfs_cache_pressure=50
+vm.dirty_ratio=10
+vm.dirty_background_ratio=5
+vm.min_free_kbytes=65536
+vm.dirty_writeback_centisecs=1500
+vm.dirty_expire_centisecs=3000
+vm.page-cluster=0
+sudo sysctl -p /etc/sysctl.conf
+
+
+                   [ rofi ]
+rofi -show -theme ~/.config/rofi/dmenu.rasi
+
+                   [ virables environment ]
+export PATH="$HOME/.nix-profile/bin:$PATH"
+export PATH="$HOME/my\ config/myroot/myhome/.config:$PATH"
+
+             

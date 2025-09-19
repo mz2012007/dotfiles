@@ -1,0 +1,459 @@
+top
+echo "sudo dnf install --setopt=install_weak_deps=False i3 " > n.txt
+sudo dnf update
+sudo dnf install --setopt=install_weak_deps=False i3 
+s
+
+nmtui
+sudo systemctl
+sudo systemctl enable NetworkManeger
+sudo systemctl enable NetworkManager
+nmtui
+sudo systemctl status NetworkManager
+sudo dnf update
+ping -c 3 1.1.1.1
+nmcli dev status
+
+nmcli dev status
+nmcli
+sudo nano /etc/resolv.conf 
+sudo rfkill unblock all
+nmcli
+sudo rfkill unblock all
+sudo rfkill 
+sudo rfkill unblock al l
+modprobe wl
+sudo modprobe wl
+reboot
+i3
+exit
+sudo mkdir /mnt/win
+lsblk
+sudo mount /dev/sda1 /mnt/win/
+cd /mnt/win/
+ls
+cd Users/MohamedZaki/Desktop/
+ls
+sudo mv 'my config'/ ~
+cd ~
+ls
+;s
+ls
+cd 'my config'/
+ls
+cd myroot/
+ls
+cd myhome/
+ls
+ls -a
+cd .config/
+ls
+sudo mv i3/ picom/ polybar/ rofi/ ~/.config/
+cd ~/.config/
+ls
+cd ~
+lsmod
+lsmod | greb rt
+lsmod | grep rt
+sudo modprobe rtl8188ee 
+dnf --help
+man dnf
+dnf list
+nmcli
+nmcli device up wlp0s29u1u2 
+nmcli connection up enp1s0 
+nmcli device status 
+nmcli device connect wlp0s29u1u2 
+nmtui
+nmcli connection add master wlp0s29u1u2 
+nmcli connection up filename /etc/NetworkManager/system-connections/Vodafone_VDSL_AE83_2.4G-58998b3e-3072-4b
+nmcli 
+rpm -q xorg
+rpm -q xorg-x11-server-xorg
+which xorg
+i3
+nmcli connection edit WE_M\&Sh 
+sudo nano /etc/yum.repos.d/fedora.repo 
+sudo nano /etc/yum.repos.d/fedora-updates.repo 
+sudo nano /etc/yum.repos.d/fed
+sudo rm  /etc/yum.repos.d/fedora-updates-testing.repo 
+cd my\ config/
+ls
+cat mynotes.txt 
+nano mynotes.txt 
+top
+nmcli connection modify WE_M\&Sh 
+nmcli radio wifi on 
+nmcli networking on 
+nmcli networking connectivity 
+nmcli networking connectivity check 
+nmcli device wifi list 
+nmcli device wifi rescan 
+nmcli device modify wlp6s0b1 
+nmcli device status 
+nmcli device wifi connect Vodafone_VDSL_AE83_2.4G 
+nmcli device up wlp0s29u1u2 
+nmcli device set wlp0s29u1u2 autoconnect on 
+nmcli device up wlp0s29u1u2 
+nmcli device checkpoint wlp0s29u1u2 
+nmcli device modify wlp0s29u1u2 
+nmcli connection up Vodafone_VDSL_AE83_2.4G 
+nmcli co
+cd ~
+ls -a
+startx
+i3
+exec i3
+sudo rfkill 
+nmcli
+nmcli enable wlp6s0b1
+nmcli active wlp6s0b1
+nmcli --help
+nmcli radio wifi on 
+sudo nmcli radio wifi on 
+sudo nmcli connection up WE_M\&Sh 
+nmcli 
+ping -c 3 1.1.1.1
+sudo dnf update
+sudo dnf install --setopt=install_weak_deps=False i3 st xorg-x11-server-xorg 
+sudo dnf install i3 st xorg
+sudo dnf install --setopt=install_weak_deps=False i3 st 
+sudo dnf install --setopt=install_weak_deps=False xorg-x11-sercer-xorg
+sudo dnf install --setopt=install_weak_deps=False xorg-x11-server-xorg
+sudo dnf install --setopt=install_weak_deps=False xorg
+sudo dnf install xorg
+sudo dnf update --refresh
+sudo dnf install --setopt=install_weak_deps=False xorg-x11-server
+sudo dnf search xorg-x11-server
+sudo dnf install xorg-x11-server
+dnf repolist
+sudo dnf install dnf-plugins-core
+sudo dnf config-manager --set-enabled fedora
+sudo dnf clean all
+sudo dnf clean makecache
+sudo dnf makecache
+sudo dnf clean all
+sudo dnf config-manager --set-enabled fedora
+sudo dnf config-manager addrepo fedora
+sudo dnf config-manager 
+sudo dnf config-manager setopt 
+sudo dnf makecache
+sudo dnf install xorg
+sudo dnf install fedora-repos
+sudo dnf search xorg
+sudo dnf search xorg-x11
+sudo dnf search xorg-x11-server
+sudo dnf install xorg-x11-server
+sudo dnf install xorg-x11-server-common.
+sudo dnf install xorg-x11-server-common-0:21.1.16-1.fc42.x86_64
+i3
+udo dnf install xorg-x11-server-common
+sudo dnf install xorg-x11-server-common
+source 
+
+sudo dnf install xorg-x11-server-x2gokdrive
+sudo dnf install slim
+i3
+xorg
+ls -a
+slim
+sudo slim
+sudo dnf install xinit
+sudo systemctl enable slim
+slim
+sudo systemctl start slim
+i3
+xrender
+htop
+sudo networkctl up 
+s 
+q
+sudo networkctl list 
+sudo networkctl reconfigure 
+sudo networkctl label 
+sudo networkctl reload 
+sudo systemctl start netw
+sudo systemctl start systemd-networkd
+sudo systemctl status systemd-networkd
+sudo networkctl up wlp0s29u1u2 
+sudo networkctl status 
+sudo networkctl status wlp0s29u1u2 
+sudo networkctl status wlp6s0b1 
+sudo networkctl status wlp0s29u1u2 
+sudo networkctl edit @wlp0s29u1u2 
+sudo networkctl list 
+sudo networkctl reconfigure wlp0s29u1u2 
+sudo networkctl list 
+sudo networkctl reconfigure wlp0s29u1u2 
+sudo networkctl renew wlp0s29u1u2 
+sudo networkctl label 
+i3
+st
+uname -r
+uname 
+uname -p
+whoiam
+who i am
+who i 
+pwd
+ip a
+sudo unmont /mnt/win/
+sudo unmount /mnt/win/
+sudo mount /mnt/win/
+poweroff
+i3
+sudo nano .xinitrc
+slim
+sudo slim
+sudo systemctl enable slim
+sudo systemctl start slim
+sudo systemctl status slim
+xorg
+sudo dnf install xorg-x11-server-xorg 
+sudo dnf install xorg-x11-server-common
+sudo dnf install xorg-x11-server-common-0:21.1.16-1.fc42.x86_64
+sudo dnf install xorg-x11-server-xorg
+sudo dnf install xorg-x11-server-Xorg
+sudo systemctl start slim
+sudo systemctl status slim
+ls -a
+reboot
+startx
+i3
+sudo nano .xinitrc
+startx
+i3
+sudo dnf upgrade
+sudo dnf install xorg-x11-
+sudo dnf install xorg-x11-drivers
+startx
+sudo slim
+sudo i3
+sudo dnf install xorg-x11-
+sudo dnf install xorg-x11-xinit
+sudo dnf install xorg-x11-xdm
+sudo i3
+sudo slim
+sudo systemctl set-default graphical.target 
+sudo dnf install xorg-x11-drv-libinput
+sudo systemctl enable slim.service --now
+sudo nano .xinitrc 
+sudo chmod +x .xinitrc 
+i3
+which i3
+jornalctl -xe | grep slim
+sudo jornalctl -xe | grep slim
+reboot
+sudo dnf purge slim
+sudo dnf autoremove slim
+sudo systemctl stop slim
+sudo systemctl disable slim
+sudo systemctl stop slim
+sudo nano .config/i3/config 
+sudo systemctl enable lightdm.service 
+sudo systemctl start lightdm.service 
+sudo dnf install i3-gaps
+nmcli radio on
+nmcli radio wifi on
+sudo nmcli radio wifi on
+sudo nmcli connection up WE_M\&Sh 
+nmcli
+sudo nmcli connection up Vodafone_VDSL_AE83_2.4G 
+sudo rfkill unblock wifi
+sudo rfkill unblock all
+sudo rfkill 
+sudo rfkill unblock all
+sudo rfkill 
+sudo rfkill unblock all
+sudo rfkill 
+sudo nmcli radio wifi on
+sudo nmcli connection up WE_M\&Sh 
+sudo modprobe wl
+sudo modprobe wl18xx 
+sudo modprobe wlcore_sdio 
+sudo modprobe rtlwifi 
+poweroff
+ping -c 8.8.8.8
+ping -c 1.1.1.1
+ping  1.1.1.1
+sudo dnf install i3-gaps
+sudo dnf install i3-gaps-0:4.21.1-9.fc42.x86_64
+sudo dnf install  --allowerasing i3-gaps-0:4.21.1-9.fc42.x86_64
+sudo dnf install  --allowerasing --skip-broken i3-gaps-0:4.21.1-9.fc42.x86_64
+sudo dnf install polybar picom feh
+cd .config/
+ls
+cd polybar/
+ls
+sudo dnf install brightnessctl
+nmyui
+
+sudo dnf install NetworkManager-tui
+sudo dnf install rofi
+cat /etc/X11/xorg.conf.d/40-libinput.conf 
+sudo mount /dev/sda1 /mnt/win/
+cd /mnt/win/
+cd Users/MohamedZaki/Pictures/
+ls
+sudo cp 5630.jpg ~/Pictures/1.jpg
+mkdir ~/Pictures/
+sudo cp 5630.jpg ~/Pictures/1.jpg
+cd ~
+sudo dnf install lxappearance
+glx
+sudo dnf install glx
+GLXglx-utils
+picom
+sudo dnf install  
+
+sudo dnf install xinput
+xinput enable "SynPS/2 Synaptics TouchPad"
+xinput list
+xinput enable "SynPS/2 Synaptics TouchPad"
+xinput enable 11
+xinput list-props "SynPS/2 Synaptics TouchPad"
+sudo dnf install xserver-xorg-input-libinput
+sudo cp ~/my\ config/myroot/etc/X11/xorg.conf.d/40-libinput.conf /etc/X11/xorg.conf.d/40-libinput.conf 
+sudo cp ~/my\ config/myroot/etc/X11/xorg.conf.d/70-libinput.conf /etc/X11/xorg.conf.d/70-libinput.conf 
+sudo cp ~/my\ config/myroot/etc/X11/xorg.conf.d/70-synaptics.conf /etc/X11/xorg.conf.d/70-synaptics.conf
+xinput list-props "SynPS/2 Synaptics TouchPad"
+sudo nano /etc/X11/xorg.conf.d/00-keyboard.conf 
+ xinput "SynPS/2 Synaptics TouchPad" 
+ xinput enable "SynPS/2 Synaptics TouchPad" 
+sudo dnf install htop
+setxkbmap -layout us,ar
+setxkbmap -layout us,ara
+glxinfo | grep "OpenGL renderer"
+glxinfo 
+glxinfo | grep "OpenGL renderer"
+sudo dnf install lxappearance
+sudo dnf install  adwaita-gtk2-theme
+sudo dnf install  i3-auto-layout
+sudo dnf install thunar
+cd my\ config/
+cat mynotes.txt 
+nano mynotes.txt 
+cat mynotes.txt 
+nano ~/.config/i3/config 
+nano mynotes.txt 
+nano ~/.config/i3/config 
+nano ~/.config/picom/picom.conf 
+nano ~/.config/i3/config 
+sudo dnf install  adwaita-icon-theme
+sudo dnf install  adwaita-icon-theme-legacy
+ييييييييييي
+nano .config/polybar/kblocks.py 
+nano .config/polybar/config.ini 
+picom
+vim .config/picom/picom.conf 
+picom
+sudo dnf install  adwaita-icon-theme-legacy
+sudo dnf install vim
+sudo dnf install alacritty
+vim 
+alacritty
+vim .config/picom/picom.conf 
+htop
+cd /boot/grub2/
+sudo /boot/grub2/
+sudo cd /boot/grub2/
+ls
+sudo cd /boot/grub2/
+su
+sudo su
+sudo dnf install  --allowerasing i3-gaps-0:4.21.1-9.fc42.x86_64
+sudo dnf remove i3
+sudo dnf install i3-gaps
+ping  1.1.1.1
+sudo nmcli radio wifi on
+sudo nmcli connection up WE_M\&Sh 
+ping  1.1.1.1
+sudo dnf install i3-gaps
+sudo systemctl restart lightdm.service 
+sudo systemctl restart NetworkManager
+sudo rfkill unblock all
+sudo nmcli radio wifi on
+lsmod
+sudo modprobe rtl8xxxu
+nmcli
+nmcli connection up WE_M\&Sh 
+sudo modprobe -r rtl8xxxu
+sudo modprobe rtl8xxxu
+htop
+sudo rfkill unblock all
+sudo rfkill 
+sudo systemctl start NetworkManager
+nmtui
+nmcli device wifi list 
+lsmod | grep rtl
+dmesg | grep firmware
+sudo dmesg | grep firmware
+nmtui
+sudo nmcli radio wifi on
+sudo nmcli networking on
+sudo nmcli radio all on
+sudo ip link set wlp0s29u1u2 up
+sudo ip link set wlp6s0b1 up
+sudo rfkill unblock all
+sudo rfkill 
+sudo nmcli radio 
+sudo nmcli radio wifi on 
+sudo nmcli radio wifi on
+ls
+ls -a
+cd my\ config/
+vim mynotes 
+htop
+ls
+cd my\ config/
+ls -a
+cd myroot/
+cd myhome/
+ls -a
+cd .config/
+ls
+ls -a
+cd ..
+ls -a
+cd .config/
+ls -a
+sudo vim /.config/gtk-3.0/settings.ini
+sudo mkdir -p /.config/gtk-3.0
+sudo vim /.config/gtk-3.0/settings.ini
+sudo modprobe r8169
+sudo systemctl restart NetworkManager
+lspci
+lspci | grep wi
+lspci | grep rtl
+sudo rfkill unblock all
+alacritty
+htop
+sudo rfkill unblock all
+sudo systemctl restart NetworkManager
+sudo rfkill unblock all
+sudo modprobe r8169
+sudo modprobe rtl18192cu
+sudo modprobe -r r8169
+sudo modprobe -r rtl18xxxu
+sudo modprobe -r rt18xxxu
+sudo modprobe -r rtl8xxxu
+sudo vim /etc/resolv.conf 
+nmtui
+sudo dnf install rtl18192cu
+sudo modprobe r rtl8xxxu
+sudo systemctl restart NetworkManager
+nmtui
+sudo dnf install rtl18192cu
+sudo git clone https://github.com/pvaret/rtl18192cu-fixes.git
+sudo dnf install git
+sudo git clone https://github.com/pvaret/rtl18192cu-fixes.git
+sudo dnf install chromium
+cd /mnt/win/
+ls
+sudo grub2-install /dev/sda5
+sudo grub2-mkconfig -o /boot/grub2/grub.cfg
+cd /boot/grub2/
+su
+sudo su
+sudo dd=/dev/zero of /dev/sda bs=446 count=1
+sudo su

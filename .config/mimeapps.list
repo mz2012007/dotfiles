@@ -1,0 +1,9 @@
+[Added Associations]
+image/jpeg=feh.desktop;
+image/png=feh.desktop;
+text/x-matlab=org.xfce.mousepad.desktop;
+application/gzip=userapp-unzip-A6Q6C3.desktop;
+
+[Default Applications]
+image/png=feh.desktop
+application/gzip=userapp-unzip-A6Q6C3.desktop
