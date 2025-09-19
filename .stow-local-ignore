@@ -1,0 +1,11 @@
+setup.log
+my-config
+.gitignore
+.git
+.stow-local-ignore
+install.sh
+packages.txt
+README.md
+.config/dwm
+mybash
+fcrorntab

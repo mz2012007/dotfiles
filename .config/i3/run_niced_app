@@ -1,0 +1,21 @@
+#!/bin/bash
+
+CONFIG="$HOME/.nice_app_config"
+APP_NAME="$1"
+
+# Default nice level
+NICE_LEVEL=0
+
+# Load nice value from config
+if [[ -f "$CONFIG" ]]; then
+    while IFS='=' read -r app val; do
+        if [[ "$app" == "$APP_NAME" ]]; then
+            NICE_LEVEL="$val"
+            break
+        fi
+    done < "$CONFIG"
+fi
+
+# Launch app with nice value
+exec nice -n "$NICE_LEVEL" "$APP_NAME"
+

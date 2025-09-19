@@ -1,0 +1,969 @@
+
+#1749638484
+sudo apt install 
+#1749638535
+nmcli device wifi rescan
+#1749638653
+[200~echo "blacklist wl" | sudo tee -a /etc/modprobe.d/blacklist.conf
+#1749638661
+echo "blacklist wl" | sudo tee -a 
+#1749638675
+vim /etc/modprobe.d/blacklist.conf
+#1749638704
+sudo modprobe -r wl
+#1749638704
+sudo modprobe -r b43
+#1749638718
+sudo modprobe b43 qos=0
+#1749638734
+sudo systemctl restart NetworkManager.service 
+#1749638758
+dmesg | grep b43
+#1749638758
+dmesg | grep wl
+#1749638765
+sudo dmesg | grep wl
+#1749638796
+sudo dmesg | grep b43 wl
+#1749638799
+sudo dmesg | grep b43 
+#1749638803
+sudo dmesg | grep wl
+#1749638894
+vim /etc/modprobe.d/b43.conf
+#1749638952
+sudo vim /etc/modprobe.d/b43.conf
+#1749638986
+sudo nano /etc/default/grub
+#1749639170
+sudo update-grub
+#1749639204
+sudo rfkill unblock wifi
+#1749639214
+sudo systemctl restart NetworkManager.service 
+#1749639360
+sudo nano /etc/default/grub
+#1749639397
+sudo update-grub
+#1749639414
+ls
+#1749639422
+sudo vim /etc/modprobe.d/b43.conf
+#1749639455
+vim /etc/modprobe.d/blacklist.conf
+#1749639491
+sudo vim /etc/modprobe.d/blacklist.conf
+#1749639512
+sudo modprobe wl
+#1749639518
+sudo systemctl restart NetworkManager.service 
+#1749639534
+sudo rfkill unblock wifi
+#1749639557
+nmcli
+#1749639834
+lspci -vvnn | grep -A 9 Network
+#1749639880
+usb-devices
+#1749640174
+sudo nala install firmware-b43legacy-installer
+#1749640251
+sudo modprobe b43legacy
+#1749640257
+sudo systemctl restart NetworkManager.service 
+#1749640272
+sudo rfkill unblock wifi
+#1749640280
+sudo systemctl restart NetworkManager.service 
+#1749640301
+dmesg | grep b43legacy
+#1749640308
+sudo dmesg | grep b43legacy
+#1749640315
+dmesg | grep b43
+#1749640320
+sudo dmesg | grep b43
+#1749640348
+sudo modprobe b43
+#1749640353
+sudo dmesg | grep b43
+#1749640365
+
+#1749640387
+sudo modprobe -r wl
+#1749640401
+sudo modprobe b43legacy
+#1749640408
+lspci -vvnn | grep -A 9 Network
+#1749640426
+sudo modprobe bcma
+#1749640439
+sudo systemctl restart NetworkManager.service 
+#1749640452
+sudo modprobe bcma wl
+#1749640461
+sudo systemctl restart NetworkManager.service 
+#1749640475
+sudo modprobe wl
+#1749640485
+sudo modprobe bcma
+#1749640490
+sudo systemctl restart NetworkManager.service 
+#1749640620
+sudo modprobe brcmsmac
+#1749640635
+sudo modprobe -r b43
+#1749640660
+sudo systemctl restart NetworkManager.service 
+#1749640672
+sudo modprobe brcmsmac
+#1749640684
+lspci -vvnn | grep -A 9 Network
+#1749640784
+sudo modprobe bcma
+#1749640792
+lspci -vvnn | grep -A 9 Network
+#1749640805
+sudo modprobe -r b43
+#1749640806
+lspci -vvnn | grep -A 9 Network
+#1749640815
+sudo systemctl restart NetworkManager.service 
+#1749640819
+lspci -vvnn | grep -A 9 Network
+#1749640827
+sudo modprobe -r b43
+#1749640834
+sudo modprobe -r wl
+#1749640837
+lspci -vvnn | grep -A 9 Network
+#1749640845
+sudo systemctl restart NetworkManager.service 
+#1749640855
+lspci -vvnn | grep -A 9 Network
+#1749640865
+sudo modprobe bcma
+#1749640871
+sudo systemctl restart NetworkManager.service 
+#1749640882
+lspci -vvnn | grep -A 9 Network
+#1749640918
+sudo modprobe b43legacy
+#1749640923
+sudo modprobe bcma
+#1749640927
+sudo systemctl restart NetworkManager.service 
+#1749640934
+lspci -vvnn | grep -A 9 Network
+#1749640940
+sudo modprobe wl
+#1749640943
+sudo systemctl restart NetworkManager.service 
+#1749640950
+lspci -vvnn | grep -A 9 Network
+#1749640967
+sudo modprobe bcma
+#1749640969
+lspci -vvnn | grep -A 9 Network
+#1749640980
+sudo nano /etc/modules
+#1749641014
+sudo iwconfig
+#1749641060
+sudo rfkill list
+#1749641081
+sudo rfkill unblock all
+#1749641083
+sudo rfkill list
+#1749641123
+sudo apt install bcmwl-kernel-source
+#1749641239
+sudo apt install broadcom-sta-source
+#1749641395
+sudo nala install bcmwl-kernel-source
+#1749641434
+lspci -vvnn | grep -A 9 Network
+#1749641440
+sudo systemctl restart NetworkManager.service 
+#1749641498
+wgit http://mirrors.kernel.org/ubuntu/pool/restricted/b/bcmwl/bcmwl-kernel-source_6.30.223.271+bdcom-0ubuntu4_amd64.deb
+#1749641503
+git http://mirrors.kernel.org/ubuntu/pool/restricted/b/bcmwl/bcmwl-kernel-source_6.30.223.271+bdcom-0ubuntu4_amd64.deb
+#1749641579
+wget http://mirrors.kernel.org/ubuntu/pool/restricted/b/bcmwl/bcmwl-kernel-source_6.30.223.271+bdcom-0ubuntu7_amd64.deb
+#1749641585
+ls
+#1749641915
+sudo apt-get install bcmwl-kernel-source
+#1749641984
+wgit http://ports.ubuntu.com/pool/restricted/b/broadcom-sta/broadcom-sta-dkms_6.30.223.271-23ubuntu1.1_all.deb
+#1749641995
+wget http://ports.ubuntu.com/pool/restricted/b/broadcom-sta/broadcom-sta-dkms_6.30.223.271-23ubuntu1.1_all.deb
+#1749642024
+sudo dpkg -i broadcom-sta-dkms_6.30.223.271-23ubuntu1.1_all.deb 
+#1749642219
+sudo nala update & sudo nala upgrade -y
+#1749642379
+xx
+#1749642393
+rm -rf broadcom-sta-dkms_6.30.223.271-23ubuntu1.1_all.deb 
+#1749642461
+sudo apt install bcmwl-kernel-source
+#1749642462
+]
+#1749642466
+sudo apt install broadcom-sta-dkms
+#1749642574
+sudo apt-get install firmware-brcm80211 rfkill
+#1749642589
+sudo /sbin/modprobe brcmsmac -r && /sbin/modprobe brcmsmac
+#1749642608
+sudo modprobe brcmsmac
+#1749642616
+sudo modprobe -r brcmsmac
+#1749642621
+sudo modprobe brcmsmac
+#1749642632
+rfkill unblock all
+#1749642639
+sudo rfkill unblock all
+#1749642654
+sudo systemctl restart NetworkManager.service 
+#1749642698
+nmcli
+#1749642729
+sudo dmesg | grep wl
+#1749642795
+sudo dmesg | grep b43
+#1749642813
+sudo nano /etc/modules
+#1749642859
+nmcli
+#1749642886
+lspci -vvnn | grep Network
+#1749642899
+lspci -vvnn | grep -A Network
+#1749642905
+lspci -vvnn | grep -A9 Network
+#1749642914
+lspci -vvnn | grep -A3 Network
+#1749642923
+lspci -vvnn | grep -A9 Network
+#1749642929
+lspci -vvnn | grep -A9 
+#1749642938
+lspci -vvnn | grep -A9 ethernet
+#1749642943
+lspci -vvnn | grep -A9 Ethernet
+#1749642945
+lspci -vvnn | grep -A9 Ethe
+#1749642947
+lspci -vvnn | grep -A9 Et
+#1749642948
+lspci -vvnn | grep -A9 E
+#1749642983
+lspci -vvnn | grep -A9 R
+#1749642986
+lspci -vvnn | grep -A9 Re
+#1749642989
+lspci -vvnn | grep -A9 Rea
+#1749642992
+lspci -vvnn | grep -A9 Rt
+#1749642994
+lspci -vvnn | grep -A9 R
+#1749645805
+ls
+#1749645815
+./nice_manager.py 
+#1749645947
+vim 
+#1749646320
+sudo vim
+#1749646355
+find vim
+#1749646360
+sudo find vim
+#1749646369
+find neovim
+#1749646372
+find nvim
+#1749646382
+sudo locate vim
+#1749646386
+sudo locate nvim
+#1749646390
+sudo locate /vim
+#1749646525
+cd /usr/local/
+#1749646531
+cd bin/
+#1749646560
+/usr/local/bin/nvim 
+#1749646579
+sudo visudo
+#1749646605
+vim
+#1749646622
+vim /etc/fstab 
+#1749646672
+sudo vim /etc/fstab 
+#1749646690
+cd /usr/bin/
+#1749646717
+rm nvim 
+#1749646723
+sudo vim
+#1749646740
+sudo nala remove nvim
+#1749646749
+sudo nala remove vim
+#1749646791
+sudo vim
+#1749646798
+vim
+#1749646825
+sudo nala remove i3
+#1749646856
+vim .config/i3/config 
+#1749647112
+sudo nala update
+#1749647144
+vim .config/i3/config 
+#1749647373
+sudo flatpak search thorium
+#1749647431
+sudo flatpak update
+#1749647451
+sudo  search thorium
+#1749647512
+sudo flatpak 
+#1749647518
+sudo flatpak remotes
+#1749647527
+sudo flatpak --help
+#1749647549
+sudo flatpak install thorium
+#1749647711
+cd Downloads/
+#1749647723
+sudo dpkg -i thorium-browser_130.0.6723.174_SSE3.deb 
+#1749647967
+dpkj --help
+#1749647976
+dpkg --help
+#1749648124
+sudo apt --fix-broken install
+#1749648174
+sudo apt install -f
+#1749648208
+vim /mnt/win/my/mynotes.txt 
+#1749648265
+vim .config/i3/config 
+#1749648346
+./nice_manager.py 
+#1749648385
+thorium
+#1749648394
+Thorium
+#1749648404
+cd Downloads/
+#1749648412
+sudo dpkg -i thorium-browser_130.0.6723.174_SSE3.deb 
+#1749648636
+thorium
+#1749648650
+thorium-browser
+#1749648829
+vim /mnt/win/my/mynotes.txt 
+#1749648841
+vim .config/i3/config 
+#1749648933
+./nice_manager.py 
+#1749649011
+ls
+#1749648948
+vim nice_manager.py 
+#1749649134
+./nice_manager.py 
+#1749649178
+vim .config/i3/config 
+#1749649105
+htop
+#1749660714
+vim .config/i3/config 
+#1749660781
+vim .bash_history 
+#1749661047
+sudo nala install playerctl
+#1749661157
+sudo nala install vlc
+#1749661199
+mkdir ~/.config/polybar/scripts
+#1749661206
+vim ~/.config/polybar/scripts/vlc-play-pause.sh
+#1749661235
+vim ~/.config/polybar/scripts/vlc-next.sh
+#1749661254
+vim ~/.config/polybar/scripts/vlc-prev.sh
+#1749661337
+sudo chmod +x .config/polybar/scripts/vlc-play-pause.sh .config/polybar/scripts/vlc-prev.sh .config/polybar/scripts/vlc-next.sh 
+#1749661340
+ls
+#1749661346
+ll .config/polybar/scripts/
+#1749661371
+vim ~/.config/polybar/scripts/vlc-status.sh
+#1749661396
+sudo chmod +x ~/.config/polybar/scripts/vlc-status.sh
+#1749661536
+polybar
+#1749661418
+vim .config/polybar/config.ini 
+#1749662198
+ll ~/.config/polybar/scripts/
+#1749662445
+vim .config/polybar/config.ini 
+#1749662508
+vim ~/.config/polybar/scripts/vlc-status.sh
+#1749663459
+vlc --extraintf=dbus
+#1749663609
+vim ~/.config/polybar/scripts/vlc-play-pause.sh
+#1749664032
+polybar
+#1749664458
+vim ~/.config/polybar/scripts/vlc-toggle-icon.sh
+#1749664566
+sudo chmod +x ~/.config/polybar/scripts/vlc-toggle-icon.sh
+#1749664996
+vim ~/.config/polybar/scripts/vlc-toggle-icon.sh
+#1749665174
+rm -rf ~/.config/polybar/scripts/vlc-toggle-icon.sh
+#1749665189
+polybar
+#1749666033
+./nice_manager.py 
+#1749666058
+vim .config/i3/config 
+#1749667470
+vlc
+#1749667497
+vlc --help
+#1749667542
+sudo nala remove vlc
+#1749667681
+parole
+#1749667754
+./nice_manager.py 
+#1749667707
+sudo nala install vlc
+#1749667767
+vim .config/i3/config 
+#1749667883
+parole
+#1749667963
+vim /mnt/win/my/mynotes.txt 
+#1749668156
+sudo nala fetch
+#1749668460
+sudo nala update
+#1749668741
+sudo nala upgrade
+#1749668830
+sudo nala update
+#1749673815
+sudo nala install git build-essential 
+#1749673905
+
+#1749673912
+cd dwm
+#1749673918
+ls
+#1749673937
+cat README 
+#1749674127
+make
+#1749674142
+make clean install
+#1749674151
+sudo make clean install
+#1749674208
+[200~sudo apt install git build-essential libx11-dev libxft-dev libxinerama-dev
+#1749674218
+~sudo nala install git build-essential libx11-dev libxft-dev libxinerama-dev
+#1749674227
+sudo nala install git build-essential libx11-dev libxft-dev libxinerama-dev
+#1749674361
+vim /mnt/win/my/mynotes.txt 
+#1749674506
+ls
+
+
+/usr/share/xsessions/dwm.desktop
+lspci -vvnn | grep -A 9 Network
+sgit clone https://git.suckless.org/dw
+flatpak libx11-dev libxft-dev libxinerama-dev
+
+mudo vim 
+#1749675357
+/usr/local/bin/dwm
+#1749675366
+which dwm
+#1749675380
+sudo systemctl restart lightdm
+#1749675519
+sudo dpkg-reconfigure console-font
+#1749675564
+sudo nala install console-font
+#1749675572
+sudo dpkg-reconfigure console
+#1749675579
+sudo dpkg-reconfigure consol
+#1749675586
+poweroff
+#1749675593
+sudo poweroff
+#1749755181
+sudo nala update
+#1749755730
+exit
+#1749755233
+sudo nala upgrade
+#1749757195
+sudo poweroff
+#1749816273
+sudo nala update
+#1749816349
+vim dwm/config.h 
+#1749816731
+cd dwm/
+#1749816745
+git commit -m
+#1749816754
+sudo git commit -m
+#1749816760
+git commit -m
+#1749816764
+git commit 
+#1749816808
+sudo make clean install
+#1749816817
+git commit -m
+#1749816820
+git commit 
+#1749816941
+vim dwm/config.h 
+#1749816986
+sudo make clean install
+#1749816997
+cd dwm/
+#1749816998
+sudo make clean install
+#1749817028
+vim dwm/config.h 
+#1749817042
+sudo make clean install
+#1749817068
+ls
+#1749817103
+vim config.def.h 
+#1749817151
+cp config.def.h config.h 
+#1749817159
+sudo cp config.def.h config.h 
+#1749817189
+sudo make clean install
+#1749817208
+vim config.h 
+#1749817402
+sudo make clean install
+#1749817417
+ls
+#1749817435
+vim dwm.c
+#1749817459
+sudo make clean install
+#1749817482
+vim dwm.c
+#1749817543
+sudo cp config.def.h config.h 
+#1749817547
+sudo make clean install
+#1749817564
+htop
+#1749817689
+9
+#1749817776
+cd dwm/
+#1749817790
+sudo make clean install
+#1749817807
+vim config.h 
+#1749817964
+sudo make clean install
+#1749818067
+sudo nala install st
+#1749818079
+sudo nala install ST
+#1749818084
+sudo nala install sT
+#1749818088
+st
+#1749818103
+cd dwm/
+#1749818119
+sudo cp config.h config.def.h 
+#1749818395
+alacritty
+#1749818126
+vim config.h 
+#1749818413
+sudo make clean install
+#1749818474
+htop
+#1749818492
+vim config.h 
+#1749818520
+sudo vim config.h 
+#1749818535
+ls
+#1749818547
+cd dwm/
+#1749818549
+vim config.h 
+#1749818595
+sudo make clean install
+#1749818621
+vim config.h 
+#1749818634
+vim dwm/config.h 
+#1749818725
+sudo cp config.h config.def.h 
+#1749818732
+cd dwm/
+#1749818733
+sudo cp config.h config.def.h 
+#1749818756
+exit
+#1749818759
+vim dwm/config.h 
+#1749818775
+vim config.h 
+#1749818794
+sudo cp config.h config.def.h v
+#1749818796
+sudo cp config.h config.def.h 
+#1749818801
+vim config.h 
+#1749818960
+sudo make clean install
+#1749818977
+sudo cp config.def.h config.h
+#1749818979
+sudo make clean install
+#1749818986
+vim config.h 
+#1749819029
+sudo make clean install
+#1749819037
+sudo cp config.h config.def.h 
+#1749819101
+htop
+#1749819130
+cmatrix
+#1749819145
+cmatrix
+#1749819140
+cmatrix
+#1749819225
+htop
+#1749817698
+htop
+#1749842629
+vim config.h 
+#1749842640
+cd dwm/
+#1749842642
+vim config.h 
+#1749842750
+sudo make clean install
+#1749842770
+sudo cp config.def.h config.h
+#1749842800
+thorium
+#1749842815
+chromium
+#1749842924
+ls
+#1749842942
+./nice_manager.py 
+#1749842969
+./nice_manager.py thorium-browser
+#1749842995
+ls
+#1749843045
+.nice_app_config thorium-browser
+#1749843064
+htop
+#1749842776
+vim config.h 
+#1749843154
+htop
+#1749843399
+sudo nala update
+#1749843597
+parole
+#1749843534
+sudo nala upgrade
+#1749843698
+man ca-certificates
+#1749843723
+man certs
+#1749843657
+vim .config/i3/config 
+#1749843782
+htop
+#1749843862
+ls
+#1749843869
+apt --list
+#1749843879
+man apt
+#1749843912
+apt list
+#1749843928
+nala list
+#1749843972
+ll
+#1749844000
+cd /boot/
+#1749844002
+ll
+#1749844011
+cd grub/
+#1749844013
+ll
+#1749844026
+cd /
+#1749844028
+ll
+#1749844086
+cls opt/
+#1749844092
+ls opt/
+#1749844108
+cd opt/chromium.org/
+#1749844115
+cd thorium/
+#1749844136
+thorium*
+#1749844138
+thorium
+#1749844143
+thorium_shell
+#1749844164
+cd opt
+#1749844168
+cd /opt
+#1749844173
+cd nvim-linux-x86_64/
+#1749844177
+cd lib/
+#1749844181
+cd nvim/
+#1749844183
+cd parser/
+#1749844198
+cd /usr/local/bin/
+#1749844202
+ll
+#1749844313
+cd /home/mohamedzaki/linuxtoolbox/
+#1749844316
+cd mybash/
+#1749844334
+mv .bashrc ~
+#1749844343
+sudo mv .bashrc ~
+#1749844348
+ll
+#1749844351
+ll ~
+#1749844766
+sudo nala remove parole
+#1749844822
+sudo nala install parole
+#1749844896
+sudo nala update
+#1749844921
+htop
+#1749844932
+vim .bash_history 
+#1749845912
+ll
+#1749845974
+cd /mnt/win/my/my
+#1749845978
+cd /mnt/win/my/
+#1749845980
+ll
+#1749846003
+sudo chmod a+w mynotes.txt 
+#1749846047
+touch mynotes
+#1749846054
+vim mynotes
+#1749846023
+vim mynotes.txt 
+#1749910331
+sudo nano /etc/lightdm/lightdm.conf
+#1749910602
+cat /usr/share/xsessions/
+#1749910614
+ls /usr/share/xsessions/
+#1749910635
+cd /usr/share/xsessions/
+#1749910640
+cat dwm.desktop 
+#1749910653
+cat x
+#1749910656
+cat xfce.desktop 
+#1749910673
+cat lightdm-xsession.desktop 
+#1749910690
+sudo nano /etc/lightdm/lightdm.conf
+#1749911102
+sudo nala install sddm
+#1749912240
+htop
+#1749912548
+sudo nala install sddm-tools
+#1749912594
+sudo nala search sddm
+#1749912630
+sudo nala install kde-config-sddm
+#1749912648
+sudo nala install sddm-theme-breeze
+#1749913470
+htop
+#1749914770
+h
+#1749914773
+htop
+#1749914787
+sudo nala install hyperland
+#1749914821
+sudo nala search hyper
+#1749915137
+sudo power off
+#1749915148
+sudo poweroff
+#1749915497
+git clone --recursive https://github.com/hyprwm/Hyprland
+#1749915694
+sudo rm -rf Hyprland/
+#1749915699
+git clone --recursive https://github.com/hyprwm/Hyprland
+#1749915914
+cd Hyprland
+#1749915931
+make all && sudo make install
+#1749916206
+sudo nala update
+#1749916529
+wget  https://github.com/Kitware/CMake/releases/download/v3.13.4/cmake-3.13.4.tar.gz
+#1749916591
+cmake --version
+#1749916616
+mkdir -p cmake
+#1749916667
+tar -xvf cmake-3.13.4.tar.gz --strip-components=1 -C cmake/
+#1749916875
+ls
+#1749916886
+cd cmake/
+#1749916930
+./bootstrap --prefix=$PREFIX --parallel=`nproc`
+#1749917289
+./bootstrap
+#1749918830
+make -j$(nproc)
+#1749920217
+sudo make install
+#1749920241
+which cmake
+#1749920268
+export PATH=/usr/local/bin/cmake
+#1749920275
+source ~/.bashrc
+#1749920288
+cmake --version
+#1749920372
+export PATH=/usr/local/bin/cmake:$PATH
+#1749920376
+source ~/.bashrc
+#1749920379
+cmake --version
+#1749920385
+source ~/.bashrc
+#1749920388
+export PATH=/usr/local/bin/cmake:$PATH
+#1749922262
+source ~/.bashrc
+#1749922265
+cmake --version
+#1749922485
+vim mynotes 
+#1749922560
+sudo sed -i "s/bookworm/trixie/g" /etc/apt/sources.list
+#1749922836
+sudo sed -i "s/bookworm/trixie/g" /etc/apt/sources.list.d/nala-sources.list 
+#1749922572
+sudo nala update
+#1749923383
+nala list --upgradable
+#1749923523
+sudo nala install hyperland
+#1749923591
+ls
+#1749923634
+cd /
+#1749923654
+cd home/mohamedzaki/D
+#1749923658
+cd home/mohamedzaki/Downloads/
+#1749923665
+ls -a
+#1749923705
+sudo nala install hyprland
+#1749923742
+man nala
+#1749923854
+sudo nala remove sddm
+#1749923764
+sudo nala upgrade
+#1749923871
+sudo apt remove sddm
+#1749923955
+sudo dpkg-reconfigure lightdm
+#1749923995
+sudo nala upgrade
+#1749924061
+sudo apt upgrade
+#1749924109
+sudo apt autoremove
+#1749924137
+sudo apt purge sddm
+#1749924170
+man apt
+#1749924180
+sudo apt full-upgrade
+#1749924335
+sudo apt autoremove   dnsutils fcitx5-chewing fonts-liberation2 fonts-noto-hinted frameworkintegration g++-12 gdb-minimal gdisk ghp-import gimp-data
+#1749926516
+sudo nala upgrade
+#1749926544
+nmtui
+#1749926606
+sudo poweroff
