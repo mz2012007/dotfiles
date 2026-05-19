@@ -1,0 +1,20 @@
+Backing up var (/dev/vg_main/lv_var)
+  Logical volume "var_snap" created.
+sudo rsync -oarXHv --delete  --exclude=/mnt/backup --exclude=/mnt/snap --exclude=/etc/fstab /mnt/snap/ /mnt/backup/var/daily/Wed-Mar_11-03-2026_11:28:21PM/ echo Running: sudo rsync -oarXHv --delete  --exclude=/mnt/backup --exclude=/mnt/snap --exclude=/etc/fstab /mnt/snap/ /mnt/backup/var/daily/Wed-Mar_11-03-2026_11:28:21PM/
+sending incremental file list
+./
+lock -> ../run/lock
+run -> ../run
+service -> ../run/runit/runsvdir/current
+cache/
+cache/fontconfig/
+cache/fontconfig/3830d5c3ddfd5cd38a049b759396e72e-le64.cache-9
+cache/fontconfig/39a3e9c674effb1661f93a83d6e3313e-le64.cache-9
+cache/fontconfig/7acd34b2bfe9803dd209cdd8a7516717-le64.cache-9
+cache/fontconfig/CACHEDIR.TAG
+cache/ldconfig/
+cache/ldconfig/aux-cache
+cache/xbps/
+cache/xbps/KDSoap-2.2.0_1.x86_64.xbps
+[cleanup] Triggered
+  Logical volume "var_snap" successfully removed.

@@ -1,0 +1,30 @@
+[Added Associations]
+image/jpeg=feh.desktop;
+image/png=feh.desktop;
+text/x-matlab=org.xfce.mousepad.desktop;
+application/gzip=userapp-unzip-A6Q6C3.desktop;
+application/x-fishscript=org.xfce.mousepad.desktop;
+x-scheme-handler/http=userapp-Zen-UJ6GL3.desktop;userapp-Zen-7W45K3.desktop;userapp-Zen-O2FIK3.desktop;
+x-scheme-handler/https=userapp-Zen-UJ6GL3.desktop;userapp-Zen-7W45K3.desktop;userapp-Zen-O2FIK3.desktop;
+x-scheme-handler/chrome=userapp-Zen-UJ6GL3.desktop;userapp-Zen-7W45K3.desktop;userapp-Zen-O2FIK3.desktop;
+text/html=userapp-Zen-O2FIK3.desktop;userapp-Zen-7W45K3.desktop;userapp-Zen-UJ6GL3.desktop;
+application/x-extension-htm=userapp-Zen-O2FIK3.desktop;userapp-Zen-7W45K3.desktop;userapp-Zen-UJ6GL3.desktop;
+application/x-extension-html=userapp-Zen-O2FIK3.desktop;userapp-Zen-7W45K3.desktop;userapp-Zen-UJ6GL3.desktop;
+application/x-extension-shtml=userapp-Zen-O2FIK3.desktop;userapp-Zen-7W45K3.desktop;userapp-Zen-UJ6GL3.desktop;
+application/xhtml+xml=userapp-Zen-O2FIK3.desktop;userapp-Zen-7W45K3.desktop;userapp-Zen-UJ6GL3.desktop;
+application/x-extension-xhtml=userapp-Zen-O2FIK3.desktop;userapp-Zen-7W45K3.desktop;userapp-Zen-UJ6GL3.desktop;
+application/x-extension-xht=userapp-Zen-O2FIK3.desktop;userapp-Zen-7W45K3.desktop;userapp-Zen-UJ6GL3.desktop;
+
+[Default Applications]
+image/png=feh.desktop
+application/gzip=userapp-unzip-A6Q6C3.desktop
+x-scheme-handler/http=userapp-Zen-UJ6GL3.desktop
+x-scheme-handler/https=userapp-Zen-UJ6GL3.desktop
+x-scheme-handler/chrome=userapp-Zen-UJ6GL3.desktop
+text/html=userapp-Zen-UJ6GL3.desktop
+application/x-extension-htm=userapp-Zen-UJ6GL3.desktop
+application/x-extension-html=userapp-Zen-UJ6GL3.desktop
+application/x-extension-shtml=userapp-Zen-UJ6GL3.desktop
+application/xhtml+xml=userapp-Zen-UJ6GL3.desktop
+application/x-extension-xhtml=userapp-Zen-UJ6GL3.desktop
+application/x-extension-xht=userapp-Zen-UJ6GL3.desktop

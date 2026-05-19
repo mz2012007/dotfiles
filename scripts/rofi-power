@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+options="⏻ Poweroff\n Reboot\n⏾ Hibernate\n Sleep\n Lock\n Logout"
+
+#chosen=$(echo -e "$options" | rofi -dmenu -i -p "Power Menu" -theme-str 'window {width: 20%;}')
+chosen=$(echo -e "$options" | rofi -dmenu -i -p "Power Menu" -theme ~/.config/rofi/themes/power-menu.rasi)
+
+case "$chosen" in
+"⏻ Poweroff") sudo umount ~/.cache && sync && poweroff ;;
+" Reboot") sudo umount ~/.cache && sync && reboot ;;
+"⏾ Hibernate") zzz -Z ;;
+" Sleep") loginctl suspend ;;
+" Lock") i3lock -c 000000 ;;
+" Logout") loginctl terminate-user "$USER" ;;
+*) exit 0 ;;
+esac

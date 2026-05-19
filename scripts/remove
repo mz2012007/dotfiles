@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+
+IFS=$'\n\t'
+
+TARGET="$2"
+PATTERN="$1"
+
+if [[ -z $PATTERN ]] || [[ -z $TARGET ]]; then
+  echo "Usage: $0 <name> <dir>"
+  exit 1
+
+else
+
+  if [[ "$TARGET" == "/" ]]; then
+    if ! sudo -v; then
+      echo "Failed to authenticate with sudo — exiting."
+      exit 1
+    fi
+  fi
+
+  find "$TARGET" -name "*$PATTERN*" -print
+  echo "for deleting wright (yes) any another is not deleted "
+  read answer
+
+  if [[ "$answer" == "yes" ]]; then
+    if [[ "$TARGET" == "/" ]]; then
+      sudo find "$TARGET" -name "*$PATTERN*" -exec rm -rf -- '{}' +
+    else
+      find "$TARGET" -name "*$PATTERN*" -exec rm -rf -- '{}' +
+    fi
+    echo "deleted successfully ✅"
+  else
+    echo "not deleted ❌"
+  fi
+
+fi

@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+
+# tmux session template: dev
+# Purpose: development workspace
+
+SESSION="normal"
+
+# Check if session already exists
+tmux has-session -t "$SESSION" 2>/dev/null
+if [ $? -eq 0 ]; then
+  tmux attach -t "$SESSION"
+  exit 0
+fi
+
+# Create new detached session
+tmux new-session -d -s "$SESSION" -n 1f
+
+##### Window 1: editor #####
+tmux send-keys -t "$SESSION:1f" "cd ~ && clear" C-m
+
+##### Window 2: shell #####
+tmux new-window -t "$SESSION" -n 2f
+tmux send-keys -t "$SESSION:2f" "cd ~ && clear" C-m
+
+##### Window 3: git #####
+tmux new-window -t "$SESSION" -n 3f
+tmux send-keys -t "$SESSION:3f" "cd ~ && clear" C-m
+
+##### Window 4: monitor #####
+tmux new-window -t "$SESSION" -n btop
+tmux send-keys -t "$SESSION:btop" "cd ~ && clear && sb" C-m
+
+##### Window 5: monitor #####
+tmux new-window -t "$SESSION" -n logs
+tmux send-keys -t "$SESSION:logs" "cd ~ && clear && logs" C-m
+
+# Select default window
+tmux select-window -t "$SESSION:1f"
+
+# Attach to session
+tmux attach -t "$SESSION"
+
+#######################################
+# this is window 1: main workspace
+# this is editor + shell + misc panes
+#######################################
+
+# Layout:
+# +----------------------+
+# |        nvim          |
+# +-----------+----------+
+# |   shell   |   misc   |
+# +-----------+----------+
+#
+
+# this is starting the editor in the main pane
+#tmux send-keys -t "$SESSION:main" "cd ~/projects && nvim" C-m
+
+# this is splitting the window horizontally
+#tmux split-window -v -t "$SESSION:main"
+
+# this is splitting the bottom pane vertically
+#tmux split-window -h -t "$SESSION:main.1"
+
+# this is starting a shell in the left bottom pane
+#tmux send-keys -t "$SESSION:main.2" "cd ~/projects" C-m
+
+# this is preparing a misc pane
+#tmux send-keys -t "$SESSION:main.3" "clear" C-m
+
+# this is normalizing the layout
+#tmux select-layout -t "$SESSION:main" tiled

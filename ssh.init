@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+# ssh-setup.sh
+# Automated SSH setup for GitHub using ed25519 keys
+# - Generates SSH key if missing
+# - Starts ssh-agent
+# - Adds key to agent
+# - Prints public key for GitHub
+# - Optionally configures ~/.ssh/config
+#
+# Usage:
+#   ./ssh-setup.sh [email] [device-name]
+
+set -euo pipefail
+IFS=$'\n\t'
+
+EMAIL="${1:-user@example.com}"
+DEVICE_NAME="${2:-$(hostname)}"
+KEY_TYPE="ed25519"
+KEY_FILE="${HOME}/.ssh/id_${KEY_TYPE}"
+SSH_CONFIG="${HOME}/.ssh/config"
+
+info() { printf 'ℹ️  %s\n' "$*"; }
+warn() { printf '⚠️  %s\n' "$*"; }
+error() {
+  printf '❌ %s\n' "$*"
+  exit 1
+}
+
+# Ensure ssh exists
+command -v ssh >/dev/null 2>&1 || error "ssh is not installed."
+command -v ssh-keygen >/dev/null 2>&1 || error "ssh-keygen is not installed."
+
+# Create ~/.ssh if missing
+if [ ! -d "${HOME}/.ssh" ]; then
+  info "Creating ~/.ssh directory"
+  mkdir -p "${HOME}/.ssh"
+  chmod 700 "${HOME}/.ssh"
+fi
+
+# Generate SSH key if missing
+if [ ! -f "$KEY_FILE" ]; then
+  info "Generating SSH key (${KEY_TYPE})"
+  ssh-keygen -t "$KEY_TYPE" -C "${EMAIL}@${DEVICE_NAME}" -f "$KEY_FILE" -N ""
+else
+  info "SSH key already exists: $KEY_FILE"
+fi
+
+# Start ssh-agent if not running
+if [ -z "${SSH_AUTH_SOCK:-}" ]; then
+  info "Starting ssh-agent"
+  eval "$(ssh-agent -s)"
+fi
+
+# Add key to agent
+if ssh-add -l | grep -q "$KEY_FILE"; then
+  info "SSH key already added to agent"
+else
+  info "Adding SSH key to agent"
+  ssh-add "$KEY_FILE"
+fi
+
+# Configure SSH config for GitHub
+if [ ! -f "$SSH_CONFIG" ] || ! grep -q "Host github.com" "$SSH_CONFIG"; then
+  info "Configuring ~/.ssh/config for GitHub"
+  {
+    echo ""
+    echo "Host github.com"
+    echo "  HostName github.com"
+    echo "  User git"
+    echo "  IdentityFile ${KEY_FILE}"
+    echo "  IdentitiesOnly yes"
+  } >>"$SSH_CONFIG"
+  chmod 600 "$SSH_CONFIG"
+else
+  info "~/.ssh/config already configured for GitHub"
+fi
+
+# Final instructions
+echo ""
+info "Public SSH key (add this to GitHub → Settings → SSH keys):"
+echo "--------------------------------------------------------"
+cat "${KEY_FILE}.pub"
+echo "--------------------------------------------------------"
+echo ""
+info "Test connection with:"
+echo "  ssh -T git@github.com"
+
+ssh -T git@github.com

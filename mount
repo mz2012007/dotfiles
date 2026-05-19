@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+
+#sudo mount --bind /dev /mnt/rootfs/dev
+#sudo mount --bind /dev/pts /mnt/rootfs/dev/pts
+#sudo mount --bind /proc /mnt/rootfs/proc
+#sudo mount --bind /sys /mnt/rootfs/sys
+#sudo mount --bind /run /mnt/rootfs/run
+#sudo mount --bind /var /mnt/rootfs/var   
+
+#sudo umount  /mnt/rootfs/dev
+#sudo umount  /mnt/rootfs/dev/pts
+#sudo umount  /mnt/rootfs/proc
+#sudo umount  /mnt/rootfs/sys
+#sudo umount  /mnt/rootfs/run
+#sudo umount  /mnt/rootfs/var   
+umount(){
+umount /mnt/rootfs/run                                                                          ✘ INT  11:26:56 PM 
+umount /mnt/rootfs/sys
+umount /mnt/rootfs/proc
+umount /mnt/rootfs/dev
+umount /mnt/rootfs
+}
+
+mount(){
+mount --bind /dev  /mnt/rootfs/dev
+mount --bind /proc /mnt/rootfs/proc
+mount --bind /sys  /mnt/rootfs/sys
+mount --bind /run  /mnt/rootfs/run
+}
+
+mount

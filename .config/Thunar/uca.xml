@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<actions>
+<action>
+	<icon>utilities-terminal</icon>
+	<name>Open Terminal Here</name>
+	<submenu></submenu>
+	<unique-id>1758379942057139-1</unique-id>
+	<command>exo-open --working-directory %f --launch TerminalEmulator</command>
+	<description>Example for a custom action</description>
+	<range></range>
+	<patterns>*</patterns>
+	<startup-notify/>
+	<directories/>
+</action>
+<action>
+	<icon></icon>
+	<name>mount</name>
+	<submenu></submenu>
+	<unique-id>1760096928974329-1</unique-id>
+	<command>udisksctl mount -b /dev/sdb1</command>
+	<description>mount</description>
+	<range>*</range>
+	<patterns>*</patterns>
+</action>
+</actions>

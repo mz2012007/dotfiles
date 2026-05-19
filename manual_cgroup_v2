@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+# =========================
+# Root cgroup v2 limiter
+# - Memory limit
+# - CPU core isolation
+# - GUI app as normal user
+# =========================
+
+export DISPLAY=:0
+
+set -e
+
+CGROUP_NAME="myapp"
+TARGET_USER="${SUDO_USER:-$USER}" # original user
+
+set_cpu_limit() {
+  # Set CPU limit for a cgroup based on percentage (0-100)
+  # Usage: set_cpu_limit <cgroup_path> <percent>
+  PERIOD=100000
+
+  # Special case: 100% = no limit
+  if [ "$PERCENT" -eq 100 ]; then
+    echo "max $PERIOD" >"/sys/fs/cgroup/$CGROUP_NAME/cpu.max"
+    return 0
+  fi
+
+  # Calculate quota
+  QUOTA=$((PERCENT * PERIOD / 100))
+  echo "$QUOTA $PERIOD" >"/sys/fs/cgroup/$CGROUP_NAME/cpu.max"
+}
+
+# ---- check args ----
+if [ "$#" -lt 4 ]; then
+  echo "Usage: $0 <memory_in_MB> <cpu_core> <limit_cpu_1..100> <command> [args...]"
+  exit 1
+fi
+
+MEM_MB="$1"
+CPU_CORE="$2"
+PERCENT="$3"
+shift 3
+CMD=("$@")
+
+MEM_BYTES=$((MEM_MB * 1024 * 1024))
+
+# ---- enable controllers ----
+echo +memory +cpu +cpuset 2>/dev/null >/sys/fs/cgroup/cgroup.subtree_control || true
+
+# ---- create cgroup ----
+mkdir -p /sys/fs/cgroup/$CGROUP_NAME
+#trap
+
+# ---- set memory limit ----
+echo "$MEM_BYTES" >/sys/fs/cgroup/$CGROUP_NAME/memory.max
+
+# ---- set cpuset (core + mem node 0) ----
+echo "$CPU_CORE" >/sys/fs/cgroup/$CGROUP_NAME/cpuset.cpus
+echo 0 >/sys/fs/cgroup/$CGROUP_NAME/cpuset.mems
+set_cpu_limit
+
+# ---- recursive function for PID tree ----
+pidtree() {
+  local parent=$1
+  echo -n "$parent "
+  for child in $(ps -o pid= --ppid "$parent"); do
+    pidtree "$child"
+  done
+}
+
+# ---- run app as normal user ----
+sudo -u "$TARGET_USER" "${CMD[@]}" &
+PID=$!
+
+# ---- attach main PID + children recursively ----
+while kill -0 "$PID" 2>/dev/null; do
+  for p in $(pidtree $PID); do
+    echo $p >/sys/fs/cgroup/$CGROUP_NAME/cgroup.procs 2>/dev/null || true
+  done
+  sleep 1
+done
+
+echo "Started: ${CMD[*]} (as $TARGET_USER)"
+echo "PID: $PID"
+echo "Memory limit: ${MEM_MB}MB"
+echo "CPU core: $CPU_CORE"
+
+# ---- wait for main process ----
+wait $PID

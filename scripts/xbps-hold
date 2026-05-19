@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+pack=(
+  wifi-firmware
+  linux
+  linux-firmware-broadcom
+  linux-firmware-network
+  linux6.12
+  linux-firmware-amd
+  linux-firmware-intel
+  linux-firmware-nvidia
+)
+
+for app in "${pack[@]}"; do
+  sudo xbps-pkgdb -m hold $app
+done

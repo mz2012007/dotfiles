@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+#!/bin/bash
+# sway-clipboard-rofi-every.sh
+# Save every clipboard copy, true multiline, no duplicates skipped
+
+CLIP_DIR="$HOME/.cache/clipmanager"
+mkdir -p "$CLIP_DIR"
+
+# Add clipboard entry
+if [[ "$1" == "add" ]]; then
+  NEW=$(wl-paste -n)
+  [[ -z "$NEW" ]] && exit
+
+  # Save as separate file every time (even لو نفس المحتوى)
+  FNAME=$(date +%s%N)
+  echo "$NEW" >"$CLIP_DIR/$FNAME"
+
+  # Keep last 100 entries
+  ls -1t "$CLIP_DIR" | tail -n +101 | xargs -r rm -f
+  exit
+fi
+
+# Build Rofi menu (preview first line, 50 chars)
+FILES=($(ls -1t "$CLIP_DIR"))
+MENU=""
+for f in "${FILES[@]}"; do
+  PREVIEW=$(head -n 1 "$CLIP_DIR/$f" | cut -c1-50)
+  MENU+="$PREVIEW [$f]\n"
+done
+
+CHOICE=$(echo -e "$MENU" | rofi -dmenu -i -p "Clipboard:")
+
+if [[ -n "$CHOICE" ]]; then
+  FILE=$(echo "$CHOICE" | sed -E 's/.*\[(.*)\]$/\1/')
+  [[ -f "$CLIP_DIR/$FILE" ]] && cat "$CLIP_DIR/$FILE" | wl-copy
+fi

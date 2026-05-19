@@ -1,0 +1,394 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+# ==========================================
+# Colors
+# ==========================================
+
+RED="\e[1;31m"
+GREEN="\e[1;32m"
+YELLOW="\e[1;33m"
+BLUE="\e[1;34m"
+CYAN="\e[1;36m"
+MAGENTA="\e[1;35m"
+DIM="\e[2m"
+RESET="\e[0m"
+
+# ==========================================
+# Flags
+# ==========================================
+
+DRY_RUN=0
+FORCE=0
+INTERACTIVE=0
+
+# ==========================================
+# Stats
+# ==========================================
+
+DONE=0
+FAILED=0
+SKIPPED=0
+TOTAL=0
+
+# Stored in MB
+TOTALSIZE=0
+
+ARGS=()
+
+# ==========================================
+# Protected paths
+# ==========================================
+
+PROTECTED_PATHS=(
+  "/"
+  "/usr"
+  "/etc"
+  "/bin"
+  "/sbin"
+  "/lib"
+  "/lib64"
+  "/boot"
+  "/dev"
+  "/proc"
+  "/sys"
+  "$HOME"
+)
+
+# ==========================================
+# Check dependencies
+# ==========================================
+
+if ! command -v gio &>/dev/null; then
+  printf "%b" \
+    "${RED}Error:${RESET} gio not found\n"
+
+  exit 1
+fi
+
+if ! command -v realpath &>/dev/null; then
+  printf "%b" \
+    "${RED}Error:${RESET} realpath not found\n"
+
+  exit 1
+fi
+
+# ==========================================
+# Parse arguments
+# ==========================================
+
+while [[ $# -gt 0 ]]; do
+
+  case "$1" in
+
+  --dry-run | -n)
+    DRY_RUN=1
+    shift
+    ;;
+
+  --force | -f)
+    FORCE=1
+    shift
+    ;;
+
+  --interactive | -i)
+    INTERACTIVE=1
+    shift
+    ;;
+
+  --help | -h)
+
+    cat <<EOF
+Usage:
+  rm-safe [options] files...
+
+Options:
+  -n, --dry-run       Preview only
+  -f, --force         Skip large file confirmation
+  -i, --interactive   Ask before every delete
+  -h, --help          Show help
+EOF
+
+    exit 0
+    ;;
+
+  *)
+    ARGS+=("$1")
+    shift
+    ;;
+
+  esac
+
+done
+
+set -- "${ARGS[@]}"
+
+# ==========================================
+# No arguments
+# ==========================================
+
+if [[ $# -eq 0 ]]; then
+
+  printf "%b" \
+    "${RED}rm:${RESET} missing operand\n"
+
+  exit 1
+fi
+
+TOTAL=$#
+
+# ==========================================
+# Main loop
+# ==========================================
+
+for file in "$@"; do
+
+  echo
+
+  # ==========================================
+  # Resolve path
+  # ==========================================
+
+  resolved=$(realpath -m -- "$file")
+
+  # ==========================================
+  # Protected path check
+  # ==========================================
+
+  for protected in "${PROTECTED_PATHS[@]}"; do
+
+    if [[ "$resolved" == "$protected" ]]; then
+
+      printf "%b" \
+        "${RED}Refusing protected path:${RESET} ${YELLOW}$file${RESET}\n"
+
+      FAILED=$((FAILED + 1))
+      continue 2
+    fi
+
+  done
+
+  # ==========================================
+  # Existence check
+  # ==========================================
+
+  if [[ ! -e "$file" && ! -L "$file" ]]; then
+
+    printf "%b" \
+      "${RED}✖ Not found:${RESET} ${DIM}$file${RESET}\n"
+
+    FAILED=$((FAILED + 1))
+    continue
+  fi
+
+  # ==========================================
+  # Prevent deleting current working directory
+  # ==========================================
+
+  cwd=$(pwd -P)
+
+  if [[ "$resolved" == "$cwd" ]]; then
+
+    printf "%b" \
+      "${RED}Refusing current working directory:${RESET} ${YELLOW}$file${RESET}\n"
+
+    FAILED=$((FAILED + 1))
+    continue
+  fi
+
+  # ==========================================
+  # File type
+  # ==========================================
+
+  if [[ -d "$file" ]]; then
+
+    icon="📁"
+    color="$BLUE"
+
+  elif [[ -L "$file" ]]; then
+
+    icon="🔗"
+    color="$CYAN"
+
+  else
+
+    icon="📄"
+    color="$GREEN"
+
+  fi
+
+  # ==========================================
+  # Size calculation
+  # ==========================================
+
+  size_mb=0
+
+  if [[ -f "$file" ]]; then
+
+    size_bytes=$(stat --format=%s -- "$file" 2>/dev/null || echo 0)
+
+    size_mb=$(((size_bytes + 1048575) / 1048576))
+
+  elif [[ -d "$file" ]]; then
+
+    size_mb=$(du -sm -- "$file" 2>/dev/null | awk '{print $1}' || echo 0)
+    size_mb=${size_mb:-0}
+
+  fi
+
+  TOTALSIZE=$((TOTALSIZE + size_mb))
+
+  # ==========================================
+  # Pretty size
+  # ==========================================
+
+  if ((size_mb >= 1024)); then
+
+    pretty_size="$(awk "BEGIN {printf \"%.2f\", $size_mb / 1024}") GB"
+
+  else
+
+    pretty_size="${size_mb} MB"
+
+  fi
+
+  # ==========================================
+  # Preview
+  # ==========================================
+
+  printf "%b" \
+    "${color}${icon} $file${RESET} ${DIM}(${pretty_size})${RESET}\n"
+
+  # ==========================================
+  # Dry run
+  # ==========================================
+
+  if ((DRY_RUN == 1)); then
+
+    printf "%b" \
+      "${YELLOW}[DRY RUN] Skipped${RESET}\n"
+
+    SKIPPED=$((SKIPPED + 1))
+    continue
+
+  fi
+
+  # ==========================================
+  # Interactive mode
+  # ==========================================
+
+  if ((INTERACTIVE == 1)); then
+
+    read -rp "Delete this item? [y/N] " confirm
+
+    if [[ "${confirm,,}" != "y" ]]; then
+
+      printf "%b" \
+        "${YELLOW}Skipped${RESET}\n"
+
+      SKIPPED=$((SKIPPED + 1))
+      continue
+
+    fi
+
+  fi
+
+  # ==========================================
+  # Large file confirmation
+  # ==========================================
+
+  if ((size_mb >= 1024 && FORCE == 0)); then
+
+    printf "%b" \
+      "${RED}⚠ Large file detected${RESET}\n"
+
+    read -rp "Delete? [y/N] " confirm
+
+    if [[ "${confirm,,}" != "y" ]]; then
+
+      printf "%b" \
+        "${YELLOW}Skipped${RESET}\n"
+
+      SKIPPED=$((SKIPPED + 1))
+      continue
+
+    fi
+
+  fi
+
+  # ==========================================
+  # Trash operation
+  # ==========================================
+
+  printf "%b" \
+    "${MAGENTA}🗑 Moving to trash...${RESET}\n"
+
+  if gio trash -- "$file"; then
+
+    printf "%b" \
+      "${GREEN}✔ Success${RESET}\n"
+
+    DONE=$((DONE + 1))
+
+  else
+
+    printf "%b" \
+      "${RED}✖ Failed${RESET}\n"
+
+    FAILED=$((FAILED + 1))
+
+  fi
+
+done
+
+echo
+
+# ==========================================
+# Pretty total size
+# ==========================================
+
+if ((TOTALSIZE >= 1024)); then
+
+  TOTALSIZE_PRETTY="$(awk "BEGIN {printf \"%.2f\", $TOTALSIZE / 1024}") GB"
+
+else
+
+  TOTALSIZE_PRETTY="${TOTALSIZE} MB"
+
+fi
+
+# ==========================================
+# Summary
+# ==========================================
+
+printf "%b" \
+  "${MAGENTA}========== Summary ==========${RESET}\n"
+
+printf "%b" \
+  "${CYAN}Total:${RESET}       $TOTAL\n"
+
+printf "%b" \
+  "${GREEN}Done:${RESET}        $DONE\n"
+
+printf "%b" \
+  "${RED}Failed:${RESET}      $FAILED\n"
+
+printf "%b" \
+  "${YELLOW}Skipped:${RESET}     $SKIPPED\n"
+
+printf "%b" \
+  "${BLUE}Total Size:${RESET}  $TOTALSIZE_PRETTY\n"
+
+printf "%b" \
+  "${MAGENTA}=============================${RESET}\n"
+
+# ==========================================
+# Exit code
+# ==========================================
+
+if ((FAILED > 0)); then
+  exit 1
+fi
+
+exit 0

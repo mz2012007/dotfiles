@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+
+PACK=(
+  linux-firmware-amd
+  linux-firmware-broadcom
+  linux-firmware-intel
+  linux-firmware-network
+  linux-firmware-nvidia
+  linux6.12
+  zen-browser
+  chromium
+  qemu-user
+  qemu-user-aarch64
+  qemu-user-aarch64_be
+  qemu-user-alpha
+  qemu-user-amd64
+  qemu-user-arm
+  qemu-user-armeb
+  qemu-user-hexagon
+  qemu-user-hppa
+  qemu-user-i386
+  qemu-user-loongarch64
+  qemu-user-m68k
+  qemu-user-microblaze
+  qemu-user-microblazeel
+  qemu-user-mips
+  qemu-user-mips64
+  qemu-user-mips64el
+  qemu-user-mipsel
+  qemu-user-mipsn32
+  qemu-user-mipsn32el
+  qemu-user-or1k
+  qemu-user-ppc
+  qemu-user-ppc64
+  qemu-user-ppc64le
+  qemu-user-riscv32
+  qemu-user-riscv64
+  qemu-user-s390x
+  qemu-user-sh4
+  qemu-user-sh4eb
+  qemu-user-sparc
+  qemu-user-sparc32plus
+  qemu-user-sparc64
+  qemu-user-static
+  qemu-user-xtensa
+  qemu-user-xtensaeb
+  linux7.0
+  linux6.18
+)
+
+for i in "${PACK[@]}"; do
+  echo $i
+  sudo xbps-pkgdb -m hold $i
+done

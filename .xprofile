@@ -1,0 +1,35 @@
+xinput enable 12
+export ZDOTDIR="$HOME/.config/zsh"
+export TERMINAL="alacritty"
+export EDITOR="nvim"
+
+source $HOME/.config/zsh/.zshrc
+
+setxkbmap -layout us,ara -option 'grp:alt_shift_toggle'
+
+xrdb -merge ~/.Xresources
+
+xset -b
+
+xset s off
+xset -dpms
+
+xsetroot -cursor_name left_ptr
+
+export QT_QPA_PLATFORMTHEME=qt5ct
+export GTK_THEME=Adwaita-dark
+
+pgrep -x picom >/dev/null || picom &
+pgrep -x dunst >/dev/null || dunst &
+pgrep -x volumeicon >/dev/null || volumeicon &
+
+nm-applet &
+blueman-applet &
+dunst &
+~/fcronscripts/time/time.sh &
+~/.config/conky/launc.sh &
+/usr/libexec/xfce-polkit &
+nice -n 10 ionice -c2 -n7 flameshot &
+nice -n 10 ionice -c2 -n7 feh --bg-scale ~/Pictures/antarctica-iceberg-ocean.jpg &
+nice -n 10 ionice -c2 -n7 picom --config ~/.config/picom/picom.conf &
+mpd &

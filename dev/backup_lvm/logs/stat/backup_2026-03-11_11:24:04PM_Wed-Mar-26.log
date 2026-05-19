@@ -1,0 +1,30 @@
+Backing up var (/dev/vg_main/lv_var)
+  Logical volume "var_snap" created.
+rsync /mnt/snap/ /mnt/backup/var/daily/Wed-Mar_11-03-2026_11:24:07PM/
+skipping directory .
+Removing snapshot /dev/vg_main/var_snap
+  Logical volume "var_snap" successfully removed.
+Backup of var completed
+Backing up home (/dev/vg_main/lv_home)
+  Logical volume "home_snap" created.
+rsync /mnt/snap/ /mnt/backup/home/daily/Wed-Mar_11-03-2026_11:24:07PM/
+skipping directory .
+Removing snapshot /dev/vg_main/home_snap
+  Logical volume "home_snap" successfully removed.
+Backup of home completed
+Backing up root (/dev/vg_main/lv_root)
+  Logical volume "root_snap" created.
+rsync /mnt/snap/ /mnt/backup/root/daily/Wed-Mar_11-03-2026_11:24:07PM/
+skipping directory .
+Removing snapshot /dev/vg_main/root_snap
+  Logical volume "root_snap" successfully removed.
+Backup of root completed
+Pruning old backup: 
+Pruning old backup: 
+Pruning old backup: 
+Pruning old backup: 
+Pruning old backup: 
+Pruning old backup: 
+Generating grub...
+Generating grub config...
+[cleanup] Triggered

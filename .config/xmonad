@@ -1,0 +1,6 @@
+clear-package-db
+global-package-db
+package-db /home/mz/.local/state/cabal/store/ghc-9.8.4/package.db
+package-id base-4.19.2.0-fa65
+package-id xmonad-0.18.0-565372828ba863572d6ef617e044d1a49a220b9ce9ce63745fcce5d0bc10e7ce
+package-id xmonad-contrib-0.18.1-facecc22de99aac6b3a617edae755caa5c3141ff0b2d8a59d61e22d66e1431de

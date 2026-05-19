@@ -1,0 +1,4 @@
+#!/bin/sh
+exec /usr/local/bin/restore-chromium.sh
+exec /usr/local/bin/save-chromium.sh
+

@@ -1,0 +1,1733 @@
+https://github.com/mz2012007/runit-service-manager/
+https://github.com/mz2012007/dotfiles/
+https://github.com/mz2012007/mpv/
+https://github.com/mz2012007/void-xbps/
+https://github.com/mz2012007/
+
+https://raw.githubusercontent.com/mz2012007/void-xbps/refs/heads/main/x86_64
+
+
+https://minhaskamal.github.io/DownGit/
+
+
+                [ bash scripting ] 
+#!/usr/bin/env bash
+
+set -f        # disable globbing
+set +f        # enable globbing
+
+
+==  !=  >  <  -z  -n  
+-eq  -ne  -gt  -lt  -ge  -le 
+-e  -f  -L  -h  -r  -w  -x  -s  -k  -c  -b 
+&&  ||    
+
+!  $0 $1 $$ $# $? $@ $* 
+
+read -t 10 -sp "What is your password : " user_password
+
+date +"%Y-%m-%d %I:%H:%M %P"
+
+#-----------------------------------------------------------------------------------------------
+
+var="Mohamed"
+var2="Zaki"
+
+if [ "var" = "var2" ] && [ "var" > "var2" ]; then
+  echo $var
+elif [[ var != var2 && (var > var2 || var == var2) ]]; then
+  echo
+elif [ "var" != "var2" -a \( "var" > "var2" -o "var" == "var2" \) ]; then
+  exit 1
+else 
+  echo $(date)
+fi
+
+#-----------------------------------------------------------------------------------------------
+
+my_func(){
+local var="m       p"
+echo "$var"
+}
+
+my_func
+
+#-----------------------------------------------------------------------------------------------
+
+base_dir=$(mktemp -d)
+trap "rm -rf $base_dir" EXIT
+
+TMP_DIRS=()
+trap 'for d in "${TMP_DIRS[@]}"; do rm -rf "$d"; done' EXIT
+
+shutdown_dir=$(mktemp -d)
+TMP_DIRS+=("$shutdown_dir")
+
+#-----------------------------------------------------------------------------------------------
+
+for s in /var/service/*; do
+  service=$(basename "$s")
+  status=$(sudo sv status "$service")
+  if [[ $status == down* ]]; then
+    sudo mkdir "$base_dir/$service"
+  fi
+done
+
+#-----------------------------------------------------------------------------------------------
+
+sudo -v            
+while true; do
+  sudo -v
+  sleep 60
+done &
+SUDO_REFRESH_PID=$!
+
+#-----------------------------------------------------------------------------------------------
+
+while true; do
+  
+done
+
+#-----------------------------------------------------------------------------------------------
+
+    case $option in
+    e) sudo ln -s "/etc/sv/$service" "/var/service/" && echo "$service has been enabled" ;;
+    esac
+
+#-----------------------------------------------------------------------------------------------
+
+    if [[ -z "$service" ]]; then
+      echo "Empty service name, skipping..."
+      continue
+    elif [[ ! -e "/etc/sv/$service" ]]; then
+      echo "Service '$service' not found in /etc/sv/, skipping..."
+      continue
+    fi
+
+#-----------------------------------------------------------------------------------------------
+
+select service in "${services[@]}"; do
+    if [[ "$service" == "quit" ]]; then
+        echo "خروج..."
+        break
+    elif [[ -n "$service" ]]; then
+        echo "اخترت الخدمة: $service"
+    else
+        echo "اختيار غير صالح، جرب مرة ثانية."
+    fi
+done
+
+#-----------------------------------------------------------------------------------------------
+
+wait-for-choise() {
+  read -n 1 key
+  echo
+  if [[ $key == "$choise1" ]]; then
+    eval $option1
+  elif [[ $key == "$choise2" ]]; then
+    eval $option2
+  fi
+}
+
+choise1="y"
+option1='echo "y"'
+choise2="n"
+option2='echo "n"'
+
+wait-for-choise
+#-----------------------------------------------------------------------------------------------
+
+
+
+service=$(ls /var/service | fzf)
+
+unset option service shutdown_dir base disabled_dir n m
+
+count_all=$(ls -1 /etc/sv | wc -l)
+
+%s///g
+
+who | awk ' { print $1 } ' | sort | uniq 
+
+who | sed 's/[^[:alnum:]].*//' | sort | uniq 
+
+who > ~/tmp 
+
+wc -l  < ~/tmp 
+
+cat > file_name
+
+watch -n 2 df -h /mnt
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ip addr
+iw dev wlp2s0 scan
+sudo netctl start wlp2s0-crag
+sudo wifi-menu
+netctl start wlp2s0-crag 
+systemctl status netctl.service
+
+sudo nano /etc/NetworkManager/conf.d/iwd.conf
+iwconfig && mokutil --sb-state 
+sudo sed -i 's/3/2/' /etc/NetworkManager/conf.d/default-wifi-powersave-on.conf
+
+
+
+
+
+
+
+
+crontab -e 
+echo 2 > /proc/sys/vm/drop_cashes
+
+
+sudo apt-add-repository --list
+sudo apt-add-repository --remove <REPO-NAME>
+libavcodec-extra gstreamer1.0-libav gstreamer1.0-plugins-ugly gstreamer1.0-vaapi vlc
+ttf-mscorefonts-installer fonts-crosextra-caladea fonts-crosextra-carlito
+gufw
+sudo ufw enable
+htop neofetch
+flatpak
+sudo apt full-upgrade
+sudo sed -i "s/bullseye/bookworm/g" /etc/apt/sources.list
+
+sudo nano /etc/apt/sources.list
+ls /etc/apt/sources.list.d/
+lspci
+firmware-realtek
+sudo modprobe -r r8169
+sudo modprobe r8169
+
+etc/lightdm/lightdm.conf
+
+nmtui
+
+
+
+
+
+
+
+
+
+
+
+
+git clone https://github.com/ilikenwf/apt-fast.git
+
+wget https://github.com/ryanoasis/nerd-fonts/releases/latest/download/Iosevka.zip
+
+wget https://github.com/AT-UI/feather-font/raw/master/fonts/feather.ttf
+
+git clone https://github.com/nvim-lua/kickstart.nvim.git "${XDG_CONFIG_HOME:-$HOME/.config}"/nvim
+
+
+wget https://github.com/fastfetch-cli/fastfetch/releases/download/$NEO_VERSION/fastfetch-linux-$CPU_ARCH.deb -O fastfetch.deb
+
+git clone https://github.com/christitustech/mybash
+
+git clone https://www.github.com/Airblader/i3 i3-gaps
+
+wget https://raw.githubusercontent.com/nwg-piotr/autotiling/master/main.py -O autotiling
+
+glxinfo | grep "OpenGL renderer"
+
+                   [ touchpad ]
+~/.config/autostart/touchpad.desktop
+/etc/systemd/system/enable-touchpad.service
+sudo systemctl daemon-reload
+sudo systemctl enable enable-touchpad.service
+~/.xprofile
+dmesg | grep -i touchpad
+xinput list
+xinput enable id 
+xinput enable "SynPS/2 Synaptics TouchPad"
+xinput list-props "SynPS/2 Synaptics TouchPad"
+~/.config/xorg/40-libinput.conf
+/etc/X11/xorg.conf.d/40-libinput.conf
+/etc/X11/xorg.conf.d/70-synaptics.conf
+
+                   [ language-key ]
+setxkbmap -layout us,ara
+/etc/profile
+locale -a
+sudo localedef -i ar_EG -f UTF-8 ar_EG.utf8
+/usr/lib/locale
+
+                   [ language-key ]
+sudo nvim  /etc/default/libc-locales
+sudo xbps-reconfigure -f glibc-locales
+sudo nano /etc/locale.conf
+LANG=ar_EG.utf8
+LC_ALL=ar_EG.utf8
+
+                   [ shell ]
+chsh -s /usr/bin/fish
+echo $SHELL
+
+                   [ file system ]
+sudo rsync -aAXv /mnt/oldroot/ /mnt/newroot/
+
+
+                   [ github ]
+git config --global user.name "name"
+git config --global user.email "example@gmail.com"
+git config --global credential.helper store
+git init
+git add .
+git commit -m "first commit"
+git status
+git log
+git checkout
+git branch -M main
+cd dotfiles
+git remote add my https://github.com/mz2012007/dotfiles.git
+git pull --rebase origin main
+git push -u origin main
+git commit --amend --no-edit
+git push --force
+git push --dry-run
+git fetch origin
+git diff my/main --shortstat
+
+curl -L -o ~/.config/mpv/scripts  https://raw.githubusercontent.com/mz2012007/mpv/scripts
+
+git clone --depth 1 --filter=blob:none --sparse https://github.com/mz2012007/mpv.git
+cd mpv
+git sparse-checkout set scripts
+
+git rm -fr --cached  . && git add . && git status && git ls-files .config/fish/
+
+# create branch
+git checkout --orphan new-main
+
+# delete branch
+git branch -D main
+
+# rename branch
+it branch -m main
+
+                   [ curl ]
+curl -# -O https://example.com/file.zip
+curl -u username:password -O https://example.com/file.zip
+curl -A "Mozilla/5.0" -O https://example.com/file.zip
+
+curl -L https://download-directory.github.io/?url=https://github.com/username/repo/tree/main/foldername -o folder.zip
+
+curl -C - -O https://example.com/bigfile.iso
+curl -O https://example.com/file.zip
+curl -o song.mp3 https://site.com/music/song.mp3
+
+                   [ proccess ]
+ps -ef | grep mpd
+pkill -u mz mpd
+
+                   [ mpd ]
+ncmpcpp
+id3v2 (cli)
+id3v2 -t "Atdry mn ysil alhm" Music/songs/أتدري\ من\ يزيل\ الهم.mp3
+easytag (gui)
+
+                   [ wifi speed ]
+python3 -m pipx ensurepath
+source ~/.profile
+pipx install speedtest-cli
+speedtest
+                   
+                   [ tmux ]
+tmux popup -E -w 100% -h 100% -x 100% -y 100%
+
+                   [ gui auth ]
+pkexec env DISPLAY=$DISPLAY XAUTHORITY=$XAUTHORITY thunar
+
+xhost +SI:localuser:root && pkexec /usr/local/bin/manual_cgroup_v2 950 1 90 zen
+
+
+                   [ pv & vg & lv ]
+#### vg
+# create vg
+sudo vgcreate vg_main /dev/sda1
+# show vgs
+sudo vgs
+sudo vgdisplay vg_main
+# add new pv to vg
+sudo vgextend vg_main /dev/sda1
+# delete pv from vg
+sudo vgreduce vg_data /dev/sdc1
+# delete full vg
+sudo vgremove vg_data
+
+#### lv
+# create lv from vg
+sudo lvcreate -L 10G -n lv_data vg_main
+# show lvs sudo lvs
+sudo lvs
+sudo lvdisplay /dev/vg_main/lv_var
+# extend lv
+sudo lvresize -L +5G /dev/vg_data/lv_data
+sudo lvresize -L +5G --test /dev/vg_data/lv_data
+# reduce size lv
+sudo lvresize -L -2G /dev/vg_data/lv_data 
+# new speific size lv
+sudo lvresize -L 5G /dev/vg_data/lv_data 
+# delete lv
+sudo lvremove /dev/vg_data/lv_data
+
+#### mkfilesystem for lv
+sudo mkfs.ext4 /dev/vg_data/lv_data
+sudo mount /dev/vg_data/lv_data /mnt
+
+#### filesystem
+# repair filesystems ext4
+sudo e2fsck -f /dev/vg_data/lv_data
+# new speific size filesystem ext4
+sudo resize2fs /dev/vg_data/lv_data 8G
+sudo dumpe2fs /dev/vg_main/lv_home | grep "Block count"
+
+
+
+
+sudo lsinitrd /boot/initramfs-6.19.5_1.img | grep bind-backup
+
+
+sudo mkdir -p /usr/lib/dracut/modules.d/90backup
+sudo nvim /usr/lib/dracut/modules.d/90backup/module-setup.sh
+########
+#!/bin/bash
+
+check() {
+    return 0
+}
+
+depends() {
+    return 0
+}
+
+install() {
+    inst_hook pre-pivot 90 "$moddir/bind-backup.sh"
+}
+########
+sudo chmod +x /usr/lib/dracut/modules.d/90backup/module-setup.sh
+sudo nvim /usr/lib/dracut/modules.d/90backup/bind-backup.sh
+sudo chmod +x /usr/lib/dracut/modules.d/90backup/bind-backup.sh
+sudo dracut -f
+
+                   [ fish ]
+~/.local/share/fish/fish_history
+grep 'cmd:' ~/.local/share/fish/fish_history | sed 's/- cmd: //' | nl
+.config/fish/aliases.fish
+
+                   [ vim ]
+i a v R :
+A 0 ^ $ w b
+dw db dd u
+/ n N
+H M L
+== zz
+V + num +
+funcution + i + }
+funcution + a + "
+? n + .
+:set rnu
+:s/omar/mohamed/g
+:%s/omar/mohamed/g%
+
+                   [ timeshift ]
+timeshift --create   --comments "frish" --target /mnt/pak/		   
+timeshift --list
+timeshift --restore
+ 
+                   [ time ]
+%Y-%m-%d %I:%M:%S %p
+sudo date -s "2025-08-19 13:00:00"
+sudo chronyc makestep
+fake-hwclock
+hwclock --systohc --localtime
+sudo ln -sf /usr/share/zoneinfo/Africa/Cairo /etc/localtime
+/etc/chrony/chrony.conf
+chronyc tracking
+chronyc sources -v
+
+                   [ picom ]
+xprop | grep WM_CLASS
+
+                   [ fstab ]
+UUID=a830b6a5-fceb-4799-bec0-524bb93b6198 / ext4 defaults,noatime,nodiratime,commit=60,barrier=0 0 1
+UUID=6f5603ad-73fc-495e-8754-de707163d59a /home ext4 defaults,noatime,nodiratime,commit=60,barrier=0 0 2
+UUID=e76e97e3-b44c-46cf-899b-5df1eafcccc1 /var ext4 defaults,noatime,nodiratime,commit=60,barrier=0 0 2
+tmpfs /tmp tmpfs defaults,nosuid,nodev,mode=1777 0 0
+UUID=58f70d2d-2568-4f67-a199-2692b479d415  none    swap    sw      0       0
+
+                   [ dunst ]
+notify-send -i system-run ""
+
+                   [ fcron ]
+sudo xbps-install -S fcron
+sudo ln -s /etc/sv/fcron /var/service/
+fcrontab -e
+fcrontab -l
+minute houre dayofmonth month dow options command
+dow ==> 1,3,5 1-5      0 = sunday
+
+
+                   [ ca-certificates ]
+/etc/xbps.d/*
+sudo rm -rf /etc/ssl/certs/*
+wget --no-check-certificate https://letsencrypt.org/certs/isrgrootx1.pem -O /tmp/isrgrootx1.pem
+sudo cp /tmp/isrgrootx1.pem /etc/ssl/certs/
+cd /etc/ssl/certs
+sudo ln -s isrgrootx1.pem $(openssl x509 -hash -noout -in isrgrootx1.pem).0
+sudo update-ca-certificates
+
+sudo xbps-install -S ca-certificates
+
+                   [ mount ]
+udisksctl mount -b /dev/sdc1                   
+ncdu2
+sudo du -sh /home/
+sudo df -h /home/
+
+                   [ disk ]
+sudo badblocks -sv /dev/sda5   read badblocks
+sudo badblocks -wsv /dev/sda5   write on badblocks
+sudo e2fsck  -f  -c  (read-only bad blocks) -p (repair) -n (dry-run)
+
+
+                   [ phone ]
+android ==> gvfs-mtp mtpfs jmtpfs
+mkdir ~/Phone
+jmtpfs ~/Phone
+fusermount -u ~/Phone
+
+iphone ==> ifuse libimobiledevice usbmuxd
+idevicepair pair
+ifuse ~/iPhone
+
+                   [ usb ]
+ sudo mount /dev/sdd1 /mnt/usb/ -o uid=1000,gid=1000,umask=022
+ cd /mnt/usb/
+# write speed 
+sync; time dd if=/dev/zero of=testfile bs=1M count=1024 conv=fdatasync
+# read speed 
+sync; time dd if=testfile of=/dev/null bs=1M                   
+
+##### (fio) tool for speed 
+sudo fio --name=benchmark --filename=/media/username/USB/testfile --size=1G --bs=4k --rw=readwrite --ioengine=libaio --direct=1
+
+###### (lsof) tool for now why bussy
+lsof /mnt/usb
+
+16 
+64 read 25.1 MB/s write 12.7 MB/s
+
+
+
+                   [ bluetooth ]
+
+bluetooth ==> bluez blueman
+sudo modprobe -r btusb && sudo modprobe btusb
+bluetoothctl
+power on
+agent on 
+default-agent
+scan on
+discoverable on
+pairable on
+pair <MAC_ADDRESS>
+connect <MAC_ADDRESS>
+trust <MAC_ADDRESS>
+quit
+
+                   [ packegs ]
+void ==>  void-repo- *
+flatpak ==> gnome-software gnome-software-plugin-flatpak
+apt ==> software-properties-common apt-transport-https
+fonts ==> setxkbmap fonts-font-awesome fonts-noto fonts-noto-color-emoji fonts-hack-ttf fonts-font-awesome fonts-iosevka
+bash-completion bat multitail neovim trash-cli tree fzf fzi zoxide
+systemd-timesyncd i3 polybar nala rfkill ufw
+netselect-apt alacritty apt-fast
+pipx xinput 
+build-essential linux-headers-$(uname -r) dkms
+xserver-xorg-input-libinput xserver-xorg-input-synaptics libnotify-bin 
+firmware-realtek firmware-iwlwifi firmware-linux-nonfree broadcom-sta-dkms firmware-b43-installer
+mtpaint locate flatpak 
+materia-gtk-theme numix-gtk-theme arc-theme adwaita-gtk-theme aqua-gtk-theme
+lightdm-gtk-greeter-settings lightdm-gtk-greeter
+make gcc
+ripgrep unzip rar unrar git xclip curl timeshift-gtk  chromium 
+python3-i3ipc libxkbcommon-x11-dev xkbcommon-x11 
+i3-gaps libavcodec-extra gstreamer1.0-libav gstreamer1.0-plugins-ugly gstreamer1.0-vaapi vlc parole earlyoom lxpolkit
+
+                   [nix]
+sh <(curl -L https://nixos.org/nix/install)
+nix-env --version
+nix-env -e i3
+nix-env -q
+nix-env -iA nixpkgs.i3-gap
+
+                   [ priviligs ]
+sudo usermod -aG groub-name user-name
+chmod u=rwx        g+r        o-w  +t
+
+                   [ privacy ] 
+sudo xbps-install fscrypt
+fscrypt setup
+sudo fscrypt setup /home
+sudo tune2fs -O encrypt /dev/sda6
+fscrypt encrypt ~/.dotfiles
+
+fscrypt status ~/dotfiles
+
+                   [ polkit ]
+/etc/polkit-1/rules.d/my-safe.rule
+
+                   [ files ]
+ln -s
+chattr +i
+chattr -i
+df -h
+lsblk
+chown user file
+chmod +x
+chmod u+s
+sudo btrfs subvolume list /
+sudo btrfs check /dev/sda5             
+
+
+                   [ void bios hand install ]  
+mkfs.ext4 /dev/sda1   
+mkswap /dev/sda4
+swapon /dev/sda4
+
+mount /dev/sda1 /mnt
+mkdir /mnt/home
+mkdir /mnt/var
+mount /dev/sda2 /mnt/home
+mount /dev/sda3 /mnt/var
+
+mkdir -p /var/db/xbps/keys/
+sudo cp /var/db/xbps/keys/* /mnt/var/db/xbps/keys/
+/etc/resolv.conf
+xbps-install -Sy -R https://repo-default.voidlinux.org/current -r /mnt base-system
+
+mount -t proc proc /mnt/proc
+mount -t sysfs sys /mnt/sys
+mount -o bind /dev /mnt/dev
+mount -t devpts devpts /mnt/dev/pts
+chroot /mnt /bin/bash
+
+passwd
+visudo
+useradd -m -G wheel -s mz
+passwd mz
+
+xbps-reconfigure -fa
+
+ln -sf /usr/share/zoneinfo/Africa/Cairo  /etc/localtime
+hwclock --systohc
+echo "en_US.UTF-8 UTF-8" > /etc/default/libc-locales
+xbps-reconfigure -f glibc-locales
+
+genfstab -U / >> /mnt/etc/fstab
+
+/dev/sda1   /      ext4    defaults   0 1
+/dev/sda2   /home  ext4    defaults   0 2
+/dev/sda3   /var   ext4    defaults   0 2
+/dev/sda4   none   swap    sw         0 0
+
+xbps-install -y grub
+grub-install /dev/sda
+update-grub
+
+vi /etc/hostname
+vi /etc/hosts
+
+exit
+umount -R /mnt
+reboot
+
+                   [ hostname ]
+sudo hostname
+vi /etc/hostname
+vi /etc/hosts
+
+                   [ void live iso ]
+          ##########################
+# ====================================================
+# Build full personal Void Linux Live ISO with squashfs
+# ====================================================
+
+BIOS / UEFI
+   ↓
+GRUB
+   ↓
+Kernel
+   ↓
+initramfs  →  /init
+   ↓
+switch_root
+   ↓
+squashfs  →  /sbin/init
+
+
+ISO ROOT
+│
+├── boot/
+│   ├── vmlinuz          ← kernel
+│   └── initramfs.img    ← early userspace
+│
+├── grub/
+│   └── grub.cfg       
+│
+├── live/
+│   └── rootfs.squashfs  ← userspace
+│
+└── boot.img            
+
+rootfs.squashfs
+│
+├── bin/
+├── sbin/
+├── usr/
+├── lib/
+├── etc/
+├── var/
+├── home/
+└── sbin/init   
+
+initramfs:
+/init
+ ├─ mount squashfs
+ ├─ overlay
+ ├─ switch_root
+ └─ die
+
+rootfs (squashfs):
+/sbin/init
+ ├─ udev
+ ├─ mount -a
+ ├─ runit
+ └─ system live 
+
+
+
+####### 0️⃣ Install required packages
+sudo xbps-install -S grub xorriso squashfs-tools busybox 
+
+########      prerequist
+
+# mk iso dirs
+mkdir -p iso/{boot,grub,live}
+mkdir -p rootfs/{bin,sbin,etc,proc,sys,dev,run,tmp}
+
+
+# cp kernel 
+cp /mnt/rootfs/boot/vmlinuz-6.12.68_1 iso/boot/kernel
+
+######## mk external initramfs
+
+initramfs-temp/
+├── init
+├── bin/
+│   ├── easybox
+│   └── bash
+├── dev/
+├── proc/
+├── sys/
+├── run/
+├── newroot/
+├── lib/modules/
+├── scripts/
+│   ├── 10-console.sh
+│   ├── 20-devfs.sh
+│   ├── 30-drivers.sh
+│   ├── 40-storage.sh
+│   ├── 50-lvm.sh
+│   ├── 60-rootfs.sh
+│   ├── 70-fsck.sh
+│   └── 90-switchroot.sh
+└── config/
+    └── boot.conf
+
+
+
+mkdir -p initramfs-temp/{bin,sbin,proc,sys,dev,lib,usr/lib,run,newroot,scripts,lib/modules}
+make defconfig
+make menuconfig
+make -j$(nproc)
+cp busybox ~/initramfs-build/initramfs/bin/
+./busybox --install -s ~/initramfs-build/initramfs/bin/
+./busybox --install -s ~/initramfs-build/initramfs/sbin/
+https://ftp.gnu.org/gnu/bash/
+./configure LDFLAGS="-static" --without-bash-malloc
+make -j$(nproc)
+
+
+
+cat > initramfs-temp/init <<'EOF'
+#!/bin/sh
+export PATH=/bin:/sbin:/usr/bin:/usr/sbin
+# basic mounts
+mount -t proc proc /proc || true
+mount -t sysfs sys /sys || true
+mount -t devtmpfs dev /dev || true
+
+# create device nodes for fallback
+[ -e /dev/console ] || mknod /dev/console c 5 1
+[ -e /dev/null ]   || mknod /dev/null c 1 3
+
+# optional: try to load modules (if insmod present)
+if [ -x /bin/insmod ]; then
+  /bin/insmod /lib/isofs.ko 2>/dev/null || true
+  /bin/insmod /lib/sr_mod.ko 2>/dev/null || true
+fi
+
+# search and mount ISO (common device paths)
+echo "Searching for Live squashfs..."
+for device in /dev/sr0 /dev/cdrom /dev/disk/by-label/* /dev/disk/by-uuid/*; do
+  [ -e "$device" ] || continue
+  mount -t iso9660 -o ro "$device" /mnt 2>/dev/null && break
+  # also try device as loop file (if booted from file)
+  mount -o loop "$device" /mnt 2>/dev/null && break
+done
+
+# if not found, try /live path on any mounted FS
+if [ ! -f /mnt/live/rootfs.squashfs ]; then
+  for m in /mnt/*; do
+    [ -f "$m/live/rootfs.squashfs" ] && { umount /mnt 2>/dev/null || true; mount -o loop "$m" /mnt 2>/dev/null && break; }
+  done
+fi
+
+# mount squashfs
+if [ -f /mnt/live/rootfs.squashfs ]; then
+  echo "Found rootfs.squashfs — mounting..."
+  mkdir -p /lower /newroot /upper /upper/upper /upper/work
+  mount -o loop /mnt/live/rootfs.squashfs /lower || { echo "Failed mounting squashfs"; exec /bin/sh; }
+
+  # optional overlay (RW in RAM)
+  mount -t tmpfs tmpfs /upper
+  mount -t overlay overlay -o lowerdir=/lower,upperdir=/upper/upper,workdir=/upper/work /newroot || {
+      echo "Overlay failed — falling back to direct squashfs"
+      mount --move /lower /newroot || { echo "Cannot move lower"; exec /bin/sh; }
+  }
+
+  umount /mnt 2>/dev/null || true
+  exec /sbin/switch_root /newroot /sbin/init
+else
+  echo "Live rootfs not found — dropping to shell"
+  exec /bin/sh
+fi
+EOF
+
+# chmod 
+chmod +x initramfs-temp/init
+
+# 
+sudo cp /bin/busybox initramfs-temp/bin/
+cd initramfs-temp/bin
+for app in sh mount insmod switch_root umount mknod echo; do
+  sudo ln -sf busybox $app
+done
+
+cd -
+
+sudo cp /sbin/insmod initramfs-temp/bin/ 
+
+# build initramfs
+cd initramfs-temp
+find . | cpio -H newc -o | gzip > ../iso/boot/initramfs.img
+cd ..
+
+
+
+######## init in squashfs
+
+# rootfs/sbin/init
+sudo nvim /mnt/rootfs/sbin/init
+
+#!/bin/sh
+# =====================================
+# Custom /sbin/init for Void Linux
+# Root filesystem is already mounted
+# =====================================
+
+export PATH=/bin:/sbin:/usr/bin:/usr/sbin
+export HOME=/
+export TERM=linux
+
+echo "[init] Starting Void Linux init..."
+
+# 1️⃣ Mount essential virtual filesystems (safety)
+mountpoint -q /proc || mount -t proc proc /proc
+mountpoint -q /sys  || mount -t sysfs sysfs /sys
+mountpoint -q /dev  || mount -t devtmpfs devtmpfs /dev
+
+# 2️⃣ Create required directories
+mkdir -p /run /tmp
+chmod 1777 /tmp
+
+# 3️⃣ Setup hostname (optional)
+[ -f /etc/hostname ] && hostname "$(cat /etc/hostname)"
+
+# 4️⃣ Start udev (important for devices)
+if [ -x command -v udevd || command -v /usr/libexec/udevd || /usr/bin/udevd ]; then
+    echo "[init] Starting udev..."
+    udevd --daemon
+    udevadm trigger
+    udevadm settle
+fi
+
+# 5️⃣ Mount remaining filesystems
+if [ -x /bin/mount ]; then
+    echo "[init] Mounting filesystems..."
+    mount -a
+fi
+
+# 6️⃣ Start runit (Void init system)
+if [ -x /sbin/runit-init ]; then
+  echo "[init] Handing control to runit..."
+  exec /sbin/runit-init
+else
+  # fallback: spawn a shell (for debugging)
+  exec /bin/bash
+fi
+
+
+########          rootfs squashfs
+
+# mkdir rootfs
+sudo mkdir -p /mnt/void-rootfs
+# install base-system 
+sudo xbps-install -S -R https://repo-default.voidlinux.org/current \
+  -r /mnt/rootfs \
+  base-system NetworkManager 
+
+# install packages
+
+# chroot
+sudo chroot /mnt/rootfs /bin/bash
+chown root:root /usr/bin/sudo && chmod 4755 /usr/bin/sudo
+
+# add usr
+useradd -m mz
+chpasswd 
+su - mz 
+
+sudo usermod -s /usr/bin/fish $USER
+# clean after finish 
+rm -rf /var/cache/xbps/* /tmp/*
+
+# exit & make squashfs
+exit
+sudo mksquashfs /mnt/rootfs iso/live/rootfs.squashfs -comp xz \
+-e proc sys dev run tmp mnt
+
+######## grub
+sudo nvim iso/grub/grub.cfg
+
+set timeout=5
+set default=0
+
+menuentry "My Custom ISO" {
+    linux /boot/kernel quiet
+    initrd /boot/initramfs.img
+
+}
+
+######## build grub and iso
+sudo grub-mkrescue \
+  -o myiso.iso \
+  iso/
+
+
+sudo mkdir -p /boot/iso
+sudo mv /mnt/myiso.iso /boot/iso/
+
+######## add grub to your device 
+sudo nvim /etc/grub.d/40_custom
+
+
+#!/bin/sh
+exec tail -n +3 $0
+# This file provides an easy way to add custom menu entries.
+# Add custom entries below this comment.
+
+menuentry "Boot My Custom ISO" {
+    insmod loopback
+    insmod iso9660
+
+    set isofile="/boot/iso/myiso.iso"
+    loopback loop (hd0,5)$isofile
+
+    linux (loop)/boot/kernel quiet rdinit=/init
+    initrd (loop)/boot/initramfs.img
+}
+
+
+sudo grub-mkconfig -o /boot/grub/grub.cfg
+
+
+######## testing 
+
+# only squashfs
+sudo mkdir /mnt/testroot
+sudo mount -o loop iso/live/rootfs.squashfs /mnt/testroot
+ls /mnt/testroot
+
+# init in squashfs
+sudo mount -o loop iso/live/rootfs.squashfs /mnt/testroot
+sudo mount -t proc proc /mnt/testroot/proc
+sudo mount -t sysfs sys /mnt/testroot/sys
+sudo mount -o bind /dev /mnt/testroot/dev
+sudo chroot /mnt/testroot /sbin/init (or) sudo chroot /mnt/testroot /bin/sh
+
+# iso 
+qemu-system-x86_64 -m 2048 -cdrom void-personal.iso -boot d
+
+
+                   [ boot screan ]
+plymouth
+/usr/share/plymouth/themes/
+sudo plymouth-set-default-theme -l
+sudo plymouth-set-default-theme -R splash
+sudo nvim /etc/dracut.conf.d/plymouth.conf
+sudo nvim /etc/default/grub
+sudo dracut --force --regenerate-all
+sudo grub-mkconfig -o /boot/grub/grub.cfg
+
+                   [ nvim ]
+git clone https://github.com/folke/lazy.nvim.git ~/.local/share/nvim/lazy/lazy.nvim
+
+
+                   [ defrag and fix ]
+fsck.ext4 -y -f /dev/sd*
+e4defrag -v /mnt/root
+e4defrag -c /mnt/root
+
+                   [ docker ]
+containerd docker docker-cli  docker-compose
+sudo usermod -aG docker $USER
+sudo mkdir -p /mnt/srv/{docker/{comp,cont},data}
+sudo chown -R $USER:$USER /mnt/srv/{docker,data}
+mkdir -p /mnt/srv/docker/cont/{nginx,portainer}
+nano /mnt/srv/docker/comp/docker-compose.yml
+docker compose -f /mnt/srv/docker/comp/docker-compose.yml up -d
+
+
+                   [ grub ]
+grub-install --force --target=i386-pc --boot-directory=/boot /dev/vda2
+update-grub
+sudo apt install os-prober
+sudo nano /etc/default/grub
+sudo os-prober
+sudo update-grub 
+
+sudo nvim /etc/grub.d/40_custom
+
+                   [ wifi ] 
+ip a
+ip addr
+lspci
+lspci | grep -i wireless
+lspci -knn | grep Net -A 3
+lspci -nnk | grep -iA3 network
+lspci -knn | grep Net -A 3
+lsmod | grep wifi
+lspci
+sudo dmesg
+modinfo brcmsmac
+firmware-realtek
+rtl8192cu
+modprobe brcmsmac
+modprobe -r bcma brcmsmac
+lsmod | grep bcma
+modprobe wl
+modprobe -r wl brcmsmac b43 bcma
+/etc/modprobe.d/blacklist.conf
+
+                   [ openrc ]
+sudo service nom_service start
+sudo /etc/init.d/nom_service start
+sudo service nom_service stop
+sudo /etc/init.d/nom_service stop
+sudo service nom_service restart
+sudo service nom_service status
+sudo update-rc.d nom_service enable
+sudo update-rc.d nom_service disable
+etc/network/interfaces/
+/etc/init.d/
+
+                   [ systemd ]
+sudo rm -f /var/lib/apt/lists/lock
+sudo rm -f /var/cache/apt/archives/lock
+sudo rm -f /var/lib/dpkg/lock*
+
+sudo systemctl set-default multi-user.target
+sudo systemctl set-default graphical.target
+
+                   [ kernel ]
+GRUB_CMDLINE_LINUX_DEFAULT="quiet zswap.enabled=1 zswap.compressor=lz4 zswap.max_pool_percent=20 zswap.zpool=z3fold
+
+sudo vkpurge list
+sudo vkpurge rm all
+
+                   [ symplolink ]
+sudo ln -s 
+find -L $HOME -type l -exec sudo rm -v {} +
+
+                   [ flatpak ]
+flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+
+                   [ logs ]
+/var/log/messages 
+/var/log/auth.log
+tail -f /var/log/messages | ccze -A | grep "ERROR"
+multitail ==> /etc/multitail.conf
+multitail -cS syslog /var/log/messages /var/log/auth.log
+sudo multitail -cS syslog /var/log/messages 
+sudo ufw logging low
+
+                   [ xmonad ]
+sudo xbps-install -S ncurses-libtinfo-libs ncurses-libtinfo-devel libX11-devel libXft-devel libXinerama-devel libXrandr-devel libXScrnSaver-devel pkg-config ghc cabal-install
+cabal update
+cabal update
+cabal install xmonad xmonad-contrib
+mkdir -p ~/.config/xmonad
+cp /usr/share/doc/xmonad-*/xmonad.hs ~/.config/xmonad/xmonad.hs
+
+xmonad --recompile
+xmonad --restart
+
+                   [ hostname ]
+nvim /etc/hostname
+nvim /etc/hosts
+hostname
+
+                   [ find ]
+sudo find /usr -name '*ccze*'             
+
+                   [ build ]
+ldd /usr/bin/"binary"
+./configure --prefix=/usr
+make
+sudo make clean install
+
+                   [ xbps ]
+xbps-query -L
+sudo xbps-pkgdb -a | grep -i "ERROR\|MISSING\|mismatch"
+sudo xbps-query -Rs 
+sudo xbps-install -Su
+sudo xbps-remove 
+sudo xbps-remove -oO 
+sudo xbps-query -m
+bsdtar -tf ccze-2.19_1.x86_64.xbps
+
+sudo xbps-create -A x86_64 -n ccze-2.19_1 -s "Colorizing log viewer" ~/4
+xbps-rindex -a *.xbps
+sudo xbps-install --repository=$PWD pkgname
+
+make clean      
+make distclean  
+
+sudo xbps-install -S void-packages
+sudo xbps-install -S xtools git
+mkdir -p srcpkgs/mypkg
+curl -o srcpkgs/mypkg/template https://raw.githubusercontent.com/<user>/<repo>/<branch>/template
+./xbps-src binary-bootstrap
+./xbps-src pkg mypkg
+xbps-install -R hostdir/binpkgs mypkg
+
+                   [ myrepo ]
+ssh-keygen -t rsa -b 4096 -m PEM -f private.pem                   
+xbps-rindex -a *.xbps
+xbps-rindex --privkey private.pem --sign --signedby "MohamedZaki" $HOME/void-xbps/x86_64/
+xbps-rindex --privkey private.pem --sign-pkg $HOME/void-xbps/x86_64/*xbps
+
+                   [ ssh ]  
+ssh-keygen -p -f ~/.ssh/id_ed25519   # regenrate ssh with paskey
+ssh-keygen -y -f ~/.ssh/id_ed25519 > ~/.ssh/id_ed25519.pub
+                 
+                   [ gpg ]  
+#sudo xbps-install -S gnupg git openssh pinentry
+
+# tar
+tar -czf project.tar.gz project/ && rm project \
+    && zstd -19 project.tar.gz && rm project.tar.gz \
+    && gpg -c project.tar.gz.zst && rm project.tar.gz.zst
+
+# untar
+gpg --decrypt --quiet --batch --yes project.tar.gz.zst.gpg > project.tar.gz.zst && rm project.tar.gz.zst.gpg \
+        && zstd -d project.tar.gz.zst && rm project.tar.gz.zst \
+        && tar -xzf project.tar.gz && rm project.tar.gz
+
+# destroy
+shred -u project.tar.gz
+
+# encrypt
+gpg -c file
+gpg -e -r "Mohamed" secret.txt
+gpg -c -o ~/.ssh/id_ed25519.gpg ~/.ssh/id_ed25519
+
+# decrypt
+gpg -d file
+
+# locked or bad database
+rm -f ~/.gnupg/public-keys.d/pubring.db
+rm -f ~/.gnupg/public-keys.d/pubring.db.lock
+gpgconf --kill keyboxd
+gpgconf --launch keyboxd
+
+# deamon
+gpg-agent --daemon
+
+# add Authentication subkey
+gpg --quick-add-key <key_id> ed25519 auth
+
+# use it to sign git repo commit
+git config --global user.signingkey C79B9AB96D9A7F2C
+git config --global commit.gpgsign true
+git config --global push.gpgSign true
+
+# use gpg as ssh
+gpg --export-ssh-key <key_id>
+echo "enable-ssh-support" >> ~/.gnupg/gpg-agent.conf
+
+# restart gpg-agent
+gpgconf --kill gpg-agent
+gpgconf --launch gpg-agent
+
+# verify gpg-agent support ssh
+gpgconf --list-dirs agent-ssh-socket
+gpg-connect-agent "getinfo ssh_socket_name" /bye
+
+# sign file encrypted
+gpg --armor --sign file.txt
+
+# sign file detach-sign
+gpg --armor --detach-sign file.txt
+
+# export key
+gpg --armor --export mz@mz > ~/public.key #public key
+gpg --armor --export-secret-keys mz@mz > ~/private-backup.asc # private key
+gpg --export-ssh-key <key_id> > ~/.ssh/id_ed25519.pub # ssh
+gpg --export C814CA6DED5884E4 > publickey.gpg # rare git 
+
+# add user to key
+gpg --edit-key 34EA0AF54439C38C
+adduid
+uid
+primary
+save
+
+Flag    Meaning             Real-world usage
+S       Signing             Git commits, verification
+E       Encryption          Secure data, file protection
+C       Certify Key         administration
+A       Authentication      SSH login
+
+
+# fish
+set SSH_AGENT_PID
+set -x SSH_AUTH_SOCK (gpgconf --list-dirs agent-ssh-socket)
+export GPG_TTY=$(tty)
+set -x GPG_TTY $(tty)
+gpg-connect-agent updatestartuptty /bye >/dev/null
+
+
+#vim gpg-agent.conf
+enable-ssh-support
+pinentry /usr/bin/pinentry-curses
+default-cache-ttl 60
+max-cache-ttl 120
+
+#termnal
+killall ssh-agent gpg-agent
+unset GPG_AGENT_INFO SSH_AGENT_PID SSH_AUTH_SOCK
+eval $(gpg-agent --daemon --enable-ssh-support)
+
+#echo no-autostart ~/.gnupg/gpg.conf
+
+#FORCE SSH SUBKEY MAPPING
+gpg-connect-agent "learn --force" /bye
+gpg-connect-agent reloadagent /bye
+
+#TEST SSH AGENT
+ssh-add -L
+
+#TEST GITHUB SSH
+ssh -T git@github.com
+
+
+
+                [ encrypted disk or file ]
+
+# cryptsetup disk
+sudo cryptsetup luksFormat /dev/sdb1
+sudo cryptsetup open /dev/sdb1 secure_usb
+sudo mkfs.ext4 /dev/mapper/secure_usb
+sudo mkdir -p /mnt/secure
+sudo mount /dev/mapper/secure_usb /mnt/secure
+
+# cryptsetup file
+dd if=/dev/zero of=vault.img bs=1M count=20480  #20GB
+sudo cryptsetup luksFormat vault.img
+sudo cryptsetup open vault.img myvault
+sudo mkfs.ext4 /dev/mapper/myvault
+
+# open crypt
+sudo cryptsetup open /dev/sdb1 secure_usb
+sudo mount /dev/mapper/secure_usb /mnt/secure
+
+# close crypt
+sudo umount /mnt/secure
+sudo cryptsetup close secure_usb
+
+# back header
+sudo cryptsetup luksHeaderBackup /dev/sdb1 --header-backup-file header.img 
+
+# fix header
+sudo cryptsetup luksHeaderRestore /dev/sdb1 --header-backup-file header.img
+
+# show info
+sudo cryptsetup luksDump /dev/sdb1
+
+
+# destroy 
+dd if=/dev/urandom of=test.img bs=1M count=10 conv=notrunc
+
+                   [ pass ]
+gpg --import secret-keys.gpg
+gpg --full-generate-key   # .gnupg/
+gpg --list-secret-keys --keyid-format=long
+pass init $sec            # .password-store/ 
+pass insert email/gmail
+pass show email/gmail
+pass -c email/gmail
+pass generate github 30
+pass
+
+# change pass key  
+gpg --list-secret-keys
+pass init $sec
+pass reencrypt -f
+pass show some/entry
+
+# clean after change key 
+gpg --delete-secret-keys OLDKEY123
+gpg --delete-keys OLDKEY123
+
+                   [ pacman ]
+pacman -S archlinux-keyring
+sudo pacman -Syyu
+sudo pacman -Sy archlinux-keyring && sudo pacman -Su
+sudo pacman -Syu
+sudo pacman -S --needed git base-devel && git clone https://aur.archlinux.org/yay.git && cd yay && makepkg -si
+
+                   [ apt ]
+sudo dpkg -i
+sudo apt --fix-broken install
+/etc/apt/sources.list.d/
+/etc/apt/sources.list.d/debian-live-media.list
+/etc/apt/sources.list
+/etc/apt/sources.list.d/live.list
+sudo apt-add-repository contrib non-free non-free-firmware
+nala fetch ,nala update ,nala upgrade
+sudo nala fetch --debian bookworm --devuan stable --non-free
+
+                   [ tar ]
+tar -xvjf *.tar.bz2
+tar -xvf file.tar   *.tar 
+tar -cvf file.tar folder/
+
+                   [ audio ] 
+pactl info
+pactl info | grep "Server Name"
+pactl set-sink-volume @DEFAULT_SINK@ +10%
+pactl set-sink-volume @DEFAULT_SINK@ -10%
+pactl list short sinks    (speakers/headphones)
+pactl list short sources  (mic)
+pactl set-default-sink <sink_name>
+pactl info | grep "Server Name"
+eyeD3 --title "اكمل مسيرك" \
+      --artist "فارس حميدة" \
+      --album "أناشيد" \
+      file.mp3
+
+
+                   [ ports ]
+sudo lsof -i :6600
+
+                   [ fonts ]
+~/.fonts
+~/.local/share/fonts
+fc-cache -fv
+fc-list :charset=
+fc-list :lang=US,AR
+fc-list | grep -i "اسم_الخط"
+fc-list | cut -d: -f2 | sort -u
+
+                   [ groups ]
+cat /etc/group
+
+                   [ themes ]
+/usr/share/themes/
+/usr/share/icons/
+/usr/share/fonts/
+~/.config/gtk-3.0/settings.ini
+
+catppuccin
+
+                   [ dark theme  ]
+/.config/gtk-3.0/settings.ini
+[Settings]
+gtk-application-prefer-dark-theme=1
+
+                   [ settings ]
+/etc/rc.conf                   
+
+                   [ hyprland ]
+packegs >> wayland   wayland-protocols   libxkbcommon   libinput   xdg-desktop-portal  xdg-desktop-portal-wlr wlroots xdg-utils
+SwiftShader
+
+                   [ chroot ]
+sudo mount /dev/sda9 /mnt/win
+sudo mount --bind /dev /mnt/win/dev
+sudo mount --bind /dev/pts /mnt/win/dev/pts
+sudo mount --bind /proc /mnt/win/proc
+sudo mount --bind /sys /mnt/win/sys
+sudo mount --bind /run /mnt/win/run
+sudo mount --bind /var /mnt/win/var   
+su - mz
+sudo chroot --userspec=mz:mz /mnt/win /bin/bash
+
+                   [ cpu ]
+performance powersave ondemand schedutil conservative
+cat /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
+
+for cpu in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do
+    echo performance | sudo tee $cpu
+done
+sudo cpupower frequency-set -g 
+/etc/runit/sv/local/
+nano /etc/rc.local
+
+cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_available_frequencies
+
+for cpu in /sys/devices/system/cpu/cpu*/cpufreq/scaling_max_freq; do
+    echo 2000000 | sudo tee $cpu  
+done
+sudo cpupower frequency-set -u 2GHz
+cpupower frequency-info
+
+
+                   [ namespaces ] 
+sudo unshare \
+  --pid \
+  --mount \
+  --uts \
+  --ipc \
+  --fork \
+  --mount-proc \
+  bash
+echo $$
+exec dinit
+
+
+                   [ cgroup ]
+
+mount | grep cgroup2                   
+sudo mkdir -p /sys/fs/cgroup/myapp
+echo +memory > /sys/fs/cgroup/cgroup.subtree_control
+echo $((500*1024*1024)) | sudo tee /sys/fs/cgroup/myapp/memory.max OR echo 600M > memory.high
+rmdir /sys/fs/cgroup/myapp
+
+#cpu
+echo +cpu 2>/dev/null >/sys/fs/cgroup/cgroup.subtree_control || true
+echo +cpuset > /sys/fs/cgroup/cgroup.subtree_control
+echo 0 > /sys/fs/cgroup/myapp/cpuset.cpus  
+echo 0 > /sys/fs/cgroup/myapp/cpuset.mems
+echo "100000 100000" > /sys/fs/cgroup/myapp/cpu.max OR echo 50 > cpu.weight
+cat /sys/fs/cgroup/myapp/cpu.stat
+
+cat /proc/interrupts
+echo 0 > /proc/irq/*/smp_affinity
+
+                   [ swap and zram and hipernate ]
+sudo fallocate -l 4G /swapfile
+sudo dd if=/dev/zero of=/swapfile bs=1024 count=4194304
+sudo dd if=/dev/zero of=/swapfile bs=1M count=8192 status=progress
+
+
+sudo nano /etc/fstab 
+sudo echo -e "ALGO=lz4\nPERCENT=70" | sudo tee -a /etc/default/zramswap
+
+sudo mkdir -p /swap
+sudo chattr +C /swap
+
+blkid /swapfile
+sudo e4defrag /swapfile
+sudo filefrag -v /swapfile 
+resume=UUID=95a55212-167e-497e-95ae-e2db142d8483 resume_offset=4126720
+sudo grub-mkconfig -o /boot/grub/grub.cfg
+sudo grub-install --target=i386-pc /dev/sda
+sudo grub-mkconfig -o /boot/grub/grub.cfg
+sudo dracut --force /boot/initramfs-6.16.3-1-liquorix-amd64.img 6.16.3-1-liquorix-amd64
+echo 4126720 > /sys/power/resume_offset
+sudo grub-mkconfig -o /boot/grub/grub.cfg
+
+sudo grub-mkconfig -o /boot/grub/grub.cfg
+sudo mkdir -p /etc/dracut.conf.d
+echo 'add_dracutmodules+=" resume "' | sudo tee /etc/dracut.conf.d/resume.conf
+echo 'kernel_cmdline="resume=UUID=379f14be-6231-4c1c-8de5-73b47536a08b resume_offset=4126720"' | sudo tee -a /etc/dracut.conf.d/resume.conf
+
+########################################################
+# ========= 1) zram =========
+lsmod | grep zram
+sudo swapoff -a
+echo 1 | sudo tee /sys/block/zram0/reset
+swapon --show
+sudo rm -f /etc/modules-load.d/zram.conf
+rm /var/service/zramen
+sudo modprobe -r zram
+
+sudo modprobe zram
+echo zram | sudo tee /etc/modules-load.d/zram.conf
+echo 3G | sudo tee /sys/block/zram0/disksize    #1.5*ram
+echo lz4 | sudo tee /sys/block/zram0/comp_algorithm
+sudo mkswap /dev/zram0
+sudo swapon /dev/zram0 -p 100
+
+swapon --show
+zramctl
+
+##echo $(( $(grep MemTotal /proc/meminfo | awk '{print $2}') * 1024 )) | sudo tee /sys/block/zram0/disksize
+
+# ========= 2) swapfile (for hibernation) =========
+
+sudo fallocate -l 2G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile -p 10
+
+# ========= 3) fstab =========
+
+sudo nano /etc/fstab
+
+
+sudo sed -i '/swapfile/d' /etc/fstab
+echo "/swapfile  none swap defaults,pri=10  0 0" | sudo tee -a /etc/fstab
+
+/swapfile none swap defaults,pri=10 0 0
+
+# ========= asure =========
+cat /sys/block/zram0/mm_stat
+swapon --show
+########################################################
+
+# ========= 4) sysctl tuning =========
+sudo tee /etc/sysctl.conf >/dev/null <<'EOF'
+vm.swappiness = 100
+vm.vfs_cache_pressure = 50
+vm.dirty_ratio = 10
+vm.dirty_background_ratio = 5
+vm.min_free_kbytes = 65536
+vm.dirty_writeback_centisecs = 1500
+vm.dirty_expire_centisecs = 3000
+vm.page-cluster = 0
+EOF
+
+sudo sysctl --system
+
+# ========= 5) hibernation support =========
+sudo xbps-install -Sy dracut
+
+SWAP_UUID=$(blkid -s UUID -o value /swapfile)
+
+sudo sed -i "s/^GRUB_CMDLINE_LINUX_DEFAULT=.*/GRUB_CMDLINE_LINUX_DEFAULT=\"resume=UUID=$SWAP_UUID\"/" /etc/default/grub
+
+sudo update-grub
+sudo dracut -f
+
+
+# ========= 6) check =========
+echo "==== SWAP STATUS ===="
+swapon --show
+
+
+
+                   [ defrag ]
+sudo e4defrag -c /
+sudo e4defrag  /
+
+
+                   [ cache ]
+sudo nano /etc/sysctl.conf
+vm.swappiness = 100
+vm.vfs_cache_pressure = 50
+vm.dirty_ratio = 10
+vm.dirty_background_ratio = 5
+vm.min_free_kbytes = 65536
+vm.dirty_writeback_centisecs = 1500
+vm.dirty_expire_centisecs = 3000
+vm.page-cluster = 0
+sudo sysctl --system
+
+		   [ browser in ram ]
+mkdir -p /dev/shm/chromium-profile
+cp -a ~/.config/chromium/*  /dev/shm/chromium-profile/
+mv  ~/.config/chromium ~/.config/chromium.bak
+ln -s /dev/shm/chromium-profile ~/.config/chromium
+
+sudo nano /usr/local/bin/save-chromium-profile.sh
+#!/bin/sh
+rsync -a --delete /dev/shm/chromium-profile/ ~/.config/chromium.backup/
+
+sudo nano /usr/local/bin/restore-chromium-profile.sh
+#!/bin/sh
+mkdir -p /dev/shm/chromium-profile
+rsync -a ~/.config/chromium.backup/ /dev/shm/chromium-profile/
+
+chmod +x /usr/local/bin/save-chromium-profile.sh
+chmod +x /usr/local/bin/restore-chromium-profile.sh
+chmod -R 755 /dev/shm/chromium-profile
+chown -R $USER:$USER /dev/shm/chromium-profile
+ls -l ~/.config/chromium
+sudo mkdir -p /etc/sv/chromium-restore
+
+sudo nano /etc/sv/chromium-restore/run
+#!/bin/sh
+exec /usr/local/bin/restore-firefox-profile.sh
+
+sudo ln -s /etc/sv/chromium-restore /var/service/
+
+
+                   [ dinit ]
+"scripted", "process", "bgprocess", "internal" or "triggered"
+
+sudo mkdir -p /etc/dinit.d/boot.d
+touch /etc/dinit.d/boot
+ln -fs /etc/dinit.d/udev /etc/dinit.d/boot.d && \
+
+dinitctl start service_name #Start service
+dinitctl stop service_name Stop service
+dinitctl reload service_name #Reload service description
+dinitctl restart service_name #Restart service
+dinitctl enable service_name #Enable service
+ln -sf /etc/dinit.d/service_name /etc/dinit.d/boot.d/ #chrooted 
+dinitctl disable service_name #Disable service
+dinitctl list  #List services 
+dinitctl enable service_name  #starts the service immediately instead of just putting it in auto-start.
+
+dinit-check #check if there is any problem with the dinit service directory, it will check for any syntax errors, invalid parameter values, and dependency cycles.
+CLI tools
+
+dinit-check #check service configuration
+dinitctl #control services supervised by Dinit
+dinit-monitor #monitor services or environment supervised by Dinit 
+
+Files/Directories
+
+/etc/dinit.d/ - user-installed dinit service files
+/usr/lib/dinit.d/ - system dinit service files
+/etc/dinit.d/config/ - configurations for dinit services
+/etc/dinit.d/boot.d/ - dinit services that run on boot
+/usr/lib/dinit/ - dinit wrapper scripts
+/var/log/dinit/ - logs for dinit services
+/etc/dinit.d/service_name-pre - preparation service, in some cases, this is needed because the "preparation" must be run as root but the service itself must be run as its own user
+/etc/dinit.d/user - user services
+
+##A typical service file looks like this: 
+###
+type = process | bgprocess | scripted | internal
+ command = /path/to/servicename
+ restart = (boolean)
+ smooth-recovery = (boolean)
+ env-file = (/etc/dinit.d/config/....config)
+ logfile = ...
+ depends-on = (service name)
+ waits-for = (service name)
+###
+
+##types of dinit services:
+process, for foreground daemons
+bgprocess, for forking daemons
+scripted, for oneshots
+internal, which is only useful inside dinit and is usually used to "gather" lots of dependencies into one big dependency, or similar to "bundle" in s6.
+triggered, which is similar to internal services, but an external trigger is required before they will start. 
+
+##There are three types of dependencies:
+depends-on is hard dependency, so if any service is named here, it must run no matter what before the service is started
+depends-ms is a milestone dependency, so while the rules of depends-on apply when starting service, if the dependency stopped, the dependent will still run
+waits-for is soft dependency, while the service will wait for its dependency to run, it will still run if the dependency fails 
+
+                   [  kernel ]
+sudo vim /etc/default/grub
+
+## cpu
+mitigations=off #auto   #turn off securitty
+nowatchdog #turn off detect soft & hard blocks and NMI watchdog
+nohz_full=0 #reduce interrupts on core
+tsc=nowatchdog #using TSC stable
+intel_pstate=disable #using acpi-cpufreq
+processor.max_cstate=1 #reduce latency but increase power
+idle=poll #make cpu 100% all time
+idle=halt
+
+### ram
+zswap.enabled=1
+zswap.compressor=lz4
+zswap.max_pool_percent=25
+vm.swappiness=180
+page_alloc.shuffle=1
+
+## I/O
+elevator=bfq
+scsi_mod.use_blk_mq=1
+
+## GPU
+i915.fastboot=1
+i915.enable_psr=0
+
+## Network
+tcp_fastopen=3
+
+
+
+                   [ rofi ]
+rofi -show -theme ~/.config/rofi/dmenu.rasi
+
+                   [ virables environment ]
+export PATH="$HOME/.nix-profile/bin:$PATH"
+export PATH="$HOME/my\ config/myroot/myhome/.config:$PATH"
+
+             

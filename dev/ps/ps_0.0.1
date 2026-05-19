@@ -1,0 +1,31 @@
+#/usr/bin/env bash
+
+
+pidtree() {
+    local parent=$1
+    echo -n "$parent "
+    for child in $(ps -o pid= --no-headers --ppid "$parent"); do
+        pidtree "$child"
+    done
+}
+
+_pidtree() {
+  echo -n $1 " "
+  for _child in $(ps -o pid --no-headers --ppid $1); do
+    echo -n $_child `pidtree $_child` " "
+  done
+}
+
+while true; do
+    case "$1" in
+        -f|--full)
+           ps f `_pidtree $2`
+           break   
+            ;;
+        *)
+            pidtree $1
+            break
+            ;;
+    esac
+done
+

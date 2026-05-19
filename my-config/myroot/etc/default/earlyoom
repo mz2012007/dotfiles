@@ -1,0 +1,9 @@
+# check every 5 seconds
+INTERVAL=5
+
+# kill processes if RAM < 150MB or swap < 50MB
+MINMEM=150
+MINSWAP=50
+
+# prefer killing biggest memory process
+KILLMETHOD=biggest

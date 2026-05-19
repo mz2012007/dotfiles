@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+# delete all directories starting with __ safely
+find . -type d -name "__*" -exec rm -rf {} +

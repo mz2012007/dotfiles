@@ -1,0 +1,32 @@
+sw_volume: 100
+audio_device_state:1:Raspotify
+state: stop
+current: 4
+random: 1
+repeat: 1
+single: 0
+consume: 0
+crossfade: 0
+mixrampdb: 0
+mixrampdelay: -1
+lastloadedplaylist: my
+playlist_begin
+0:songs/الى ربي .mp3
+1:songs/أنا العبد السقيم من الخطايا.mp3
+2:songs/أتدري من يزيل الهم.mp3
+3:songs/ارحنا بها .mp3
+4:songs/أشتكي لله مني.mp3
+5:songs/أكل الناس تشقيه كاملة.mp3
+6:songs/اكمل مسيرك.mp3
+7:songs/العليل فكيف السبيل إلى أن أتوب.mp3
+8:songs/عاهدتني ألا تميل عن الهــــوى.mp3
+9:songs/انت المثابر _ما بال قلبك يائسٌ.mp3
+10:songs/بكى قلبي.mp3
+11:songs/تمر ببالي كطيف جميل.mp3
+12:songs/تمسك بحلمك.mp3
+13:songs/طويل الشوق.mp3
+14:songs/طال ليلي.mp3
+15:songs/فيّ حبٌ.mp3
+16:songs/كن على درب التفاؤل.mp3
+17:songs/كشوق الليالي لضوء القمر.mp3
+playlist_end

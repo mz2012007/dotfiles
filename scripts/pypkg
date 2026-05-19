@@ -1,0 +1,80 @@
+#!/bin/env bash
+# vim: softtabstop=2 shiftwidth=2 expandtab
+# ==========================================
+# Unified Bash Package Info Tool
+# ==========================================
+
+banner() {
+cat <<'EOF'
+ ______   ______  _  ______ 
+|  _ \ \ / /  _ \| |/ / ___|
+| |_) \ V /| |_) | ' / |  _ 
+|  __/ | | |  __/| . \ |_| |
+|_|    |_| |_|   |_|\_\____| v.0.3
+
+Simple info package (Bash)
+Usage:
+  $ pypkg <package_name>        -- Basic Info
+  $ pypkg -f <package_name>     -- Full Info
+EOF
+}
+
+get_pkg_info() {
+  local pkg="$1"
+  local field="$2"
+  xbps-query -R "$pkg" 2>/dev/null | grep -A20 "^$field:" | tail -n+2 | sed 's/^\t//'
+}
+
+get_pkg_basic() {
+  local pkg="$1"
+  echo -e "\n 🌐  Homepage       : $(xbps-query -R "$pkg" 2>/dev/null | grep '^homepage:' | cut -d' ' -f2-)"
+  echo -e " 📑  Description    : $(xbps-query -R "$pkg" 2>/dev/null | grep '^short_desc:' | cut -d' ' -f2-)"
+  echo -e " 📦  File / Size    : $(xbps-query -R "$pkg" 2>/dev/null | grep '^filename-size:' | cut -d' ' -f2-)"
+  echo -e " 🔖  Version        : $(xbps-query -R "$pkg" 2>/dev/null | grep '^pkgver:' | cut -d' ' -f2-)"
+  echo -e " 🏷️  License        : $(xbps-query -R "$pkg" 2>/dev/null | grep '^license:' | cut -d' ' -f2-)"
+  echo -e " ⚙️  Maintainer     : $(xbps-query -R "$pkg" 2>/dev/null | grep '^maintainer:' | cut -d' ' -f2-)"
+  local state
+  if xbps-query -S "$pkg" &>/dev/null; then
+    state="☑️ Installed ($(xbps-query -S "$pkg" | grep '^install-date:' | cut -d' ' -f2-))"
+  else
+    state="❎ Not Installed"
+  fi
+  echo -e " 📥  State          : $state\n"
+}
+
+get_pkg_full() {
+  local pkg="$1"
+  get_pkg_basic "$pkg"
+  echo "==================== Dependencies ===================="
+  local run_dep shlib_req shlib_prov
+  run_dep=$(get_pkg_info "$pkg" "run_depends")
+  shlib_req=$(get_pkg_info "$pkg" "shlib-requires")
+  shlib_prov=$(get_pkg_info "$pkg" "shlib-provides")
+  echo -e "\n❄️ Run Dependencies:"
+  echo -e "$run_dep" | sed 's/^/ 📦 /'
+  echo -e "\n❄️ Shared Library Requires:"
+  echo -e "$shlib_req" | sed 's/^/ 🔗 /'
+  echo -e "\n❄️ Shared Library Provides:"
+  echo -e "$shlib_prov" | sed 's/^/ 🔗 /'
+}
+
+# -----------------------------
+# Main
+# -----------------------------
+if [ $# -eq 0 ]; then
+  banner
+  exit
+fi
+
+if [ "$1" == "-f" ]; then
+  if [ -z "$2" ]; then
+    banner
+    exit
+  fi
+  pkg="$2"
+  get_pkg_full "$pkg"
+else
+  pkg="$1"
+  get_pkg_basic "$pkg"
+fi
+

@@ -1,0 +1,55 @@
+rsync: [generator] recv_generator: mkdir "/mnt/backup/var/daily/Wed-Mar_11-03-2026_11:30:42PM/cache/fontconfig" failed: No space left on device (28)
+*** Skipping any contents from this failed directory ***
+rsync: [generator] recv_generator: mkdir "/mnt/backup/var/daily/Wed-Mar_11-03-2026_11:30:42PM/cache/ldconfig" failed: No space left on device (28)
+*** Skipping any contents from this failed directory ***
+rsync: [generator] recv_generator: mkdir "/mnt/backup/var/daily/Wed-Mar_11-03-2026_11:30:42PM/cache/xbps" failed: No space left on device (28)
+*** Skipping any contents from this failed directory ***
+rsync: [generator] recv_generator: mkdir "/mnt/backup/var/daily/Wed-Mar_11-03-2026_11:30:42PM/chroot/ssh" failed: No space left on device (28)
+*** Skipping any contents from this failed directory ***
+rsync: [generator] recv_generator: mkdir "/mnt/backup/var/daily/Wed-Mar_11-03-2026_11:30:42PM/db/dhcpcd" failed: No space left on device (28)
+*** Skipping any contents from this failed directory ***
+rsync: [generator] recv_generator: mkdir "/mnt/backup/var/daily/Wed-Mar_11-03-2026_11:30:42PM/db/sudo" failed: No space left on device (28)
+*** Skipping any contents from this failed directory ***
+rsync: [generator] recv_generator: mkdir "/mnt/backup/var/daily/Wed-Mar_11-03-2026_11:30:42PM/db/xbps" failed: No space left on device (28)
+*** Skipping any contents from this failed directory ***
+rsync: [generator] recv_generator: mkdir "/mnt/backup/var/daily/Wed-Mar_11-03-2026_11:30:42PM/lib/NetworkManager" failed: No space left on device (28)
+*** Skipping any contents from this failed directory ***
+rsync: [generator] recv_generator: mkdir "/mnt/backup/var/daily/Wed-Mar_11-03-2026_11:30:42PM/lib/alsa" failed: No space left on device (28)
+*** Skipping any contents from this failed directory ***
+rsync: [generator] recv_generator: mkdir "/mnt/backup/var/daily/Wed-Mar_11-03-2026_11:30:42PM/lib/bluetooth" failed: No space left on device (28)
+*** Skipping any contents from this failed directory ***
+rsync: [generator] recv_generator: mkdir "/mnt/backup/var/daily/Wed-Mar_11-03-2026_11:30:42PM/lib/chrony" failed: No space left on device (28)
+*** Skipping any contents from this failed directory ***
+rsync: [generator] recv_generator: mkdir "/mnt/backup/var/daily/Wed-Mar_11-03-2026_11:30:42PM/lib/dbus" failed: No space left on device (28)
+*** Skipping any contents from this failed directory ***
+rsync: [generator] recv_generator: mkdir "/mnt/backup/var/daily/Wed-Mar_11-03-2026_11:30:42PM/lib/iptables" failed: No space left on device (28)
+*** Skipping any contents from this failed directory ***
+rsync: [generator] recv_generator: mkdir "/mnt/backup/var/daily/Wed-Mar_11-03-2026_11:30:42PM/lib/mpd" failed: No space left on device (28)
+*** Skipping any contents from this failed directory ***
+rsync: [generator] recv_generator: mkdir "/mnt/backup/var/daily/Wed-Mar_11-03-2026_11:30:42PM/lib/os-prober" failed: No space left on device (28)
+*** Skipping any contents from this failed directory ***
+rsync: [generator] recv_generator: mkdir "/mnt/backup/var/daily/Wed-Mar_11-03-2026_11:30:42PM/lib/preload" failed: No space left on device (28)
+*** Skipping any contents from this failed directory ***
+rsync: [generator] recv_generator: mkdir "/mnt/backup/var/daily/Wed-Mar_11-03-2026_11:30:42PM/lib/seedrng" failed: No space left on device (28)
+*** Skipping any contents from this failed directory ***
+rsync: [generator] recv_generator: mkdir "/mnt/backup/var/daily/Wed-Mar_11-03-2026_11:30:42PM/lib/tpm" failed: No space left on device (28)
+*** Skipping any contents from this failed directory ***
+rsync: [generator] recv_generator: mkdir "/mnt/backup/var/daily/Wed-Mar_11-03-2026_11:30:42PM/lib/udisks2" failed: No space left on device (28)
+*** Skipping any contents from this failed directory ***
+rsync: [generator] recv_generator: mkdir "/mnt/backup/var/daily/Wed-Mar_11-03-2026_11:30:42PM/lib/upower" failed: No space left on device (28)
+*** Skipping any contents from this failed directory ***
+rsync: [generator] recv_generator: mkdir "/mnt/backup/var/daily/Wed-Mar_11-03-2026_11:30:42PM/log/chrony" failed: No space left on device (28)
+*** Skipping any contents from this failed directory ***
+rsync: [generator] recv_generator: mkdir "/mnt/backup/var/daily/Wed-Mar_11-03-2026_11:30:42PM/log/preload" failed: No space left on device (28)
+*** Skipping any contents from this failed directory ***
+rsync: [generator] recv_generator: mkdir "/mnt/backup/var/daily/Wed-Mar_11-03-2026_11:30:42PM/mail" failed: No space left on device (28)
+*** Skipping any contents from this failed directory ***
+rsync: [generator] recv_generator: mkdir "/mnt/backup/var/daily/Wed-Mar_11-03-2026_11:30:42PM/opt" failed: No space left on device (28)
+*** Skipping any contents from this failed directory ***
+rsync: [generator] recv_generator: mkdir "/mnt/backup/var/daily/Wed-Mar_11-03-2026_11:30:42PM/spool" failed: No space left on device (28)
+*** Skipping any contents from this failed directory ***
+rsync: [generator] recv_generator: mkdir "/mnt/backup/var/daily/Wed-Mar_11-03-2026_11:30:42PM/tmp" failed: No space left on device (28)
+*** Skipping any contents from this failed directory ***
+rsync: [receiver] write failed on "/mnt/backup/var/daily/Wed-Mar_11-03-2026_11:30:42PM/log/btmp": No space left on device (28)
+rsync error: error in file IO (code 11) at receiver.c(381) [receiver=3.4.1]
+rsync: [sender] write error: Broken pipe (32)

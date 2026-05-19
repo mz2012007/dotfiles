@@ -1,0 +1,5 @@
+Backing up var (/dev/vg_main/lv_var)
+  Logical volume "var_snap" created.
+-oarXHv /mnt/snap/ /mnt/backup/var/daily/Wed-Mar_11-03-2026_11:23:17PM/
+[cleanup] Triggered
+  Logical volume "var_snap" successfully removed.

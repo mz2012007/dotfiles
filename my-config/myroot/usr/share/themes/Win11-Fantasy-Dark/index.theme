@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=X-GNOME-Metatheme
+Name=Win11-Fantasy-Dark
+Comment=An Materia Gtk+ theme based on Elegant Design
+Encoding=UTF-8
+
+[X-GNOME-Metatheme]
+GtkTheme=Win11-Fantasy-Dark
+MetacityTheme=Win11-Fantasy-Dark
+IconTheme=Win11-Fantasy-Dark
+CursorTheme=Win11-Fantasy-Dark
+ButtonLayout=close,minimize,maximize:menu

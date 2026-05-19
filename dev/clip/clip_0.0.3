@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+# sway-clipboard-rofi-multiline.sh
+# Clipboard manager for Sway (handles multiline copies correctly)
+
+CLIP_FILE="$HOME/.cache/cliphistory.txt"
+mkdir -p "$(dirname "$CLIP_FILE")"
+touch "$CLIP_FILE"
+
+# Function to add a new clipboard entry
+add_clipboard() {
+    local new_clip="$1"
+    # Ignore empty
+    [[ -z "$new_clip" ]] && return
+    # Check if last entry is same, skip duplicates
+    local last_entry=$(tail -n 1 "$CLIP_FILE")
+    if [[ "$last_entry" != "$new_clip" ]]; then
+        echo "$new_clip" >> "$CLIP_FILE"
+        # Keep last 100 entries
+        tail -n 100 "$CLIP_FILE" > "$CLIP_FILE.tmp" && mv "$CLIP_FILE.tmp" "$CLIP_FILE"
+    fi
+}
+
+# Background watcher mode
+if [[ "$1" == "watch" ]]; then
+    LAST=""
+    while true; do
+        CURRENT=$(wl-paste -n 2>/dev/null || echo "")
+        if [[ -n "$CURRENT" && "$CURRENT" != "$LAST" ]]; then
+            add_clipboard "$CURRENT"
+            LAST="$CURRENT"
+        fi
+        sleep 0.5
+    done
+    exit
+fi
+
+# Show Rofi menu
+CHOICE=$(tac "$CLIP_FILE" | rofi -dmenu -i -p "Clipboard:")
+
+# Copy selection back to clipboard
+if [[ -n "$CHOICE" ]]; then
+    echo -n "$CHOICE" | wl-copy
+fi

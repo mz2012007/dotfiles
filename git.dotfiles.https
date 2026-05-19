@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+
+# --------------------------
+# Handle Ctrl+C
+# --------------------------
+trap 'echo -e "\n❌ Operation cancelled by user"; exit 1' INT
+
+REPO_DIR="$HOME/dotfiles"
+CREDENTIAL_FILE="$HOME/.git-credentials"
+GIT_REMOTE="https://github.com/mz2012007/dotfiles.git"
+GIT_USER="MohamedZaki"
+GIT_EMAIL="mohamedgamer139@gmail.com"
+
+[ ! -d "$REPO_DIR" ] && echo "❌ $REPO_DIR not found" && exit 1
+
+cd "$REPO_DIR"
+
+if [ ! -f "$CREDENTIAL_FILE" ]; then
+  echo "👋 First time setup for git"
+
+  git init
+
+  read -p "Enter your GitHub username: " GIT_USER
+  read -p "Enter your GitHub email: " GIT_EMAIL
+
+  git config --global user.name "$GIT_USER"
+  git config --global user.email "$GIT_EMAIL"
+
+  git config --global credential.helper store
+
+  git remote add my "$GIT_REMOTE"
+fi
+
+./cp.bak
+
+git add .
+
+if [[ -z "$1" ]]; then
+  git commit --amend --no-edit
+  git push -f my main
+  echo "✅ Updated forced (amend)"
+else
+  git commit -m "$1"
+  git push my main
+  echo "✅ Changed with message"
+fi

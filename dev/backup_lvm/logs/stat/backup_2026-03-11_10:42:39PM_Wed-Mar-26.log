@@ -1,0 +1,11 @@
+Backing up var (/dev/vg_main/lv_var)
+  Logical volume "var_snap" created.
+sudo rsync -oarXHv --delete   --exclude=/mnt/backup.mZTyyz  --exclude=/mnt/snap.1iK93j --exclude=/etc/fstab --link-dest=/mnt/backup.mZTyyz/var/daily/Wed-Mar_11-03-2026_10:34:38PM /mnt/snap.1iK93j/ /mnt/backup.mZTyyz/var/daily/Wed-Mar_11-03-2026_10:42:41PM/
+Running: sudo rsync -oarXHv --delete   --exclude=/mnt/backup.mZTyyz  --exclude=/mnt/snap.1iK93j --exclude=/etc/fstab --link-dest=/mnt/backup.mZTyyz/var/daily/Wed-Mar_11-03-2026_10:34:38PM /mnt/snap.1iK93j/ /mnt/backup.mZTyyz/var/daily/Wed-Mar_11-03-2026_10:42:41PM/
+sending incremental file list
+./
+log/wtmp
+
+sent 466,584 bytes  received 96 bytes  311,120.00 bytes/sec
+total size is 1,797,606,034  speedup is 3,851.90
+Removing snapshot /dev/vg_main/var_snap

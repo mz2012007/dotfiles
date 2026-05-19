@@ -1,0 +1,6 @@
+#! /bin/sh
+if [ -z "$1" ]; then
+echo "no app"
+         exit 1
+              fi
+"@$" exec nice -n 10 ionice -c2 -n7

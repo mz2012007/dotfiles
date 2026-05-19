@@ -1,0 +1,177 @@
+#!/bin/bash
+# ==============================================================================
+# Early userspace init for custom initramfs
+# ==============================================================================
+# This script is intended for a minimal, static initramfs environment.
+# It performs:
+#   1. Mount kernel virtual filesystems (proc, sys, dev)
+#   2. Load essential kernel modules (drivers)
+#   3. Activate LVM if present
+#   4. Detect and mount root filesystem
+#   5. Switch to the real root
+#   6. Fallback to bash shell if anything fails
+# ==============================================================================
+
+set -e
+PATH=/bin:/sbin
+
+echo "== Early init started =="
+
+load_video
+set gfxpayload=keep
+insmod gzio
+insmod part_msdos
+insmod lvm
+insmod ext2
+# ------------------------------------------------------------------------------
+# Stage 1: Mount kernel virtual filesystems
+# ------------------------------------------------------------------------------
+echo "[init-top] Mounting kernel virtual filesystems"
+mount -t proc proc /proc
+mount -t sysfs sysfs /sys
+mount -t devtmpfs devtmpfs /dev
+
+mkdir -p /run
+mount -t tmpfs tmpfs /run
+
+# ------------------------------------------------------------------------------
+# Stage 2: Load essential kernel modules (drivers)
+# ------------------------------------------------------------------------------
+echo "[init-premount] Loading essential kernel modules"
+for mod in ext4 ahci sd_mod dm_mod dm_snapshot; do
+    modprobe "$mod" 2>/dev/null || true
+done
+
+# Optional: populate /lib/modules if WORKDIR exists
+if [ -n "${WORKDIR-}" ] && [ -d "$WORKDIR/lib/modules" ]; then
+    for m in $(lsmod | awk 'NR>1 {print $1}'); do
+        cp -v "$(modinfo -n $m)" "$WORKDIR/lib/modules/" 2>/dev/null || true
+    done
+fi
+
+# Load modules from PCI devices (optional)
+for m in /sys/bus/pci/devices/*/modalias; do
+    [ -f "$m" ] && modprobe "$(cat $m)" 2>/dev/null || true
+done
+
+# Add any other modules you need here
+# Modules should be placed under /lib/modules/<kernel-version>
+
+# ------------------------------------------------------------------------------
+# Stage 3: Activate LVM (if present)
+# ------------------------------------------------------------------------------
+if command -v lvm >/dev/null 2>&1; then
+    echo "[init-premount] Activating LVM"
+    lvm vgscan --mknodes
+    lvm vgchange -ay
+fi
+
+# ------------------------------------------------------------------------------
+# Stage 4: Detect root device from kernel cmdline
+# ------------------------------------------------------------------------------
+echo "[init-mount] Detecting root device from kernel cmdline"
+ROOT_DEVICE=""
+ROOT_FLAGS="rw"
+
+for arg in $(cat /proc/cmdline); do
+    case $arg in
+        root=*) ROOT_DEVICE="${arg#root=}" ;;
+        ro) ROOT_FLAGS="ro" ;;
+        rw) ROOT_FLAGS="rw" ;;
+        backup_type=*) BACKUP_TYPE="${arg#backup_type=}" ;;
+        backup=*) BACKUP_DATE="${arg#backup=}" ;;
+    esac
+done
+
+echo "[init-mount] Root device: $ROOT_DEVICE"
+
+# Wait for the device to appear (timeout 10s)
+for i in $(seq 1 10); do
+    [ -b "$ROOT_DEVICE" ]&& break
+    sleep 1
+done
+
+if [ ! -b "$ROOT_DEVICE" ]; then
+    echo "[init-mount] Root device not found! Dropping to debug shell."
+    exec bash
+fi
+
+# ------------------------------------------------------------------------------
+# Stage 5: Mount real root filesystem
+# ------------------------------------------------------------------------------
+echo "[init-mount] Mounting real root"
+mkdir -p /newroot
+mount -o "$ROOT_FLAGS" "$ROOT_DEVICE" /newroot || {
+    echo "[init-mount] Mount failed! Dropping to debug shell."
+    exec bash
+}
+
+# ------------------------------------------------------------------------------
+# Stage 6: Move kernel mounts to new root
+# ------------------------------------------------------------------------------
+echo "[init-bottom] Moving kernel mounts to new root"
+
+# Safety check
+[ -z "$BACKUP_DATE" ] && exit 0
+[ -z "$BACKUP_TYPE" ] && BACKUP_TYPE="daily"
+
+if [ -n "$BACKUP_DATE" ]; then
+    backup_path="/newroot/root/$BACKUP_TYPE/$BACKUP_DATE"
+
+    [ -d "$backup_path/home" ] && mount --bind "$backup_path/home" /newroot/home
+    [ -d "$backup_path/var" ]  && mount --bind "$backup_path/var"  /newroot/var
+    echo "[init-bottom] Backup mounts applied"
+fi
+
+echo "[init-premount] Dynamic module loading"
+
+# 1. Load filesystems
+for fs in ext2 ext3 ext4 xfs btrfs vfat; do
+    if ! grep -q "$fs" /proc/filesystems; then
+        echo "[init] Loading missing filesystem module: $fs"
+        modprobe "$fs" 2>/dev/null || echo "[init] Failed to load $fs"
+    fi
+done
+
+# 2. Load PCI/Block device modules
+for m in /sys/bus/pci/devices/*/modalias; do
+    [ -f "$m" ] || continue
+    alias=$(cat "$m")
+    [ -n "$alias" ] && echo "[init] Loading PCI module for $alias" && modprobe "$alias" 2>/dev/null || true
+done
+
+# 3. Load modules for block devices
+for dev in /sys/class/block/*; do
+    uevent_file="$dev/uevent"
+    [ -f "$uevent_file" ] || continue
+    devname=$(grep '^DEVNAME=' "$uevent_file" | cut -d= -f2)
+    devtype=$(grep '^DEVTYPE=' "$uevent_file" | cut -d= -f2)
+
+    if [ "$devtype" = "disk" ] && echo "$devname" | grep -q '^zram'; then
+        echo "[init] Loading zram module for $devname"
+        modprobe zram 2>/dev/null || true
+    fi
+done
+
+
+# ------------------------------------------------------------------------------
+# Stage 7: Move kernel mounts to new root
+# ------------------------------------------------------------------------------
+echo "[init-bottom] Moving kernel mounts to new root"
+for mnt in proc sys dev run; do
+    mount --move "/$mnt" "/newroot/$mnt"
+done
+
+# ------------------------------------------------------------------------------
+# Stage 7: Switch to real root
+# ------------------------------------------------------------------------------
+echo "[init-bottom] Switching to real root"
+/sbin/switch_root /newroot /sbin/init
+
+# ------------------------------------------------------------------------------
+# Fallback: If switch_root fails
+# ------------------------------------------------------------------------------
+echo "[init-bottom] switch_root failed! Dropping to debug shell."
+exec bash
+
+

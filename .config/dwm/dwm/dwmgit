@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+git add \
+  config.def.h \
+  config.h \
+  drw.c \
+  drw.h \
+  drw.o \
+  dwm.1 \
+  dwm.c \
+  dwm.o \
+  transient.c \
+  util.c \
+  util.h \
+  util.o \
+  vanitygaps.c

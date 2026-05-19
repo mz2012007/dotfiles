@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+# Backup important config files to dotfiles repo
+sudo -v
+DOTFILES="$HOME/dotfiles/my-config/myroot"
+
+# Colors
+if [[ -t 1 ]]; then
+  RED="\033[31m"
+  GREEN="\033[32m"
+  YELLOW="\033[33m"
+  BLUE="\033[34m"
+  RESET="\033[0m"
+else
+  RED="" GREEN="" YELLOW="" BLUE="" RESET=""
+fi
+
+info() { echo -e "${BLUE}ℹ️  $*${RESET}"; }
+warn() { echo -e "${YELLOW}⚠️  $*${RESET}"; }
+success() { echo -e "${GREEN}✅ $*${RESET}"; }
+error() {
+  echo -e "${RED}❌ $*${RESET}"
+  exit 1
+}
+
+declare -A rsync_map=(
+  ["/etc/lightdm/lightdm-gtk-greeter.conf"]="$DOTFILES/etc/lightdm/"
+  ["/etc/polkit-1/rules.d/49-my-safe.rules"]="$DOTFILES/etc/polkit-1/rules.d/"
+  ["/boot/grub/themes/"]="$DOTFILES/boot/grub/themes/"
+  ["/etc/default/grub"]="$DOTFILES/etc/default/grub"
+  ["/etc/resolv.conf"]="$DOTFILES/etc/"
+  ["/var/spool/fcron/"]="$HOME/dotfiles/fcrontab/"
+  ["/etc/hostname"]="$DOTFILES/etc/hostname"
+  ["/etc/hosts"]="$DOTFILES/etc/hosts"
+  ["$HOME/.local/share/fonts/"]="$DOTFILES/myhome/.local/share/fonts/"
+  ["$HOME/.config/tmux/tmux.conf"]="$DOTFILES/myhome/.config/tmux/tmux.conf"
+  ["$HOME/.config/tmux/tmux.conf.pack2"]="$DOTFILES/myhome/.config/tmux/tmux.conf.pack2"
+  ["$HOME/.config/tmux/templates/template1"]="$DOTFILES/myhome/.config/tmux/templates/template1"
+  ["/etc/runit/1"]="$DOTFILES/etc/runit/1"
+  ["/etc/runit/2"]="$DOTFILES/etc/runit/2"
+  ["/etc/runit/3"]="$DOTFILES/etc/runit/3"
+  ["$HOME/.zen/72a6uqdo.Default (release)/prefs.js"]="$DOTFILES/myhome/.zen/profile/prefs.js"
+  ["$HOME/.zen/72a6uqdo.Default (release)/zen-themes.json"]="$DOTFILES/myhome/.zen/profile/zen-themes.json"
+  ["$HOME/.ssh/agent/"]="$DOTFILES/myhome/.ssh/agent/"
+  ["$HOME/.ssh/config"]="$DOTFILES/myhome/.ssh/config"
+  ["$HOME/.ssh/known_hosts"]="$DOTFILES/myhome/.ssh/known_hosts"
+  ["/etc/sv/my-zram/run"]="$DOTFILES/etc/sv/my-zram/"
+  ["/etc/preload.conf"]="$DOTFILES/etc/preload.conf"
+  ["/etc/default/earlyoom"]="$DOTFILES/etc/default/earlyoom"
+)
+
+for src in "${!rsync_map[@]}"; do
+  dest=${rsync_map[$src]}
+
+  if [[ -e "$src" ]]; then
+    info "rsync $src -> $dest"
+    if [[ -d "$src" ]]; then
+      sudo rsync -aAXv "$src/" "$dest" >/dev/null
+    else
+      sudo rsync -aAXv "$src" "$dest" >/dev/null
+    fi
+    success "rsynced $src -> $dest"
+    echo
+  else
+    warn "Source not found, skipping: $src"
+    echo
+  fi
+done
+
+sudo chown -R mz:mz $HOME/dotfiles/
+success "Ownership applied to $HOME/dotfiles/"
