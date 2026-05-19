@@ -14,15 +14,19 @@ if [[ -t 1 ]]; then
   GREEN="\033[32m"
   YELLOW="\033[33m"
   BLUE="\033[34m"
+  CYAN="\e[0;36m"
   RESET="\033[0m"
 else
-  RED="" GREEN="" YELLOW="" BLUE="" RESET=""
+  RED="" GREEN="" YELLOW="" BLUE="" RESET="" CYAN=""
 fi
 
 info() { echo -e "${BLUE}ℹ️  $*${RESET}"; }
 warn() { echo -e "${YELLOW}⚠️  $*${RESET}"; }
 success() { echo -e "${GREEN}✅ $*${RESET}"; }
-error() { echo -e "${RED}❌ $*${RESET}"; exit 1; }
+error() {
+  echo -e "${RED}❌ $*${RESET}"
+  exit 1
+}
 
 # --------------------------
 # Handle Ctrl+C
@@ -34,11 +38,12 @@ trap 'error "Operation cancelled by user"' INT
 # --------------------------
 SCRIPT_DIR="$(cd -- "$(dirname -- "$0")" && pwd)"
 SCRIPT_FILE="$SCRIPT_DIR/$(basename "$0")"
-REPO_DIR="$HOME/.zen"
+REPO_DIR="$HOME/zen/"
 REMOTE_NAME="zen-browser"
 SSH_REMOTE="git@github.com:mz2012007/${REMOTE_NAME}.git"
 BRANCH="main"
 SSH_KEY="$HOME/.ssh/id_ed25519"
+KEY_ID=26F8F7CB6EA5C77A
 
 # --------------------------
 # Functions
@@ -54,7 +59,7 @@ update_script_variables() {
     echo "0) Exit"
 
     for i in "${!vars[@]}"; do
-      echo "$((i+1))) ${vars[$i]}"
+      echo "$((i + 1))) ${vars[$i]}"
     done
 
     read -rp "Enter choice: " choice
@@ -63,9 +68,9 @@ update_script_variables() {
       break
     fi
 
-    if [[ "$choice" =~ ^[0-9]+$ ]] && (( choice >=1 && choice <= ${#vars[@]} )); then
+    if [[ "$choice" =~ ^[0-9]+$ ]] && ((choice >= 1 && choice <= ${#vars[@]})); then
 
-      var_name="${vars[$((choice-1))]}"
+      var_name="${vars[$((choice - 1))]}"
 
       read -rp "Enter new value for $var_name: " new_value
 
@@ -117,40 +122,39 @@ prepare_repo() {
     echo "2) create without clone"
     read -rp "[0-2]: " answer
     case "$answer" in
-      0)
-        ;;
-      1)
-        info "Creating folder and cloning repo..."
-        mkdir -p "$REPO_DIR"
-        git clone -b "$BRANCH" "$SSH_REMOTE" "$REPO_DIR"
-        ;;
-      2)
-        info "Creating folder without pull..."
-        mkdir -p "$REPO_DIR"
-        ;;
-      * )
-        warn "Repo not created. Exiting."
-        exit 1
-        ;;
+    0) ;;
+    1)
+      info "Creating folder and cloning repo..."
+      mkdir -p "$REPO_DIR"
+      git clone -b "$BRANCH" "$SSH_REMOTE" "$REPO_DIR"
+      ;;
+    2)
+      info "Creating folder without pull..."
+      mkdir -p "$REPO_DIR"
+      ;;
+    *)
+      warn "Repo not created. Exiting."
+      exit 1
+      ;;
     esac
   else
     cd "$REPO_DIR"
   fi
 }
 
-create_new_repo(){
+create_new_repo() {
   info "git Initializing..."
   git init
   success "git initialized"
 
   info "Touch README..."
   touch README.md
-  success "Create README file" 
+  success "Create README file"
 
   info "Adding README..."
   git add README.md
   success "README added"
- 
+
   info "First commit..."
   git commit -m "Initial commit"
   success "First commit"
@@ -164,7 +168,7 @@ create_new_repo(){
   success "First push"
 }
 
-create_pull_repo(){
+create_pull_repo() {
   info "Adding SSH remote"
   git remote add "$REMOTE_NAME" "$SSH_REMOTE"
   info "Pulling Repo..."
@@ -181,61 +185,35 @@ pull_repo() {
   success "Pull completed"
 }
 
-pull_rebase_repo() {
-  # Ensure branch
-  git checkout "$BRANCH" 2>/dev/null || git checkout -b "$BRANCH"
-
-  info "Pulling latest changes with rebase..."
-  if git pull --rebase "$REMOTE_NAME" "$BRANCH"; then
-    success "Pull --rebase completed successfully"
-  else
-    warn "Conflicts detected during rebase. Resolve them manually!"
-  fi
-}
-
-push_commit_repo() {
-  # Ensure branch
-  git checkout "$BRANCH" 2>/dev/null || git checkout -b "$BRANCH"
-
-  read -rp "Write commit" chommit
-  info "Staging changes..."
-  git add -A
-  if git diff --cached --quiet; then
-    warn "No changes to commit"
-  else
-    if git rev-parse --verify HEAD >/dev/null 2>&1; then
-      git commit --amend --no-edit
-      info "Amended last commit"
-    else
-      git commit -m "$chommit"
-      info "Initial commit created"
-    fi
-  fi
-  info "Pushing..."
-  git push "$REMOTE_NAME" "$BRANCH"
-  success "Push completed"
-}
-
 push_force_repo() {
   # Ensure branch
+  Tar
+
   git checkout "$BRANCH" 2>/dev/null || git checkout -b "$BRANCH"
 
   info "Staging changes..."
   git add -A
-  if git diff --cached --quiet; then
-    warn "No changes to commit"
-  else
-    if git rev-parse --verify HEAD >/dev/null 2>&1; then
-      git commit --amend --no-edit
-      info "Amended last commit"
-    else
-      git commit -m "chore: initial commit"
-      info "Initial commit created"
-    fi
-  fi
+
+  info "Initial commit created"
+  git commit -S -m "chore: initial commit"
+
   info "Force pushing..."
   git push -f "$REMOTE_NAME" "$BRANCH"
   success "Force push completed"
+  rm $REPO_DIR/project.tar.gz.zst.gpg
+
+}
+
+# --------------------------
+# Tar
+# --------------------------
+Tar() {
+  cd $HOME
+  tar -czf project.tar.gz .zen/ &&
+    zstd -19 project.tar.gz && rm project.tar.gz &&
+    gpg -er $KEY_ID project.tar.gz.zst && rm project.tar.gz.zst &&
+    mv project.tar.gz.zst.gpg $REPO_DIR
+  cd $REPO_DIR
 }
 
 # --------------------------
@@ -243,10 +221,16 @@ push_force_repo() {
 # --------------------------
 while getopts ":b:h" opt; do
   case $opt in
-    b) BRANCH="$OPTARG" ;;
-    h) show_help ;;
-    \?) warn "Unknown option: -$OPTARG"; show_help ;;
-    :) warn "Option -$OPTARG requires an argument"; show_help ;;
+  b) BRANCH="$OPTARG" ;;
+  h) show_help ;;
+  \?)
+    warn "Unknown option: -$OPTARG"
+    show_help
+    ;;
+  :)
+    warn "Option -$OPTARG requires an argument"
+    show_help
+    ;;
   esac
 done
 
@@ -258,14 +242,13 @@ dotfiles_sync() {
   command -v git >/dev/null 2>&1 || error "git is not installed"
   command -v ssh >/dev/null 2>&1 || error "ssh is not installed"
 
-  # Ensure & setub SSH key 
-  [ -f "$SSH_KEY" ] || ssh_setup
+  # Ensure & setub SSH key
 
-  prepare_repo
-
+  mkdir -p $REPO_DIR
+  cd $REPO_DIR
   # Ensure git repo
   if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-    echo -e "The dire $REPO_DIR is existed ,but there is no git. Would you Create or clone repo?" 
+    echo -e "The dire $REPO_DIR is existed ,but there is no git. Would you Create or clone repo?"
     echo -e "${BLUE}Choose operation:${RESET}"
     echo "0) contiue"
     echo "1) create new"
@@ -273,44 +256,20 @@ dotfiles_sync() {
     read -rp "Enter choice [0-2]: " choice
 
     case "$choice" in
-      0) ;;
-      1) create_new_repo ;;
-      2) create_pull_repo ;;
-      *) warn "Invalid choice, try again." ;;
+    0) ;;
+    1) create_new_repo ;;
+    2) create_pull_repo ;;
+    *) warn "Invalid choice, try again." ;;
     esac
   fi
 
-
   # Ensure local user config
-  git config user.name >/dev/null 2>&1 || git config user.name "MohamedZaki"
-  git config user.email >/dev/null 2>&1 || git config user.email "mohamedgamer139@gmail.com"
 
-
+  push_force_repo
   # --------------------------
   # Interactive choice
   # --------------------------
-  while true; do
-    echo -e "${BLUE}Choose operation:${RESET}"
-    echo "0) exit"
-    echo "1) push with commit"
-    echo "2) push --force"
-    echo "3) pull"
-    echo "4) pull --rebase"
-    echo "5) change variables"
-    echo "6) replace https with ssh"
-    read -rp "Enter choice [0-5]: " choice
 
-    case "$choice" in
-      0) exit ;;
-      1) push_commit_repo; break ;;
-      2) push_force_repo; break ;;
-      3) pull_repo; break ;;
-      4) pull_rebase_repo; break ;;
-      5) update_script_variables ;;
-      6) replace_https_with_ssh ;;
-      *) warn "Invalid choice, try again." ;;
-    esac
-  done
 }
 
 # --------------------------

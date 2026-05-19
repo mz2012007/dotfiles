@@ -1180,6 +1180,8 @@ ssh-keygen -y -f ~/.ssh/id_ed25519 > ~/.ssh/id_ed25519.pub
                    [ gpg ]  
 #sudo xbps-install -S gnupg git openssh pinentry
 
+gpg --expert --full-generate-key
+
 # tar
 tar -czf project.tar.gz project/ && rm project \
     && zstd -19 project.tar.gz && rm project.tar.gz \
@@ -1269,6 +1271,9 @@ enable-ssh-support
 pinentry /usr/bin/pinentry-curses
 default-cache-ttl 60
 max-cache-ttl 120
+
+#vim sshcontrol
+gpg --list-keys --with-keygrip
 
 #termnal
 killall ssh-agent gpg-agent

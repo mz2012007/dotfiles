@@ -6,7 +6,7 @@ GRUB_DEFAULT="0"
 #GRUB_HIDDEN_TIMEOUT_QUIET="false"
 GRUB_TIMEOUT="2"
 GRUB_DISTRIBUTOR="Void"
-GRUB_CMDLINE_LINUX_DEFAULT="splash quiet init=/sbin/dinit rd.plymouth=1 plymouth.enable=1 loglevel=4 mitigations=off nowatchdog tsc=nowatchdog intel_pstate=disable processor.max_cstate=1 idle=halt zswap.enabled=1 zswap.compressor=lz4 zswap.max_pool_percent=25 vm.swappiness=180 page_alloc.shuffle=1 elevator=bfq scsi_mod.use_blk_mq=1 i915.fastboot=1 i915.enable_psr=0 tcp_fastopen=3"
+GRUB_CMDLINE_LINUX_DEFAULT="splash quiet init=/sbin/runit rd.plymouth=1 plymouth.enable=1 loglevel=4 mitigations=off nowatchdog tsc=nowatchdog intel_pstate=disable processor.max_cstate=1 idle=halt zswap.enabled=1 zswap.compressor=lz4 zswap.max_pool_percent=25 vm.swappiness=180 page_alloc.shuffle=1 elevator=bfq scsi_mod.use_blk_mq=1 i915.fastboot=1 i915.enable_psr=0 tcp_fastopen=3"
 # Uncomment to use basic console
 #GRUB_TERMINAL_INPUT="console"
 # Uncomment to disable graphical terminal

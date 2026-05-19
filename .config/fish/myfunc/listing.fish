@@ -48,6 +48,13 @@ function l
 end
 
 complete -c l -w eza
+
+######################################################################
+function sz
+    du --summarize -h $argv
+end
+complete -c sz -w ls -A
+
 ######################################################################
 function lsize
     eza -AlioF --color=always --icons --show-symlinks $argv
