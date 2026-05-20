@@ -70,6 +70,7 @@ pidtree() {
 # ---- run app as normal user ----
 sudo -u "$TARGET_USER" "${CMD[@]}" &
 PID=$!
+swaymsg "[pid=$PID] assign workspace 2"
 
 # ---- attach main PID + children recursively ----
 while kill -0 "$PID" 2>/dev/null; do

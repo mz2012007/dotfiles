@@ -195,6 +195,19 @@ mode "window" {
 bindsym $mod+w mode "window"
 #
 
+#swaymsg -t get_tree
+#swaymsg -t get_tree | grep app_id
+for_window [app_id="cliphist-fzf"] floating enable
+for_window [app_id="cliphist-fzf"] resize set 1200 600
+
+for_window [app_id="xfce-polkit"] floating enable
+
+assign [app_id="zen"] workspace 2
+assign [app_id="org.kde.dolphin"] workspace 3
+
+
+#for_window [app_id="cliphist-fzf"] move position 200 100 
+
 
 # Make the current focus fullscreen
 bindsym F11 fullscreen
@@ -338,9 +351,6 @@ exec_always  wl-paste --watch $HOME/dev/clip/clip out&
 
 
 
-#swaymsg -t get_tree | grep app_id
-assign [app_id="zen"] workspace 2
-assign [app_id="org.kde.dolphin"] workspace 3
 
 exec_always --no-startup-id nm-applet
 bindsym $mod+Control+minus gaps inner current minus 1
