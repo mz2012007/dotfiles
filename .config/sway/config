@@ -332,8 +332,10 @@ bindsym $mod+a mode "Apps"
 #bindsym Ctrl+Shift+C exec ~/dev/clip/clip add
 
 # Open Rofi clipboard menu
-bindsym Ctrl+Shift+V exec cliphist list | rofi -dmenu | cliphist decode | wl-copy
+bindsym Ctrl+Shift+V exec alacritty --class  cliphist-fzf -e $HOME/dev/clip/clip preview
 exec_always --no-startup-id wl-paste --watch cliphist store
+exec_always  wl-paste --watch $HOME/dev/clip/clip out&
+
 
 
 #swaymsg -t get_tree | grep app_id

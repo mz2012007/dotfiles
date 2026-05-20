@@ -1,1 +1,142 @@
-clip_0.0.5
+#!/usr/bin/env bash
+
+SHELL="bash"
+
+set -euo pipefail
+
+histfile="${XDG_CACHE_HOME:-$HOME/.cache}/cliphist-custom"
+placeholder="<NL>"
+
+NOTIFY="${CLIP_NOTIFY:-1}"
+
+notify() {
+  [ "$NOTIFY" = "1" ] || return 0
+  notify-send "Clipboard" "$1" -t 1200 -u low
+}
+
+ensure_file() {
+  mkdir -p "$(dirname "$histfile")"
+  touch "$histfile"
+}
+
+# Wayland watch mode input
+capture_clipboard() {
+  clip="$(cat)"
+  [ -z "${clip:-}" ] && return 1
+}
+
+write_history() {
+  ensure_file
+
+  multiline="$(
+    printf '%s' "$clip" |
+      sed ":a;N;\$!ba;s/\n/${placeholder}/g"
+  )"
+
+  grep -Fqx "$multiline" "$histfile" ||
+    printf '%s\n' "$multiline" >>"$histfile"
+}
+
+copy_primary() {
+  clip="$(wl-paste --primary 2>/dev/null || true)"
+  [ -z "${clip:-}" ] && return 1
+
+  printf '%s' "$clip" | wl-copy
+  notify "Primary copied"
+}
+
+select_rofi() {
+  [ -f "$histfile" ] || return 1
+
+  selection="$(
+    tac "$histfile" |
+      sed "s/${placeholder}/ /g" |
+      rofi -dmenu -i -p "Clipboard"
+  )"
+
+  [ -z "${selection:-}" ] && return 0
+
+  printf '%s' "$selection" |
+    sed "s/${placeholder}/\n/g" |
+    wl-copy
+
+  notify "Copied from history"
+}
+
+select_fzf_preview() {
+  [ -f "$histfile" ] || return 1
+
+  selected="$(
+    tac "$histfile" |
+      fzf \
+        --layout=reverse \
+        --border=rounded \
+        --height=90% \
+        --ansi \
+        --preview-window=right:60%:wrap \
+        --preview '
+          content=$(printf "%s" {} | sed "s/<NL>/\n/g")
+
+          if command -v highlight >/dev/null 2>&1; then
+            printf "%s\n" "$content" | highlight -O ansi 2>/dev/null \
+              || printf "%s\n" "$content"
+          else
+            printf "%s\n" "$content"
+          fi
+        ' \
+        --bind 'ctrl-u:preview-page-up,ctrl-d:preview-page-down'
+  )"
+
+  [ -z "${selected:-}" ] && return 0
+
+  printf '%s' "$selected" |
+    sed "s/<NL>/\n/g" |
+    wl-copy
+
+  notify "Copied (fzf preview)"
+}
+
+case "${1:-}" in
+watch)
+  wl-paste --watch bash -c "$0 ingest"
+  ;;
+
+ingest)
+  capture_clipboard || exit 0
+  write_history
+  ;;
+
+add)
+  clip="$(wl-paste --primary 2>/dev/null || true)"
+  [ -z "${clip:-}" ] && exit 1
+  printf '%s' "$clip" | wl-copy
+  write_history
+  notify "Saved selection"
+  ;;
+
+out)
+  clip="$(wl-paste 2>/dev/null || true)"
+  [ -z "${clip:-}" ] && exit 1
+  write_history
+  notify "Saved clipboard"
+  ;;
+
+sel)
+  select_rofi
+  ;;
+
+preview)
+  select_fzf_preview
+  ;;
+
+*)
+  cat <<EOF
+Usage:
+  clip watch     Start Wayland watcher
+  clip add       Save primary selection
+  clip out       Save clipboard
+  clip sel       rofi history
+  clip preview   fzf preview (colored)
+EOF
+  ;;
+esac
