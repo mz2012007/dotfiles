@@ -1,12 +1,11 @@
 #!/usr/bin/env bash
 
-PACK=(
+PACK_HOLD=(
   linux-firmware-amd
   linux-firmware-broadcom
   linux-firmware-intel
   linux-firmware-network
   linux-firmware-nvidia
-  linux6.12
   zen-browser
   chromium
   qemu-user
@@ -45,10 +44,22 @@ PACK=(
   qemu-user-xtensa
   qemu-user-xtensaeb
   linux7.0
-  linux6.18
 )
 
-for i in "${PACK[@]}"; do
+for i in "${PACK_HOLD[@]}"; do
   echo $i
   sudo xbps-pkgdb -m hold $i
+done
+
+PACK_UNHOLD=(
+  linux-firmware-amd
+  linux-firmware-broadcom
+  linux-firmware-intel
+  linux-firmware-network
+  linux-firmware-nvidia
+)
+
+for i in "${PACK_UNHOLD[@]}"; do
+  echo $i
+  sudo xbps-pkgdb -m unhold $i
 done

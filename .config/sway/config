@@ -346,9 +346,9 @@ bindsym $mod+a mode "Apps"
 
 # Open Rofi clipboard menu
 bindsym Ctrl+Shift+V exec alacritty --class  cliphist-fzf -e $HOME/dev/clip/clip preview
-exec_always --no-startup-id wl-paste --watch cliphist store
-exec_always  wl-paste --watch $HOME/dev/clip/clip out&
-
+bindsym Ctrl+Shift+d exec alacritty --class  cliphist-fzf -e $HOME/dev/clip/clip del
+#exec_always --no-startup-id wl-paste --watch cliphist store
+exec_always ~/scripts/exec/clip_exec
 
 
 

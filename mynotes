@@ -1331,6 +1331,7 @@ sudo cryptsetup luksDump /dev/sdb1
 dd if=/dev/urandom of=test.img bs=1M count=10 conv=notrunc
 
                    [ pass ]
+# pinentry-gtk
 gpg --import secret-keys.gpg
 gpg --full-generate-key   # .gnupg/
 gpg --list-secret-keys --keyid-format=long

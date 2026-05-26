@@ -1,0 +1,281 @@
+#!/usr/bin/env bash
+set -e
+
+export DISPLAY=:0
+
+CGROOT="/sys/fs/cgroup"
+CONFIG_DIR="/etc/cg"
+
+mkdir -p "$CONFIG_DIR"
+
+usage() {
+  echo "Usage:"
+  echo "  cg add <name> --mem 1024 --cpu 0-2 --percent 60"
+  echo "  cg edit <name> --mem 2048"
+  echo "  cg del <name>"
+  echo "  cg open <name> <app...>"
+  echo "  cg list"
+}
+
+######################################################################
+pidtree() {
+  local parent=$1
+  echo -n "$parent "
+  for child in $(ps -o pid= --ppid "$parent"); do
+    pidtree "$child"
+  done
+}
+######################################################################
+cg_add() {
+  # ---- check args ----
+  if [ "$#" -lt 6 ]; then
+    echo "Usage: $0 --mem <memory_in_MB> --cpu <cpu_core>  --percent <limit_cpu_1..100>"
+    exit 1
+  fi
+
+  local name="$1"
+  shift
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+    --mem)
+      mem="$2"
+      shift 2
+      ;;
+    --cpu)
+      cpu="$2"
+      shift 2
+      ;;
+    --percent)
+      percent="$2"
+      shift 2
+      ;;
+    *) shift ;;
+    esac
+  done
+
+  echo +memory +cpu +cpuset 2>/dev/null >/sys/fs/cgroup/cgroup.subtree_control || true
+
+  # ---- enable controllers ----
+  mkdir -p "$CGROOT/$name"
+
+  # memory
+  echo $((mem * 1024 * 1024)) >"$CGROOT/$name/memory.max"
+
+  # cpuset
+  echo "$cpu" >"$CGROOT/$name/cpuset.cpus"
+
+  # mem node 0
+  echo 0 >"$CGROOT/$name/cpuset.mems"
+
+  # cpu limit
+  local period=100000
+  local quota=$((percent * period / 100))
+  echo "$quota $period" >"$CGROOT/$name/cpu.max"
+
+  # save config
+  cat >"$CONFIG_DIR/$name.conf" <<EOF
+MEM_MB=$mem
+CPU=$cpu
+PERCENT=$percent
+EOF
+}
+######################################################################
+cg_edit() {
+  local name="$1"
+  shift
+
+  local file="$CONFIG_DIR/$name.conf"
+  local cgpath="$CGROOT/$name"
+
+  # group exists?
+  [[ -d "$cgpath" ]] || {
+    echo "Error: cgroup '$name' not found"
+    return 1
+  }
+
+  # config exists?
+  [[ -f "$file" ]] || {
+    echo "Error: config '$file' not found"
+    return 1
+  }
+
+  # load config
+  source "$file"
+
+  # parse args
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+    --mem)
+      MEM_MB="$2"
+      shift 2
+      ;;
+    --cpu)
+      CPU="$2"
+      shift 2
+      ;;
+    --percent)
+      PERCENT="$2"
+      shift 2
+      ;;
+    *)
+      echo "Error: unknown option '$1'"
+      return 1
+      ;;
+    esac
+  done
+
+  # validate memory
+  [[ "$MEM_MB" =~ ^[0-9]+$ ]] || {
+    echo "Error: invalid memory value '$MEM_MB'"
+    return 1
+  }
+
+  # validate cpu percent
+  [[ "$PERCENT" =~ ^[0-9]+$ ]] || {
+    echo "Error: invalid cpu percent '$PERCENT'"
+    return 1
+  }
+
+  if ((PERCENT < 1 || PERCENT > 100)); then
+    echo "Error: cpu percent must be between 1-100"
+    return 1
+  fi
+
+  # set memory
+  if ! echo $((MEM_MB * 1024 * 1024)) >"$cgpath/memory.max"; then
+    echo "Error: failed to set memory.max"
+    return 1
+  fi
+
+  # set cpus
+  if ! echo "$CPU" >"$cgpath/cpuset.cpus"; then
+    echo "Error: invalid CPU set '$CPU'"
+    return 1
+  fi
+
+  # set cpu limit
+  local period=100000
+  local quota=$((PERCENT * period / 100))
+
+  if ! echo "$quota $period" >"$cgpath/cpu.max"; then
+    echo "Error: failed to set cpu.max"
+    return 1
+  fi
+
+  # save config
+  cat >"$file" <<EOF
+MEM_MB=$MEM_MB
+CPU=$CPU
+PERCENT=$PERCENT
+EOF
+
+  echo "Updated cgroup '$name'"
+  echo "Memory : ${MEM_MB}MB"
+  echo "CPU    : $CPU"
+  echo "Percent: ${PERCENT}%"
+}
+######################################################################
+cg_del() {
+  local name="$1"
+
+  [[ -d "$CGROOT/$name" ]] || {
+    echo "group not found"
+    exit 1
+  }
+  rmdir "$CGROOT/$name" 2>/dev/null || true
+  rm -f "$CONFIG_DIR/$name.conf"
+
+  echo "deleted $name"
+}
+######################################################################
+cg_open() {
+  local name="$1"
+  shift
+
+  local float=0
+  local full=0
+  local work=""
+  local TARGET_USER="${SUDO_USER:-$USER}" # original user
+  local CMD=()
+
+  # parse flags
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+    --work)
+      work="$2"
+      shift 2
+      ;;
+    --float)
+      float=1
+      shift
+      ;;
+    --full)
+      full=1
+      shift
+      ;;
+    *)
+      CMD+=("$1")
+      shift
+      ;;
+    esac
+  done
+
+  [[ -d "$CGROOT/$name" ]] || {
+    echo "group not found"
+    exit 1
+  }
+
+  sudo -u "$TARGET_USER" "${CMD[@]}" &
+  PID=$!
+
+  # workspace
+  if [[ -n "$work" ]]; then
+    sleep 2
+    swaymsg "[pid=$PID] move container to workspace $work"
+  fi
+
+  # float
+  if [[ "$float" -eq 1 ]]; then
+    swaymsg "[pid=$PID] floating enable" 2>/dev/null || true
+  fi
+
+  # fullscreen
+  if [[ "$full" -eq 1 ]]; then
+    swaymsg "[pid=$PID] fullscreen enable" 2>/dev/null || true
+  fi
+
+  while kill -0 "$PID" 2>/dev/null; do
+    for p in $(pidtree $PID); do
+      echo $p >"$CGROOT/$name/cgroup.procs" 2>/dev/null || true
+    done
+    sleep 1
+  done
+
+}
+######################################################################
+cg_list() {
+  ls "$CONFIG_DIR" | sed 's/\.conf//'
+}
+######################################################################
+
+case "$1" in
+add)
+  shift
+  cg_add "$@"
+  ;;
+edit)
+  shift
+  cg_edit "$@"
+  ;;
+del)
+  shift
+  cg_del "$1"
+  ;;
+open)
+  shift
+  cg_open "$@"
+  ;;
+list) cg_list ;;
+*) usage ;;
+esac

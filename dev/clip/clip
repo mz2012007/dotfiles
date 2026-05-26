@@ -5,7 +5,6 @@ SHELL="bash"
 set -euo pipefail
 
 histfile="${XDG_CACHE_HOME:-$HOME/.cache}/cliphist-custom"
-placeholder="<NL>"
 
 NOTIFY="${CLIP_NOTIFY:-1}"
 
@@ -19,7 +18,14 @@ ensure_file() {
   touch "$histfile"
 }
 
-# Wayland watch mode input
+encode() {
+  printf '%s' "$1" | base64 -w0
+}
+
+decode() {
+  printf '%s' "$1" | base64 -d 2>/dev/null
+}
+
 capture_clipboard() {
   clip="$(cat)"
   [ -z "${clip:-}" ] && return 1
@@ -28,13 +34,10 @@ capture_clipboard() {
 write_history() {
   ensure_file
 
-  multiline="$(
-    printf '%s' "$clip" |
-      sed ":a;N;\$!ba;s/\n/${placeholder}/g"
-  )"
+  encoded="$(encode "$clip")"
 
-  grep -Fqx "$multiline" "$histfile" ||
-    printf '%s\n' "$multiline" >>"$histfile"
+  grep -Fqx "$encoded" "$histfile" ||
+    printf '%s\n' "$encoded" >>"$histfile"
 }
 
 copy_primary() {
@@ -42,6 +45,7 @@ copy_primary() {
   [ -z "${clip:-}" ] && return 1
 
   printf '%s' "$clip" | wl-copy
+
   notify "Primary copied"
 }
 
@@ -50,15 +54,16 @@ select_rofi() {
 
   selection="$(
     tac "$histfile" |
-      sed "s/${placeholder}/ /g" |
+      while IFS= read -r line; do
+        decode "$line"
+        printf '\n'
+      done |
       rofi -dmenu -i -p "Clipboard"
   )"
 
   [ -z "${selection:-}" ] && return 0
 
-  printf '%s' "$selection" |
-    sed "s/${placeholder}/\n/g" |
-    wl-copy
+  printf '%s' "$selection" | wl-copy
 
   notify "Copied from history"
 }
@@ -75,7 +80,7 @@ select_fzf_preview() {
         --ansi \
         --preview-window=right:60%:wrap \
         --preview '
-          content=$(printf "%s" {} | sed "s/<NL>/\n/g")
+          content=$(printf "%s" {} | base64 -d 2>/dev/null)
 
           if command -v highlight >/dev/null 2>&1; then
             printf "%s\n" "$content" | highlight -O ansi 2>/dev/null \
@@ -84,16 +89,56 @@ select_fzf_preview() {
             printf "%s\n" "$content"
           fi
         ' \
-        --bind 'ctrl-u:preview-page-up,ctrl-d:preview-page-down'
+        --with-nth=1 \
+        --bind "ctrl-u:preview-page-up,ctrl-d:preview-page-down" \
+        --preview-label=" Clipboard "
   )"
 
   [ -z "${selected:-}" ] && return 0
 
-  printf '%s' "$selected" |
-    sed "s/<NL>/\n/g" |
-    wl-copy
+  decode "$selected" | wl-copy
 
   notify "Copied (fzf preview)"
+}
+
+select_del_fzf_preview() {
+  [ -f "$histfile" ] || return 1
+
+  selected="$(
+    tac "$histfile" |
+      fzf \
+        --multi \
+        --layout=reverse \
+        --border=rounded \
+        --height=90% \
+        --ansi \
+        --preview-window=right:60%:wrap \
+        --preview '
+          content=$(printf "%s" {} | base64 -d 2>/dev/null)
+
+          if command -v highlight >/dev/null 2>&1; then
+            printf "%s\n" "$content" | highlight -O ansi 2>/dev/null \
+              || printf "%s\n" "$content"
+          else
+            printf "%s\n" "$content"
+          fi
+        '
+  )"
+
+  [ -z "${selected:-}" ] && return 0
+
+  tmp="$(mktemp)"
+
+  # build delete list
+  printf "%s\n" "$selected" | sort -u >"$tmp.del"
+
+  # rebuild history without selected
+  grep -Fvx -f "$tmp.del" "$histfile" >"$tmp.new" || true
+
+  mv "$tmp.new" "$histfile"
+  rm -f "$tmp.del"
+
+  notify "Deleted selected items"
 }
 
 case "${1:-}" in
@@ -109,15 +154,20 @@ ingest)
 add)
   clip="$(wl-paste --primary 2>/dev/null || true)"
   [ -z "${clip:-}" ] && exit 1
+
   printf '%s' "$clip" | wl-copy
+
   write_history
+
   notify "Saved selection"
   ;;
 
 out)
   clip="$(wl-paste 2>/dev/null || true)"
   [ -z "${clip:-}" ] && exit 1
+
   write_history
+
   notify "Saved clipboard"
   ;;
 
@@ -129,6 +179,10 @@ preview)
   select_fzf_preview
   ;;
 
+del)
+  select_del_fzf_preview
+  ;;
+
 *)
   cat <<EOF
 Usage:
@@ -136,7 +190,8 @@ Usage:
   clip add       Save primary selection
   clip out       Save clipboard
   clip sel       rofi history
-  clip preview   fzf preview (colored)
+  clip preview   fzf copy (colored)
+  clip del       fzf delete (colored)
 EOF
   ;;
 esac

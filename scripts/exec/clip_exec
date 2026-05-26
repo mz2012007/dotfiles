@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+PIDFILE="/tmp/clip-watch.pid"
+CMD="$HOME/dev/clip/clip out"
+
+# kill old process if exists
+if [ -f "$PIDFILE" ]; then
+  OLD_PID="$(cat "$PIDFILE" 2>/dev/null || true)"
+
+  if [ -n "$OLD_PID" ] && kill -0 "$OLD_PID" 2>/dev/null; then
+    kill "$OLD_PID" 2>/dev/null || true
+    sleep 0.2
+  fi
+
+  rm -f "$PIDFILE"
+fi
+
+# ensure no orphan processes
+pkill -f "wl-paste --watch.*clip out" 2>/dev/null || true
+
+# start fresh
+wl-paste --watch $CMD &
+NEW_PID=$!
+
+echo "$NEW_PID" >"$PIDFILE"

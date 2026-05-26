@@ -1,5 +1,8 @@
 pkexec env \
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
+SWAYSOCK="$SWAYSOCK" \
+WAYLAND_DISPLAY="$WAYLAND_DISPLAY" \
+XDG_RUNTIME_DIR="$XDG_RUNTIME_DIR" \
 LC_COLLATE=C \
 TERM=screen-256color \
 COLORTERM=truecolor \
@@ -16,7 +19,7 @@ SUDO_UID=1000 \
 SUDO_GID=1000 \
 SUDO_HOME=/home/mz \
 SUDO_TTY=/dev/pts/1 \
-/home/mz/manual_cgroup_v2 950 1 90 zen
+/home/mz/dev/cgroup/cg "$@"
 
 
 
