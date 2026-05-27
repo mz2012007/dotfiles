@@ -19,7 +19,8 @@ client.background       #0f111a
 
 font pango:Noto Sans Arabic:style=Regular 10,JetBrainsMono:style=Bold 10,MesloLGS Nerd Font Mono:style=Regular 8
 
-exec_always $HOME/.config/waybar/launch.sh
+#exec_always $HOME/.config/waybar/launch.sh
+
 
 # Default config for sway
 #
@@ -297,7 +298,7 @@ bindsym $mod+r mode "resize"
 # my mode for mpd
 mode "music" {
    
-    bindsym m exec --no-startup-id ~/scripts/window-script.sh /usr/bin/ncmpcpp
+    bindsym m exec --no-startup-id alacritty --class  cliphist-fzf -e /usr/bin/ncmpcpp
     bindsym space exec --no-startup-id mpc toggle
     bindsym l exec --no-startup-id mpc next
     bindsym h exec --no-startup-id mpc prev
@@ -330,7 +331,7 @@ mode "Apps" {
         bindsym l exec --no-startup-id sudo lightdm-gtk-greeter-settings
         bindsym v exec --no-startup-id nice -n 10 ionice -c2 -n7 code
         bindsym p exec --no-startup-id dolphin
-        bindsym s exec --no-startup-id ~/scripts/window-script.sh ~/scripts/services/main.sh
+        bindsym s exec --no-startup-id alacritty --class  cliphist-fzf -e ~/scripts/services/main.sh
         bindsym m exec --no-startup-id gnome-calculator 
 
        #bindsym Return mode "default"

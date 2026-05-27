@@ -64,11 +64,11 @@ run_cmd() {
   selected="$(confirm_exit)"
   if [[ "$selected" == "$yes" ]]; then
     if [[ $1 == '--shutdown' ]]; then
-      sync && poweroff
+      sync && loginctl poweroff
     elif [[ $1 == '--reboot' ]]; then
-      sync && reboot
+      sync && loginctl reboot
     elif [[ $1 == '--hibernate' ]]; then
-      zzz -Z
+      loginctl hibernate
     elif [[ $1 == '--suspend' ]]; then
       mpc -q pause
       amixer set Master mute
@@ -84,6 +84,8 @@ run_cmd() {
         qdbus org.kde.ksmserver /KSMServer logout 0 0 0
       elif [[ "$DESKTOP_SESSION" == 'dwm' ]]; then
         pkill dwm
+      elif [[ "$DESKTOP_SESSION" == 'sway' ]]; then
+        pkill sway
       fi
     fi
   else
@@ -109,6 +111,8 @@ $lock)
   elif [[ -x '/usr/bin/i3lock' ]]; then
     mpc -q pause
     i3lock -i ~/Pictures/my.png
+  elif [[ -x '/usr/bin/swaymsg' ]]; then
+    swaylock -f -i /home/mz/Pictures/my.png
   fi
   ;;
 $suspend)

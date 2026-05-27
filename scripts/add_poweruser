@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+sudo groupadd poweruser
+sudo usermod -aG poweruser $USER

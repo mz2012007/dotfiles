@@ -1,15 +1,22 @@
 polkit.addRule(function(action, subject) {
-  if (subject.user == "mz" &&
-      (action.id == "org.freedesktop.login1.reboot" ||
-       action.id == "org.freedesktop.login1.poweroff" ||
-       action.id == "org.freedesktop.login1.suspend" ||
-       action.id == "org.freedesktop.login1.hibernate" ||
-       action.id == "org.freedesktop.login1.suspend-multiple-sessions" ||
-       action.id == "org.freedesktop.login1.hibernate-multiple-sessions") &&
-      subject.isInGroup("wheel")) {
-    return polkit.Result.YES;
-  }
+
+    const isPowerUser = subject.isInGroup("poweruser");
+    const isTargetUser = subject.user == "mz";
+
+    if (!(isPowerUser && isTargetUser)) {
+        return;
+    }
+
+    const allowed = [
+        "org.freedesktop.login1.reboot",
+        "org.freedesktop.login1.power-off",
+        "org.freedesktop.login1.suspend",
+        "org.freedesktop.login1.hibernate",
+        "org.freedesktop.login1.suspend-multiple-sessions",
+        "org.freedesktop.login1.hibernate-multiple-sessions"
+    ];
+
+    if (allowed.includes(action.id)) {
+        return polkit.Result.YES;
+    }
 });
-
-
-		

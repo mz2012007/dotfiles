@@ -358,6 +358,18 @@ id3v2 (cli)
 id3v2 -t "Atdry mn ysil alhm" Music/songs/أتدري\ من\ يزيل\ الهم.mp3
 easytag (gui)
 
+                   [ pipewire ]
+#https://gist.github.com/tatumroaquin/6e5c8581f43f1cfc86158f661e8cbe09
+pipewire alsa-pipewire pipewire-devel  wayland-pipewire-idle-inhibit
+xbps-install -S dumb_runtime_dir
+xbps-install -S rtkit
+
+xdg-desktop-portal
+mkdir $XDG_CONFIG_HOME/autostart
+ln -s /usr/share/applications/pipewire-pulse.desktop $XDG_CONFIG_HOME/autostart/
+ln -s /usr/share/applications/pipewire.desktop $XDG_CONFIG_HOME/autostart/
+
+
                    [ wifi speed ]
 python3 -m pipx ensurepath
 source ~/.profile

@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+$HOME/dev/mypkg/src/main.py "$@"
+

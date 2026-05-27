@@ -1,0 +1,13 @@
+[2026-05-27 00:32:49] [INFO] [32mstart: [0m[0mresolve[0m
+[2026-05-27 00:33:46] [INFO] [32mstart: [0m[0mresolve[0m
+[2026-05-27 00:33:53] [SUCCESS] [32mend: [0m[0mresolve[0m[34m -> [0m[0m7.0784[0m[35ms[0m
+[2026-05-27 00:33:53] [INFO] [32mstart: [0m[0mdownload[0m
+[2026-05-27 00:33:53] [PROCESS] [36mdownload [0m[33mPackages.gz[0m[1m | attempt [0m[35m1[0m
+[2026-05-27 00:39:07] [SUCCESS] [32msaved [0m[36m./cache/Packages.gz[0m
+[2026-05-27 00:39:07] [SUCCESS] [32mend: [0m[0mdownload[0m[34m -> [0m[0m314.0883[0m[35ms[0m
+[2026-05-27 00:39:07] [INFO] [32mstart: [0m[0mdb[0m
+[2026-05-27 00:39:07] [SUCCESS] [32mend: [0m[0mdb[0m[34m -> [0m[0m0.0070[0m[35ms[0m
+[2026-05-27 00:39:07] [INFO] [32mstart: [0m[0mparse[0m
+[2026-05-27 00:39:07] [SUCCESS] [32mend: [0m[0mparse[0m[34m -> [0m[0m0.0001[0m[35ms[0m
+[2026-05-27 00:39:07] [INFO] [32mstart: [0m[0minsert[0m
+[2026-05-27 00:39:22] [SUCCESS] [32mend: [0m[0minsert[0m[34m -> [0m[0m14.7173[0m[35ms[0m
