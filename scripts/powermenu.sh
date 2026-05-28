@@ -85,7 +85,7 @@ run_cmd() {
       elif [[ "$DESKTOP_SESSION" == 'dwm' ]]; then
         pkill dwm
       elif [[ "$DESKTOP_SESSION" == 'sway' ]]; then
-        pkill sway
+        loginctl kill-user $USER
       fi
     fi
   else
@@ -119,6 +119,8 @@ $suspend)
   run_cmd --suspend
   ;;
 $logout)
-  run_cmd --logout
+  #run_cmd --logout
+  loginctl kill-user $USER
+
   ;;
 esac
