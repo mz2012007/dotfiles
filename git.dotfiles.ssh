@@ -342,11 +342,18 @@ dotfiles_sync() {
   # --------------------------
   # Run copy script if exists
   # --------------------------
+
   if [ -x "./cp.bak" ]; then
     info "Running cp.sh"
     ./cp.bak
   else
     warn "cp.sh not found or not executable, skipping"
+  fi
+
+  if [ -x "$HOME/dev/mypkg/src/clean" ]; then
+    info "Running mypkg cleaner"
+    $HOME/dev/mypkg/src/clean
+    success "mypkg cleaner finshed.\n"
   fi
 
   # --------------------------

@@ -67,4 +67,4 @@ for src in "${!rsync_map[@]}"; do
 done
 
 sudo chown -R mz:mz $HOME/dotfiles/
-success "Ownership applied to $HOME/dotfiles/"
+success "Ownership applied to $HOME/dotfiles/\n"
