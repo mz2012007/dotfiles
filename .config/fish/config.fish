@@ -26,7 +26,6 @@ end
 
 # ENV VARIABLES
 set -Ux desktop_session sway
-set -Ux PIPEWIRE_RUNTIME_DIR `mktemp -d $(id -u)-runtime-dir.XXX`
 set -U fish_history_max 100000
 set -gx HISTSIZE 100000
 set -gx HISTFILESIZE 10000
