@@ -369,6 +369,43 @@ mkdir $XDG_CONFIG_HOME/autostart
 ln -s /usr/share/applications/pipewire-pulse.desktop $XDG_CONFIG_HOME/autostart/
 ln -s /usr/share/applications/pipewire.desktop $XDG_CONFIG_HOME/autostart/
 
+#which one i use
+ps aux | grep -E "pipewire|wireplumber|pulseaudio"
+
+lsmod | grep snd
+
+lspci -k | grep -A3 -i audio
+
+aplay -l
+
+pactl info
+
+wpctl status
+
+
+#what default output
+pactl info | grep "Default Sink"
+#test speaker
+speaker-test -D hw:0,0 -c 2
+#list cards
+pacmd list-cards
+pactl list sinks short
+
+
+##fix pipewire
+pkill pipewire
+pkill wireplumber
+pkill pipewire-pulse
+
+pipewire &
+wireplumber &
+pipewire-pulse &
+
+##fix pulseaudio
+pulseaudio -k 
+rm ~/.config/pulse ~/.pulse ~/.pulse-cookie
+pulseaudio --start
+
 
                    [ wifi speed ]
 python3 -m pipx ensurepath
