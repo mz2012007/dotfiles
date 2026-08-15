@@ -7,10 +7,12 @@
 .config/emacs/sessions
 .config/emacs/recentf
 .config/emacs/projectile-bookmarks.eld
+.config/emacs/projectile-frecency.eld
 .config/emacs/elpaca/
 .config/emacs/eln-cache/
 .config/emacs/elfeed/
 .config/emacs/auto-save-list/
+.config/emacs/.bak
 .config/zen
 setup.log
 .config/chromium/

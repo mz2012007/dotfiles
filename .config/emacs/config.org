@@ -10,35 +10,47 @@
   - [[#sourcing-the-scripts][Sourcing the scripts]]
 - [[#all-the-icons][ALL THE ICONS]]
 - [[#backup][BACKUP]]
+- [[#claude-code][CLAUDE-CODE]]
 - [[#company][COMPANY]]
 - [[#dashboard][DASHBOARD]]
 - [[#diminish][DIMINISH]]
 - [[#dired][DIRED]]
+- [[#drag-stuff][DRAG-STUFF]]
+- [[#ediff][EDIFF]]
 - [[#elfeed][ELFEED]]
+- [[#ellama][ELLAMA]]
+- [[#eradio][ERADIO]]
 - [[#evil][EVIL]]
 - [[#flycheck][FLYCHECK]]
 - [[#fonts][FONTS]]
   - [[#setting-the-font-face][Setting the Font Face]]
   - [[#zooming-inout][Zooming In/Out]]
+  - [[#nerd-fonts-for-modeline][Nerd Fonts For Modeline]]
 - [[#general-keybindings][GENERAL KEYBINDINGS]]
 - [[#git-programs][GIT PROGRAMS]]
   - [[#git-time-machine][Git Time Machine]]
   - [[#magit][Magit]]
+- [[#highlight-todo][HIGHLIGHT TODO]]
 - [[#graphical-user-interface-tweaks][GRAPHICAL USER INTERFACE TWEAKS]]
   - [[#disable-menubar-toolbars-and-scrollbars][Disable Menubar, Toolbars and Scrollbars]]
   - [[#display-line-numbers-and-truncated-lines][Display Line Numbers and Truncated Lines]]
-- [[#highlight-todo][HIGHLIGHT TODO]]
 - [[#ivy-counsel][IVY (COUNSEL)]]
 - [[#language-support][LANGUAGE SUPPORT]]
 - [[#minibuffer-escape][MINIBUFFER ESCAPE]]
 - [[#modeline][MODELINE]]
 - [[#neotree][NEOTREE]]
 - [[#org-mode][ORG MODE]]
-  - [[#enabling-table-of-contents][Enabling Table of Contents]]
-  - [[#enabling-org-bullets][Enabling Org Bullets]]
+  - [[#general-org-settings][General Org Settings]]
+  - [[#agenda][Agenda]]
+  - [[#capture][Capture]]
+  - [[#bullets][Bullets]]
   - [[#diminish-org-indent-mode][Diminish Org Indent Mode]]
   - [[#org-level-headers][Org Level Headers]]
-  - [[#source-code-block-tag-expansion][Source Code Block Tag Expansion]]
+  - [[#org-tempo][Org-Tempo]]
+  - [[#preserve-indentation-on-org-babel-tangle][Preserve Indentation On Org-Babel-Tangle]]
+  - [[#toc-org][Toc-Org]]
+  - [[#ox-hugo][Ox-Hugo]]
+- [[#pdfs][PDFs]]
 - [[#perspective][PERSPECTIVE]]
 - [[#projectile][PROJECTILE]]
 - [[#rainbow-delimiters][RAINBOW DELIMITERS]]
@@ -53,6 +65,7 @@
 - [[#tldr][TLDR]]
 - [[#transparency][TRANSPARENCY]]
 - [[#which-key][WHICH-KEY]]
+- [[#test][TEST]]
 
 * IMPORTANT PROGRAMS TO LOAD FIRST
 To keep this =config.org= a reasonable length, I have moved a lot of code to individual scripts that will be sourced by this config.  These scripts are found in "~/.config/emacs/scripts" and do not contain any code that most people are likely to need to edit.
@@ -87,6 +100,33 @@ By default, Emacs creates automatic backups of files in their original directori
 
 #+begin_src emacs-lisp
 (setq backup-directory-alist '((".*" . "~/.config/emacs/.Trash")))
+
+#+end_src
+
+* CLAUDE-CODE
+[[https://github.com/stevemolitor/claude-code.el][Claude-code.el]] is an Emacs interface for Claude Code CLI, providing integration between Emacs and Claude AI for coding assistance.
+
+#+begin_src emacs-lisp
+(use-package claude-code
+  :ensure (claude-code :host github :repo "stevemolitor/claude-code.el")
+  :bind ("C-c c" . claude-code-transient)
+  :config
+  ;; Optional: Start the Emacs server if not already running
+  (unless (server-running-p) (server-start)))
+
+(setq claude-code-terminal-backend 'vterm)
+(setq claude-code-optimize-window-resize t)
+(setq claude-code-no-delete-other-windows t)
+(setq claude-code-toggle-auto-select t)
+
+(with-eval-after-load 'claude-code
+  (add-to-list 'display-buffer-alist
+               '((lambda (buffer-or-name _)
+                   (string-prefix-p "*claude:" (buffer-name (get-buffer buffer-or-name))))
+                 (display-buffer-reuse-window display-buffer-in-side-window)
+                 (side . right)
+                 (slot . 1) ;; Optional: keeps it separate from vterm if both are open
+                 (window-width . 0.4))))
 
 #+end_src
 
@@ -177,6 +217,33 @@ This package implements hiding or abbreviation of the modeline displays (lighter
 
 #+end_src
 
+* DRAG-STUFF
+[[https://github.com/rejeep/drag-stuff.el][Drag Stuff]] is a minor mode for Emacs that makes it possible to drag stuff (words, region, lines) around in Emacs.  When 'drag-stuff-define-keys' is enabled, then the following keybindings are set: M-up, M-down, M-left, and M-right.
+
+#+begin_src emacs-lisp
+(use-package drag-stuff
+  :ensure t
+  :init
+  (drag-stuff-global-mode 1)
+  (drag-stuff-define-keys))
+
+#+end_src
+
+* EDIFF
+'ediff' is a diff program that is built into Emacs.  By default, 'ediff' splits files vertically and places the 'help' frame in its own window.  I have changed this so the two files are split horizontally and the 'help' frame appears as a lower split within the existing window.  Also, I create my own 'dt-ediff-hook' where I add 'j/k' for moving to next/prev diffs.  By default, this is set to 'n/p'.
+
+#+begin_src emacs-lisp
+(setq ediff-split-window-function 'split-window-horizontally
+      ediff-window-setup-function 'ediff-setup-windows-plain)
+
+(defun dt-ediff-hook ()
+  (ediff-setup-keymap)
+  (define-key ediff-mode-map "j" 'ediff-next-difference)
+  (define-key ediff-mode-map "k" 'ediff-previous-difference))
+
+(add-hook 'ediff-mode-hook 'dt-ediff-hook)
+#+end_src 
+
 * ELFEED
 An RSS newsfeed reader for Emacs.  Move through the articles with 'j/k'.  Move through the stories with 'CTRL j/k' when in other frame.
 
@@ -215,7 +282,63 @@ An RSS newsfeed reader for Emacs.  Move through the articles with 'j/k'.  Move t
 
 #+end_src
 
-#+RESULTS:
+* ELLAMA
+[[https://github.com/s-kostyaev/ellama][Ellama]] is a tool for interacting with large language models from Emacs.  You need to have 'ollama' installed on your computer to use 'ellama' in Emacs.  You need to pull in any LLMs that you want to have available for use.  For example, if you want to be able to use Llama 3.1, then you need to run 'ollama pull llama3.1'.
+
+#+begin_src emacs-lisp
+(use-package ellama
+  :ensure t
+  :init
+  (setopt ellama-keymap-prefix "C-c e")  ;; keymap for all ellama functions
+  (setopt ellama-language "English")     ;; language ellama should translate to
+  (require 'llm-ollama)
+  (setopt ellama-provider
+	  (make-llm-ollama
+	   ;; this model should be pulled to use it
+	   ;; value should be the same as you print in terminal during pull
+	   :chat-model "llama3.2"
+	   :embedding-model "nomic-embed-text"
+	   :default-chat-non-standard-params '(("num_ctx" . 8192))))
+  ;; Predefined llm providers for interactive switching.
+  (setopt ellama-providers
+		    '(("zephyr" . (make-llm-ollama
+				   :chat-model "zephyr"
+				   :embedding-model "zephyr"))
+
+		      ("llama3.1" . (make-llm-ollama
+				   :chat-model "llama3.1"
+				   :embedding-model "llama3.1"))
+		      ("mixtral" . (make-llm-ollama
+				    :chat-model "mixtral"
+				    :embedding-model "mixtral"))))
+  (setopt ellama-naming-scheme 'ellama-generate-name-by-llm)
+  ;; Translation llm provider
+  (setopt ellama-translation-provider (make-llm-ollama
+				       :chat-model "mixtral"
+				       :embedding-model "nomic-embed-text"))
+  :config
+  (setq ellama-sessions-directory "~/.config/emacs/ellama-sessions/"
+        ellama-sessions-auto-save t))
+
+#+end_src
+
+* ERADIO
+[[https://github.com/olavfosse/eradio][eradio]] is a simple Internet radio player for Emacs.  It uses 'vlc as its backend by default, but you can change the =eradio-player= variable to use another multimedia player.  I have set eradio to use 'mpv' instead of 'vlc' because it supports more types of Internet radio streams.
+
+#+begin_src emacs-lisp
+(use-package eradio
+  :ensure t
+  :init
+  (setq eradio-player '("mpv" "--no-video" "--no-terminal"))
+  :config
+  (setq eradio-channels '(("Deep Space One" . "https://somafm.com/deepspaceone130.pls")
+                          ("GrooveSalad" . "https://somafm.com/groovesalad130.pls")
+                          ("Heavyweight Reggae" . "https://somafm.com/reggae130.pls")
+                          ("Left Coast 70s" . "https://somafm.com/seventies130.pls")
+                          ("SonicUniverse" . "https://somafm.com/sonicuniverse130.pls")
+                          ("ThistleRadio Celtic" . "https://somafm.com/thistle130.pls"))))
+
+#+end_src
 
 * EVIL
 [[https://github.com/emacs-evil/evil][Evil]] is an extensible vi/vim layer for Emacs.  Because...let's face it.  The Vim keybindings are just plain better.
@@ -314,6 +437,18 @@ You can use the bindings CTRL plus =/- for zooming in/out.  You can also use CTR
 (global-set-key (kbd "<C-wheel-down>") 'text-scale-decrease)
 #+end_src
 
+** Nerd Fonts For Modeline
+#+begin_src emacs-lisp
+(use-package nerd-icons
+  :ensure t
+  ;; :custom
+  ;; The Nerd Font you want to use in GUI
+  ;; "Symbols Nerd Font Mono" is the default and is recommended
+  ;; but you can use any other Nerd Font if you want
+  ;; (nerd-icons-font-family "Symbols Nerd Font Mono")
+  )
+#+end_src
+
 * GENERAL KEYBINDINGS
 #+begin_src emacs-lisp
 (use-package general
@@ -336,6 +471,17 @@ You can use the bindings CTRL plus =/- for zooming in/out.  You can also use CTR
     "u" '(universal-argument :wk "Universal argument"))
 
   (mz/leader-keys
+    "a" '(:ignore t :wk "A.I.")
+    "a a" '(ellama-ask-about :wk "Ask ellama about region")
+    "a e" '(:ignore t :wk "Ellama enhance")
+    "a e g" '(ellama-improve-grammar :wk "Ellama enhance wording")
+    "a e w" '(ellama-improve-wording :wk "Ellama enhance grammar")
+    "a i" '(ellama-chat :wk "Ask ellama")
+    "a p" '(ellama-provider-select :wk "Ellama provider select")
+    "a s" '(ellama-summarize :wk "Ellama summarize region")
+    "a t" '(ellama-translate :wk "Ellama translate region")) 
+
+  (mz/leader-keys
     "b" '(:ignore t :wk "Bookmarks/Buffers")
     "b b" '(switch-to-buffer :wk "Switch to buffer")
     "b c" '(clone-indirect-buffer :wk "Create indirect buffer copy in a split")
@@ -353,25 +499,37 @@ You can use the bindings CTRL plus =/- for zooming in/out.  You can also use CTR
     "b s" '(basic-save-buffer :wk "Save buffer")
     "b S" '(save-some-buffers :wk "Save multiple buffers")
     "b w" '(bookmark-save :wk "Save current bookmarks to bookmark file"))
+  
+  (mz/leader-keys
+    "c" '(:ignore t :wk "Claude")
+    "c c" '(claude-code :wk "Start claude in a vterm")
+    "c k" '(claude-code-kill :wk "Kill claude process and its window")
+    "c K" '(claude-code-kill-all :wk "Kill all claude processes across all directories")
+    "c t" '(claude-code-transient :wk "Claude command menu"))
 
   (mz/leader-keys
     "d" '(:ignore t :wk "Dired")
     "d d" '(dired :wk "Open dired")
+    "d f" '(wdired-finish-edit :wk "Writable dired finish edit")
     "d j" '(dired-jump :wk "Dired jump to current")
     "d n" '(neotree-dir :wk "Open directory in neotree")
-    "d p" '(peep-dired :wk "Peep-dired"))
+    "d p" '(peep-dired :wk "Peep-dired")
+    "d w" '(wdired-change-to-wdired-mode :wk "Writable dired"))
 
-  (mz/leader-keys
-    "e" '(:ignore t :wk "Eshell/Evaluate")    
+   (mz/leader-keys
+    "e" '(:ignore t :wk "Ediff/Eshell/Eval/EWW")    
     "e b" '(eval-buffer :wk "Evaluate elisp in buffer")
     "e d" '(eval-defun :wk "Evaluate defun containing or after point")
     "e e" '(eval-expression :wk "Evaluate and elisp expression")
+    "e f" '(ediff-files :wk "Run ediff on a pair of files")
+    "e F" '(ediff-files3 :wk "Run ediff on three files")
     "e h" '(counsel-esh-history :which-key "Eshell history")
     "e l" '(eval-last-sexp :wk "Evaluate elisp expression before point")
+    "e n" '(eshell-new :wk "Create new eshell buffer")
     "e r" '(eval-region :wk "Evaluate elisp in region")
     "e R" '(eww-reload :which-key "Reload current page in EWW")
     "e s" '(eshell :which-key "Eshell")
-    "e w" '(eww :which-key "EWW emacs web wowser"))
+    "e w" '(eww :which-key "EWW emacs web wowser")) 
 
   (mz/leader-keys
     "f" '(:ignore t :wk "Files")    
@@ -414,7 +572,7 @@ You can use the bindings CTRL plus =/- for zooming in/out.  You can also use CTR
     "g s" '(magit-stage-file :wk "Git stage file")
     "g t" '(git-timemachine :wk "Git time machine")
     "g u" '(magit-stage-file :wk "Git unstage file"))
-
+  
  (mz/leader-keys
     "h" '(:ignore t :wk "Help")
     "h a" '(counsel-apropos :wk "Apropos")
@@ -453,12 +611,14 @@ You can use the bindings CTRL plus =/- for zooming in/out.  You can also use CTR
   (mz/leader-keys
     "m" '(:ignore t :wk "Org")
     "m a" '(org-agenda :wk "Org agenda")
+    "m c" '(counsel-org-capture :wk "Org capture")
     "m e" '(org-export-dispatch :wk "Org export dispatch")
     "m i" '(org-toggle-item :wk "Org toggle item")
-    "m t" '(org-todo :wk "Org todo")
+    "m p" '(org-priority :wk "Org priority")
+    "m t" '(org-todo-list :wk "Org todo list")
     "m B" '(org-babel-tangle :wk "Org babel tangle")
-    "m T" '(org-todo-list :wk "Org todo list"))
-
+    "m T" '(org-todo :wk "Org todo"))
+ 
   (mz/leader-keys
     "m b" '(:ignore t :wk "Tables")
     "m b -" '(org-table-insert-hline :wk "Insert hline in table"))
@@ -472,7 +632,10 @@ You can use the bindings CTRL plus =/- for zooming in/out.  You can also use CTR
     "o d" '(dashboard-open :wk "Dashboard")
     "o e" '(elfeed :wk "Elfeed RSS")
     "o f" '(make-frame :wk "Open buffer in new frame")
-    "o F" '(select-frame-by-name :wk "Select frame by name"))
+    "o F" '(select-frame-by-name :wk "Select frame by name")
+    "o j" '((lambda () (interactive) (find-file (concat org-directory "journal.org"))) :wk "Journal")
+    "o n" '((lambda () (interactive) (find-file org-default-notes-file)) :wk "Notes")
+    "o t" '((lambda () (interactive) (find-file (concat org-directory "tasks.org"))) :wk "Tasks"))
 
   ;; projectile-command-map already has a ton of bindings 
   ;; set for us, so no need to specify each individually.
@@ -480,11 +643,19 @@ You can use the bindings CTRL plus =/- for zooming in/out.  You can also use CTR
     "p" '(projectile-command-map :wk "Projectile"))
 
   (mz/leader-keys
+    "r" '(:ignore t :wk "Radio")
+    "r p" '(eradio-play :wk "Eradio play")
+    "r s" '(eradio-stop :wk "Eradio stop")
+    "r t" '(eradio-toggle :wk "Eradio toggle"))
+
+
+  (mz/leader-keys
     "s" '(:ignore t :wk "Search")
     "s d" '(dictionary-search :wk "Search dictionary")
     "s m" '(man :wk "Man pages")
+    "s o" '(pdf-occur :wk "Pdf search lines matching STRING")
     "s t" '(tldr :wk "Lookup TLDR docs for a command")
-    "s w" '(woman :wk "Similar to man but doesn't require man"))
+    "s w" '(woman :wk "Similar to man but doesn't require man")) 
 
   (mz/leader-keys
     "t" '(:ignore t :wk "Toggle")
@@ -514,7 +685,11 @@ You can use the bindings CTRL plus =/- for zooming in/out.  You can also use CTR
     "w H" '(buf-move-left :wk "Buffer move left")
     "w J" '(buf-move-down :wk "Buffer move down")
     "w K" '(buf-move-up :wk "Buffer move up")
-    "w L" '(buf-move-right :wk "Buffer move right"))
+    "w L" '(buf-move-right :wk "Buffer move right")
+    ;; Words
+    "w d" '(downcase-word :wk "Downcase word")
+    "w u" '(upcase-word :wk "Upcase word")
+    "w =" '(count-words :wk "Count words/lines for buffer"))
 )
 
 #+end_src
@@ -549,23 +724,6 @@ You can use the bindings CTRL plus =/- for zooming in/out.  You can also use CTR
 
 #+end_src
 
-* GRAPHICAL USER INTERFACE TWEAKS
-Let's make GNU Emacs look a little better.
-
-** Disable Menubar, Toolbars and Scrollbars
-
-#+begin_src emacs-lisp
-(menu-bar-mode -1)
-(tool-bar-mode -1)
-(scroll-bar-mode -1)
-#+end_src
-
-** Display Line Numbers and Truncated Lines
-#+begin_src emacs-lisp
-(global-display-line-numbers-mode 1)
-(global-visual-line-mode t)
-#+end_src
-
 * HIGHLIGHT TODO
 Adding highlights to TODO and related words.
 
@@ -584,6 +742,23 @@ Adding highlights to TODO and related words.
           ("NOTE"       success bold)
           ("DEPRECATED" font-lock-doc-face bold))))
 
+#+end_src
+
+* GRAPHICAL USER INTERFACE TWEAKS
+Let's make GNU Emacs look a little better.
+
+** Disable Menubar, Toolbars and Scrollbars
+
+#+begin_src emacs-lisp
+(menu-bar-mode -1)
+(tool-bar-mode -1)
+(scroll-bar-mode -1)
+#+end_src
+
+** Display Line Numbers and Truncated Lines
+#+begin_src emacs-lisp
+(global-display-line-numbers-mode 1)
+(global-visual-line-mode t)
 #+end_src
 
 * IVY (COUNSEL)
@@ -698,16 +873,60 @@ Neotree is a file tree viewer.  When you open neotree, it jumps to the current f
 #+end_src
 
 * ORG MODE
-** Enabling Table of Contents
+
+** General Org Settings
+
 #+begin_src emacs-lisp
-(use-package toc-org
-    :ensure t
-    :commands toc-org-enable
-    :init (add-hook 'org-mode-hook 'toc-org-enable))
+(setq org-directory "~/nc/Org/")
+
 #+end_src
 
-** Enabling Org Bullets
-Org-bullets gives us attractive bullets rather than asterisks.
+** Agenda
+#+begin_src emacs-lisp
+;; List files that org-agenda will use.
+(setq org-agenda-files 
+      (list (concat org-directory "tasks.org")
+	    (concat org-directory "notes.org")
+            (concat org-directory "journal.org")))
+#+end_src
+
+** Capture
+#+begin_src emacs-lisp
+;; Defines the global fallback destination for all your Org notes.
+(setq org-default-notes-file (concat org-directory "notes.org"))
+
+;; (Optional) Create custom templates
+;; NOTE '%U' is an inactive timestamp meaning the item will not show
+;; in org-agenda.  Use '%^t' for active timestamps instead.
+;; You can manually switch active/inactive with SHIFT-up/down.
+(setq org-capture-templates
+      `(
+        ;; Idea capture
+        ("i" "idea" entry
+         (file ,org-default-notes-file)
+         "* %? :idea:\n%U\n")
+
+        ;; Journal entry
+        ("j" "journal" entry
+         (file+olp+datetree ,(concat org-directory "journal.org"))
+         "* %U\n%?\n")
+
+        ;; Note with link to source
+        ("n" "note" entry
+         (file ,org-default-notes-file)
+         "* %? :note:\n%^t\n%a\n")
+	
+        ;; Todo with context
+        ("t" "task" entry
+         (file+headline ,(concat org-directory "tasks.org") "Tasks")
+         "* TODO %?\n%^t\n%a\n")
+
+        ))
+
+#+end_src
+
+** Bullets
+=Org-bullets= gives us attractive bullets rather than asterisks.
 
 #+begin_src emacs-lisp
 (add-hook 'org-mode-hook 'org-indent-mode)
@@ -720,7 +939,6 @@ Removes "Ind" from showing in the modeline.
 
 #+begin_src emacs-lisp
 (eval-after-load 'org-indent '(diminish 'org-indent-mode))
-
 #+end_src
 
 ** Org Level Headers
@@ -735,7 +953,7 @@ Removes "Ind" from showing in the modeline.
    '(org-level-7 ((t (:inherit outline-5 :height 1.1)))))
 #+end_src
 
-** Source Code Block Tag Expansion
+** Org-Tempo
 Org-tempo is not a separate package but a module within org that can be enabled.  Org-tempo allows for '<s' followed by TAB to expand to a begin_src tag.  Other expansions available include:
 
 | Typing the below + TAB | Expands to ...                          |
@@ -753,6 +971,56 @@ Org-tempo is not a separate package but a module within org that can be enabled.
 
 #+begin_src emacs-lisp 
 (require 'org-tempo)
+#+end_src
+
+** Preserve Indentation On Org-Babel-Tangle
+#+begin_src emacs-lisp
+(setq org-src-preserve-indentation t)
+
+#+end_src
+
+** Toc-Org
+Allows us to create a Table of Contents in our Org docs.
+
+#+begin_src emacs-lisp
+(use-package toc-org
+    :ensure t
+    :commands toc-org-enable
+    :init (add-hook 'org-mode-hook 'toc-org-enable))
+
+#+end_src
+
+** Ox-Hugo
+Export org docs to Hugo-style markdown.  Hugo is a static website generator.
+
+#+begin_src emacs-lisp
+(use-package ox-hugo
+  :ensure t   ;Auto-install the package from Melpa
+  :after ox)
+
+#+end_src
+
+
+* PDFs
+[[https://github.com/vedang/pdf-tools][pdf-tools]] is a replacement of DocView for viewing PDF files inside Emacs.  It uses the =poppler= library, which also means that 'pdf-tools' can by used to modify PDFs.  I use to disable 'display-line-numbers-mode' in 'pdf-view-mode' because line numbers crash it.
+
+#+begin_src emacs-lisp
+(use-package pdf-tools
+  :ensure t
+  :defer t
+  :commands (pdf-loader-install)
+  :mode "\\.pdf\\'"
+  :bind (:map pdf-view-mode-map
+              ("j" . pdf-view-next-line-or-next-page)
+              ("k" . pdf-view-previous-line-or-previous-page)
+              ("C-=" . pdf-view-enlarge)
+              ("C--" . pdf-view-shrink))
+  :init (pdf-loader-install)
+  :config (add-to-list 'revert-without-query ".pdf"))
+
+(add-hook 'pdf-view-mode-hook #'(lambda () (interactive) (display-line-numbers-mode -1)
+                                                         (blink-cursor-mode -1)
+                                                         (doom-modeline-mode -1)))
 #+end_src
 
 * PERSPECTIVE
@@ -836,7 +1104,9 @@ The following settings are simple modes that are enabled (or disabled) so that E
 (scroll-bar-mode -1)         ;; Disable the scroll bar
 (tool-bar-mode -1)           ;; Disable the tool bar
 (setq org-edit-src-content-indentation 0) ;; Set src block automatic indent to 0 instead of 2.
-
+(setq use-file-dialog nil)   ;; No file dialog
+(setq use-dialog-box nil)    ;; No dialog box
+(setq pop-up-windows nil)    ;; No popup windows
 #+end_src
 
 * SHELLS AND TERMINALS
@@ -970,3 +1240,49 @@ With Emacs version 29, true transparency has been added.
 	  which-key-separator " → " ))
  #+end_src
 
+* TEST
+#+begin_src emacs-lisp
+(defun reader ()
+  (interactive)
+  (let ((choices '(("First"  . "Hi!")
+                   ("Second" . 'second-choice)
+                   ("Third"  . 'third-choice))))
+    (alist-get
+     (completing-read "Choose: " choices)
+     choices nil nil #'equal)))
+
+(defun github-code-search ()
+  "Search code on github for a given language."
+  (interactive)
+  (let ((language (completing-read
+                   "Language: "
+                   '("Emacs Lisp" "Python"  "Clojure" "R")))
+        (code (read-string "Code: ")))
+    (browse-url
+     (concat "https://github.com/search?l=" language
+             "&type=code&q=" code))))
+  
+(defun dm-search ()
+  "Search various search engines."
+  (interactive)
+  (let ((engine (completing-read
+                 "Search Engine: "
+                 '("Arch Wiki" 
+                   "Bing"
+                   "Google"
+                   "Wikipedia")))
+        (query (read-string "Query: ")))
+    (if (equal engine "Google")
+      (browse-url
+       (concat "https://www.google.com/search?q=" query)))))
+
+(defun dt/key-value-completing (choice)                                     
+  (interactive
+   (list
+    (let ((completions '(("1" "One") 
+                         ("2" "Two")
+                         ("3" "Three"))))              
+      (cadr (assoc (completing-read "Choose: " completions) completions)))))
+  (message "You choose `%s'" choice))
+
+#+end_src

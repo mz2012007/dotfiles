@@ -14,6 +14,27 @@
 
 (setq backup-directory-alist '((".*" . "~/.config/emacs/.Trash")))
 
+(use-package claude-code
+  :ensure (claude-code :host github :repo "stevemolitor/claude-code.el")
+  :bind ("C-c c" . claude-code-transient)
+  :config
+  ;; Optional: Start the Emacs server if not already running
+  (unless (server-running-p) (server-start)))
+
+(setq claude-code-terminal-backend 'vterm)
+(setq claude-code-optimize-window-resize t)
+(setq claude-code-no-delete-other-windows t)
+(setq claude-code-toggle-auto-select t)
+
+(with-eval-after-load 'claude-code
+  (add-to-list 'display-buffer-alist
+               '((lambda (buffer-or-name _)
+                   (string-prefix-p "*claude:" (buffer-name (get-buffer buffer-or-name))))
+                 (display-buffer-reuse-window display-buffer-in-side-window)
+                 (side . right)
+                 (slot . 1) ;; Optional: keeps it separate from vterm if both are open
+                 (window-width . 0.4))))
+
 (use-package company
   :defer 2
   :ensure t
@@ -80,6 +101,22 @@
 
 ;;(add-hook 'peep-dired-hook 'evil-normalize-keymaps)
 
+(use-package drag-stuff
+  :ensure t
+  :init
+  (drag-stuff-global-mode 1)
+  (drag-stuff-define-keys))
+
+(setq ediff-split-window-function 'split-window-horizontally
+      ediff-window-setup-function 'ediff-setup-windows-plain)
+
+(defun dt-ediff-hook ()
+  (ediff-setup-keymap)
+  (define-key ediff-mode-map "j" 'ediff-next-difference)
+  (define-key ediff-mode-map "k" 'ediff-previous-difference))
+
+(add-hook 'ediff-mode-hook 'dt-ediff-hook)
+
 (use-package elfeed
   :ensure t
   :config
@@ -111,6 +148,52 @@
   (elfeed-goodies/setup)
   :config
   (setq elfeed-goodies/entry-pane-size 0.5))
+
+(use-package ellama
+  :ensure t
+  :init
+  (setopt ellama-keymap-prefix "C-c e")  ;; keymap for all ellama functions
+  (setopt ellama-language "English")     ;; language ellama should translate to
+  (require 'llm-ollama)
+  (setopt ellama-provider
+	  (make-llm-ollama
+	   ;; this model should be pulled to use it
+	   ;; value should be the same as you print in terminal during pull
+	   :chat-model "llama3.2"
+	   :embedding-model "nomic-embed-text"
+	   :default-chat-non-standard-params '(("num_ctx" . 8192))))
+  ;; Predefined llm providers for interactive switching.
+  (setopt ellama-providers
+		    '(("zephyr" . (make-llm-ollama
+				   :chat-model "zephyr"
+				   :embedding-model "zephyr"))
+
+		      ("llama3.1" . (make-llm-ollama
+				   :chat-model "llama3.1"
+				   :embedding-model "llama3.1"))
+		      ("mixtral" . (make-llm-ollama
+				    :chat-model "mixtral"
+				    :embedding-model "mixtral"))))
+  (setopt ellama-naming-scheme 'ellama-generate-name-by-llm)
+  ;; Translation llm provider
+  (setopt ellama-translation-provider (make-llm-ollama
+				       :chat-model "mixtral"
+				       :embedding-model "nomic-embed-text"))
+  :config
+  (setq ellama-sessions-directory "~/.config/emacs/ellama-sessions/"
+        ellama-sessions-auto-save t))
+
+(use-package eradio
+  :ensure t
+  :init
+  (setq eradio-player '("mpv" "--no-video" "--no-terminal"))
+  :config
+  (setq eradio-channels '(("Deep Space One" . "https://somafm.com/deepspaceone130.pls")
+                          ("GrooveSalad" . "https://somafm.com/groovesalad130.pls")
+                          ("Heavyweight Reggae" . "https://somafm.com/reggae130.pls")
+                          ("Left Coast 70s" . "https://somafm.com/seventies130.pls")
+                          ("SonicUniverse" . "https://somafm.com/sonicuniverse130.pls")
+                          ("ThistleRadio Celtic" . "https://somafm.com/thistle130.pls"))))
 
 ;; Expands to: (elpaca evil (use-package evil :demand t))
 (use-package evil
@@ -184,6 +267,15 @@
 (global-set-key (kbd "<C-wheel-up>") 'text-scale-increase)
 (global-set-key (kbd "<C-wheel-down>") 'text-scale-decrease)
 
+(use-package nerd-icons
+  :ensure t
+  ;; :custom
+  ;; The Nerd Font you want to use in GUI
+  ;; "Symbols Nerd Font Mono" is the default and is recommended
+  ;; but you can use any other Nerd Font if you want
+  ;; (nerd-icons-font-family "Symbols Nerd Font Mono")
+  )
+
 (use-package general
   :ensure t
   :config
@@ -204,6 +296,17 @@
     "u" '(universal-argument :wk "Universal argument"))
 
   (mz/leader-keys
+    "a" '(:ignore t :wk "A.I.")
+    "a a" '(ellama-ask-about :wk "Ask ellama about region")
+    "a e" '(:ignore t :wk "Ellama enhance")
+    "a e g" '(ellama-improve-grammar :wk "Ellama enhance wording")
+    "a e w" '(ellama-improve-wording :wk "Ellama enhance grammar")
+    "a i" '(ellama-chat :wk "Ask ellama")
+    "a p" '(ellama-provider-select :wk "Ellama provider select")
+    "a s" '(ellama-summarize :wk "Ellama summarize region")
+    "a t" '(ellama-translate :wk "Ellama translate region")) 
+
+  (mz/leader-keys
     "b" '(:ignore t :wk "Bookmarks/Buffers")
     "b b" '(switch-to-buffer :wk "Switch to buffer")
     "b c" '(clone-indirect-buffer :wk "Create indirect buffer copy in a split")
@@ -221,25 +324,37 @@
     "b s" '(basic-save-buffer :wk "Save buffer")
     "b S" '(save-some-buffers :wk "Save multiple buffers")
     "b w" '(bookmark-save :wk "Save current bookmarks to bookmark file"))
+  
+  (mz/leader-keys
+    "c" '(:ignore t :wk "Claude")
+    "c c" '(claude-code :wk "Start claude in a vterm")
+    "c k" '(claude-code-kill :wk "Kill claude process and its window")
+    "c K" '(claude-code-kill-all :wk "Kill all claude processes across all directories")
+    "c t" '(claude-code-transient :wk "Claude command menu"))
 
   (mz/leader-keys
     "d" '(:ignore t :wk "Dired")
     "d d" '(dired :wk "Open dired")
+    "d f" '(wdired-finish-edit :wk "Writable dired finish edit")
     "d j" '(dired-jump :wk "Dired jump to current")
     "d n" '(neotree-dir :wk "Open directory in neotree")
-    "d p" '(peep-dired :wk "Peep-dired"))
+    "d p" '(peep-dired :wk "Peep-dired")
+    "d w" '(wdired-change-to-wdired-mode :wk "Writable dired"))
 
-  (mz/leader-keys
-    "e" '(:ignore t :wk "Eshell/Evaluate")    
+   (mz/leader-keys
+    "e" '(:ignore t :wk "Ediff/Eshell/Eval/EWW")    
     "e b" '(eval-buffer :wk "Evaluate elisp in buffer")
     "e d" '(eval-defun :wk "Evaluate defun containing or after point")
     "e e" '(eval-expression :wk "Evaluate and elisp expression")
+    "e f" '(ediff-files :wk "Run ediff on a pair of files")
+    "e F" '(ediff-files3 :wk "Run ediff on three files")
     "e h" '(counsel-esh-history :which-key "Eshell history")
     "e l" '(eval-last-sexp :wk "Evaluate elisp expression before point")
+    "e n" '(eshell-new :wk "Create new eshell buffer")
     "e r" '(eval-region :wk "Evaluate elisp in region")
     "e R" '(eww-reload :which-key "Reload current page in EWW")
     "e s" '(eshell :which-key "Eshell")
-    "e w" '(eww :which-key "EWW emacs web wowser"))
+    "e w" '(eww :which-key "EWW emacs web wowser")) 
 
   (mz/leader-keys
     "f" '(:ignore t :wk "Files")    
@@ -282,7 +397,7 @@
     "g s" '(magit-stage-file :wk "Git stage file")
     "g t" '(git-timemachine :wk "Git time machine")
     "g u" '(magit-stage-file :wk "Git unstage file"))
-
+  
  (mz/leader-keys
     "h" '(:ignore t :wk "Help")
     "h a" '(counsel-apropos :wk "Apropos")
@@ -321,12 +436,14 @@
   (mz/leader-keys
     "m" '(:ignore t :wk "Org")
     "m a" '(org-agenda :wk "Org agenda")
+    "m c" '(counsel-org-capture :wk "Org capture")
     "m e" '(org-export-dispatch :wk "Org export dispatch")
     "m i" '(org-toggle-item :wk "Org toggle item")
-    "m t" '(org-todo :wk "Org todo")
+    "m p" '(org-priority :wk "Org priority")
+    "m t" '(org-todo-list :wk "Org todo list")
     "m B" '(org-babel-tangle :wk "Org babel tangle")
-    "m T" '(org-todo-list :wk "Org todo list"))
-
+    "m T" '(org-todo :wk "Org todo"))
+ 
   (mz/leader-keys
     "m b" '(:ignore t :wk "Tables")
     "m b -" '(org-table-insert-hline :wk "Insert hline in table"))
@@ -340,7 +457,10 @@
     "o d" '(dashboard-open :wk "Dashboard")
     "o e" '(elfeed :wk "Elfeed RSS")
     "o f" '(make-frame :wk "Open buffer in new frame")
-    "o F" '(select-frame-by-name :wk "Select frame by name"))
+    "o F" '(select-frame-by-name :wk "Select frame by name")
+    "o j" '((lambda () (interactive) (find-file (concat org-directory "journal.org"))) :wk "Journal")
+    "o n" '((lambda () (interactive) (find-file org-default-notes-file)) :wk "Notes")
+    "o t" '((lambda () (interactive) (find-file (concat org-directory "tasks.org"))) :wk "Tasks"))
 
   ;; projectile-command-map already has a ton of bindings 
   ;; set for us, so no need to specify each individually.
@@ -348,11 +468,19 @@
     "p" '(projectile-command-map :wk "Projectile"))
 
   (mz/leader-keys
+    "r" '(:ignore t :wk "Radio")
+    "r p" '(eradio-play :wk "Eradio play")
+    "r s" '(eradio-stop :wk "Eradio stop")
+    "r t" '(eradio-toggle :wk "Eradio toggle"))
+
+
+  (mz/leader-keys
     "s" '(:ignore t :wk "Search")
     "s d" '(dictionary-search :wk "Search dictionary")
     "s m" '(man :wk "Man pages")
+    "s o" '(pdf-occur :wk "Pdf search lines matching STRING")
     "s t" '(tldr :wk "Lookup TLDR docs for a command")
-    "s w" '(woman :wk "Similar to man but doesn't require man"))
+    "s w" '(woman :wk "Similar to man but doesn't require man")) 
 
   (mz/leader-keys
     "t" '(:ignore t :wk "Toggle")
@@ -382,7 +510,11 @@
     "w H" '(buf-move-left :wk "Buffer move left")
     "w J" '(buf-move-down :wk "Buffer move down")
     "w K" '(buf-move-up :wk "Buffer move up")
-    "w L" '(buf-move-right :wk "Buffer move right"))
+    "w L" '(buf-move-right :wk "Buffer move right")
+    ;; Words
+    "w d" '(downcase-word :wk "Downcase word")
+    "w u" '(upcase-word :wk "Upcase word")
+    "w =" '(count-words :wk "Count words/lines for buffer"))
 )
 
 (use-package git-timemachine
@@ -402,13 +534,6 @@
   :after magit-section
 )
 
-(menu-bar-mode -1)
-(tool-bar-mode -1)
-(scroll-bar-mode -1)
-
-(global-display-line-numbers-mode 1)
-(global-visual-line-mode t)
-
 (use-package hl-todo
   :ensure t
   :hook ((org-mode . hl-todo-mode)
@@ -422,6 +547,13 @@
           ("REVIEW"     font-lock-keyword-face bold)
           ("NOTE"       success bold)
           ("DEPRECATED" font-lock-doc-face bold))))
+
+(menu-bar-mode -1)
+(tool-bar-mode -1)
+(scroll-bar-mode -1)
+
+(global-display-line-numbers-mode 1)
+(global-visual-line-mode t)
 
 (use-package counsel
   :ensure t
@@ -498,10 +630,44 @@
                  (make-local-variable 'auto-hscroll-mode)
                  (setq auto-hscroll-mode nil)))))
 
-(use-package toc-org
-    :ensure t
-    :commands toc-org-enable
-    :init (add-hook 'org-mode-hook 'toc-org-enable))
+(setq org-directory "~/nc/Org/")
+
+;; List files that org-agenda will use.
+(setq org-agenda-files 
+      (list (concat org-directory "tasks.org")
+	    (concat org-directory "notes.org")
+            (concat org-directory "journal.org")))
+
+;; Defines the global fallback destination for all your Org notes.
+(setq org-default-notes-file (concat org-directory "notes.org"))
+
+;; (Optional) Create custom templates
+;; NOTE '%U' is an inactive timestamp meaning the item will not show
+;; in org-agenda.  Use '%^t' for active timestamps instead.
+;; You can manually switch active/inactive with SHIFT-up/down.
+(setq org-capture-templates
+      `(
+        ;; Idea capture
+        ("i" "idea" entry
+         (file ,org-default-notes-file)
+         "* %? :idea:\n%U\n")
+
+        ;; Journal entry
+        ("j" "journal" entry
+         (file+olp+datetree ,(concat org-directory "journal.org"))
+         "* %U\n%?\n")
+
+        ;; Note with link to source
+        ("n" "note" entry
+         (file ,org-default-notes-file)
+         "* %? :note:\n%^t\n%a\n")
+	
+        ;; Todo with context
+        ("t" "task" entry
+         (file+headline ,(concat org-directory "tasks.org") "Tasks")
+         "* TODO %?\n%^t\n%a\n")
+
+        ))
 
 (add-hook 'org-mode-hook 'org-indent-mode)
 (use-package org-bullets :ensure t)
@@ -519,6 +685,34 @@
  '(org-level-7 ((t (:inherit outline-5 :height 1.1)))))
 
 (require 'org-tempo)
+
+(setq org-src-preserve-indentation t)
+
+(use-package toc-org
+    :ensure t
+    :commands toc-org-enable
+    :init (add-hook 'org-mode-hook 'toc-org-enable))
+
+(use-package ox-hugo
+  :ensure t   ;Auto-install the package from Melpa
+  :after ox)
+
+(use-package pdf-tools
+  :ensure t
+  :defer t
+  :commands (pdf-loader-install)
+  :mode "\\.pdf\\'"
+  :bind (:map pdf-view-mode-map
+              ("j" . pdf-view-next-line-or-next-page)
+              ("k" . pdf-view-previous-line-or-previous-page)
+              ("C-=" . pdf-view-enlarge)
+              ("C--" . pdf-view-shrink))
+  :init (pdf-loader-install)
+  :config (add-to-list 'revert-without-query ".pdf"))
+
+(add-hook 'pdf-view-mode-hook #'(lambda () (interactive) (display-line-numbers-mode -1)
+                                                         (blink-cursor-mode -1)
+                                                         (doom-modeline-mode -1)))
 
 (use-package perspective
   :ensure t
@@ -575,6 +769,9 @@
 (scroll-bar-mode -1)         ;; Disable the scroll bar
 (tool-bar-mode -1)           ;; Disable the tool bar
 (setq org-edit-src-content-indentation 0) ;; Set src block automatic indent to 0 instead of 2.
+(setq use-file-dialog nil)   ;; No file dialog
+(setq use-dialog-box nil)    ;; No dialog box
+(setq pop-up-windows nil)    ;; No popup windows
 
 (use-package eshell-syntax-highlighting
   :ensure t
@@ -664,3 +861,46 @@
 	  which-key-max-description-length 25
 	  which-key-allow-imprecise-window-fit nil
 	  which-key-separator " → " ))
+
+(defun reader ()
+  (interactive)
+  (let ((choices '(("First"  . "Hi!")
+                   ("Second" . 'second-choice)
+                   ("Third"  . 'third-choice))))
+    (alist-get
+     (completing-read "Choose: " choices)
+     choices nil nil #'equal)))
+
+(defun github-code-search ()
+  "Search code on github for a given language."
+  (interactive)
+  (let ((language (completing-read
+                   "Language: "
+                   '("Emacs Lisp" "Python"  "Clojure" "R")))
+        (code (read-string "Code: ")))
+    (browse-url
+     (concat "https://github.com/search?l=" language
+             "&type=code&q=" code))))
+  
+(defun dm-search ()
+  "Search various search engines."
+  (interactive)
+  (let ((engine (completing-read
+                 "Search Engine: "
+                 '("Arch Wiki" 
+                   "Bing"
+                   "Google"
+                   "Wikipedia")))
+        (query (read-string "Query: ")))
+    (if (equal engine "Google")
+      (browse-url
+       (concat "https://www.google.com/search?q=" query)))))
+
+(defun dt/key-value-completing (choice)                                     
+  (interactive
+   (list
+    (let ((completions '(("1" "One") 
+                         ("2" "Two")
+                         ("3" "Three"))))              
+      (cadr (assoc (completing-read "Choose: " completions) completions)))))
+  (message "You choose `%s'" choice))
