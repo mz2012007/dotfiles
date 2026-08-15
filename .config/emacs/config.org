@@ -526,6 +526,7 @@ You can use the bindings CTRL plus =/- for zooming in/out.  You can also use CTR
 
 #+begin_src emacs-lisp
 (use-package git-timemachine
+  :ensure t
   :after git-timemachine
   :hook (evil-normalize-keymaps . git-timemachine-hook)
   :config

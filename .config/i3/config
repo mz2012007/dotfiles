@@ -96,11 +96,7 @@ bindsym Mod1+Tab exec --no-startup-id "rofi -show  window -show-icons \
 
 
 
-<<<<<<< HEAD
-bindsym $mod+Return  exec pkill polybar
-=======
 #bindsym $mod+Return  exec pkill polybar
->>>>>>> c677f92
 #bindsym $mod+d exec rofi -show drun -theme ~/.config/rofi/glue_pro_blue.rasi 
 bindsym $mod+Shift+t exec lxappearance
 
@@ -256,18 +252,12 @@ bindsym Control+Tab exec --no-startup-id rofi -show window -theme .config/rofi/r
 # kill                     -> close the window
 
 
-<<<<<<< HEAD
-#xprop | grep WM_CLASS
-#for_window [class="Gimp"] floating enable
-for_window [class="gnome-calculator"] floating enable
-=======
 #xprop | grep WM_CLASS class
 #xprop | grep WM_NAME title
 
 #for_window [class="Gimp"] floating enable
 for_window [class="gnome-calculator"] floating enable
 for_window [title="emacs-run-launcher"] floating enable
->>>>>>> c677f92
 
 # workspace Tweaks
 

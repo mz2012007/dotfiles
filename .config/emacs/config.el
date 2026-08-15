@@ -386,6 +386,7 @@
 )
 
 (use-package git-timemachine
+  :ensure t
   :after git-timemachine
   :hook (evil-normalize-keymaps . git-timemachine-hook)
   :config
