@@ -1,0 +1,10 @@
+[user]
+    name = MohamedZaki
+    email = mohamedgamer139@gmail.com
+    signingkey = 08A73CCA231966C9
+
+[commit]
+    gpgsign = true
+
+[gpg]
+    format = openpgp
