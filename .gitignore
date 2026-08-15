@@ -4,6 +4,13 @@
 .config/fish/fish_plugins
 .config/fish/fish_variables
 .config/fish/fish_varia*
+.config/emacs/sessions
+.config/emacs/recentf
+.config/emacs/projectile-bookmarks.eld
+.config/emacs/elpaca/
+.config/emacs/eln-cache/
+.config/emacs/elfeed/
+.config/emacs/auto-save-list/
 .config/zen
 setup.log
 .config/chromium/

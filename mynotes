@@ -1323,6 +1323,7 @@ max-cache-ttl 120
 
 #vim sshcontrol
 gpg --list-keys --with-keygrip
+Keygrip = [A]
 
 #termnal
 killall ssh-agent gpg-agent
