@@ -1,32 +1,165 @@
+#+TITLE: MZ's NOTES	
+#+AUTHOR: Mohamed Zaki (MZ)
+#+DESCRIPTION: MZ's personal Notes.
+#+STARTUP: showeverything
+#+OPTIONS: toc:3
+
+* TAPLE OF CONTENTS :toc:
+- [[#gits-projects][GIT'S PROJECTS]]
+  - [[#my-gits-projects][MY GIT'S PROJECTS]]
+  - [[#rest-of-gits][REST OF GIT'S]]
+- [[#my-bash-notes][MY BASH NOTES]]
+  - [[#shebang][SHEBANG]]
+  - [[#string-comparison][STRING COMPARISON]]
+  - [[#integer-comparison][INTEGER COMPARISON]]
+  - [[#file-tests][FILE TESTS]]
+  - [[#logical-operators][LOGICAL OPERATORS]]
+  - [[#special-parameters][SPECIAL PARAMETERS]]
+  - [[#globbing][GLOBBING]]
+  - [[#functions][FUNCTIONS]]
+- [[#dates][DATES]]
+
+* GIT'S PROJECTS
+All git's projects ,I care about.
+
+** MY GIT'S PROJECTS
+
+#+begin_example
 https://github.com/mz2012007/runit-service-manager/
 https://github.com/mz2012007/dotfiles/
 https://github.com/mz2012007/mpv/
 https://github.com/mz2012007/void-xbps/
 https://github.com/mz2012007/
+https://raw.githubusercontent.com/mz2012007/void-xbps/refs/heads/main/x86_64 #my repo dir
+#+end_example
 
-https://raw.githubusercontent.com/mz2012007/void-xbps/refs/heads/main/x86_64
+** REST OF GIT'S
 
+#+begin_example
+https://minhaskamal.github.io/DownGit/ #download any specific part of github repos
+#+end_example
 
-https://minhaskamal.github.io/DownGit/
+* MY BASH NOTES
 
+** SHEBANG
+#+begin_example
+#!/usr/bin/env bash  
+#+end_example
 
-                [ bash scripting ] 
-#!/usr/bin/env bash
+** STRING COMPARISON
 
-set -f        # disable globbing
-set +f        # enable globbing
+#+begin_example
+[[ "$a" == "$b" ]]    # equal
+[[ "$a" != "$b" ]]    # not equal
+[[ "$a" > "$b" ]]     # greater (lexicographical)
+[[ "$a" < "$b" ]]     # less    (lexicographical)
 
+[[ -z "$a" ]]         # zero length / empty
+[[ -n "$a" ]]         # non-zero length / not empty
+#+end_example
 
-==  !=  >  <  -z  -n  
--eq  -ne  -gt  -lt  -ge  -le 
--e  -f  -L  -h  -r  -w  -x  -s  -k  -c  -b 
-&&  ||    
+** INTEGER COMPARISON 
 
-!  $0 $1 $$ $# $? $@ $* 
+#+BEGIN_example
+(( a -eq b ))         # equal
+(( a -ne b ))         # not equal
+(( a -gt b ))         # greater than
+(( a -lt b ))         # less than
+(( a -ge b ))         # greater than or equal
+(( a -le b ))         # less than or equal
+#+end_example
 
+** FILE TESTS
+
+#+begin_example
+[[ -e "$file" ]]      # exists
+[[ -f "$file" ]]      # regular file
+[[ -L "$file" ]]      # symbolic link
+[[ -h "$file" ]]      # symbolic link
+[[ -r "$file" ]]      # readable
+[[ -w "$file" ]]      # writable
+[[ -x "$file" ]]      # executable
+[[ -s "$file" ]]      # exists and size > 0
+[[ -k "$file" ]]      # sticky bit is set
+[[ -c "$file" ]]      # character device
+[[ -b "$file" ]]      # block device
+#+end_example
+
+** LOGICAL OPERATORS
+
+#+begin_example
+[[ condition1 && condition2 ]]   # AND
+[[ condition1 || condition2 ]]   # OR
+[[ ! condition ]]                # NOT
+#+end_example
+
+** SPECIAL PARAMETERS
+
+#+begin_example
+$0      # script name
+$1      # first argument
+$2      # second argument
+$#      # number of arguments
+$@      # all arguments, individually
+$*      # all arguments as one string
+$$      # PID of current shell
+$?      # exit status of last command
+#+end_example
+
+** GLOBBING
+
+#+begin_example
+set -f        #disable globbing
+set +f        #enable globbing
+#+end_example
+
+** FUNCTIONS
+
+*** READ
+
+#+begin_example
 read -t 10 -sp "What is your password : " user_password
 
-date +"%Y-%m-%d %I:%H:%M %P"
+┌── -t N     timeout
+├── -s       silent input
+├── -p       prompt
+└── VAR      store input in variable
+
+┌ = top-left corner
+├ = left tee
+└ = bottom-left corner
+─ = horizontal line
+│ = vertical line
+#+end_example
+
+* DATES
+
+#+begin_example
+date +"%Y-%m-%d %I:%H:%M %P" #time 
+
+date '+%Y' # year
+date '+%y' # short year
+date '+%m' # month
+date '+%d' # day
+date '+%j' # day of year
+
+date '+%A' # weekday
+date '+%a' # short weekday
+date '+%B' # month name
+date '+%b' # short month
+
+date '+%H' # hour 24h
+date '+%I' # hour 12h
+date '+%M' # minute
+date '+%S' # second
+date '+%N' # nanoseconds
+date '+%p' # AM/PM
+
+date '+%Z' # timezone
+date '+%z' # UTC offset
+date '+%s' # Unix timestamp
+#+end_example
+
 
 #-----------------------------------------------------------------------------------------------
 

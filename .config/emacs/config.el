@@ -4,13 +4,13 @@
 (require 'buffer-move)   ;; Buffer-move for better window management
 (require 'app-launchers) ;; Use emacs as a run launcher like dmenu (experimental)
 
-(use-package all-the-icons
-  :ensure t
-  :if (display-graphic-p))
+  (use-package all-the-icons
+    :ensure t
+    :if (display-graphic-p))
 
-(use-package all-the-icons-dired
-  :ensure t
-  :hook (dired-mode . (lambda () (all-the-icons-dired-mode t))))
+  (use-package all-the-icons-dired
+    :ensure t
+    :hook (dired-mode . (lambda () (all-the-icons-dired-mode t))))
 
 (setq backup-directory-alist '((".*" . "~/.config/emacs/.Trash")))
 
@@ -53,26 +53,26 @@
   :diminish
   :hook (company-mode . company-box-mode))
 
-(use-package dashboard
-  :ensure t 
-  :init
-  (setq initial-buffer-choice 'dashboard-open)
-  (setq dashboard-set-heading-icons t)
-  (setq dashboard-set-file-icons t)
-  (setq dashboard-banner-logo-title "Emacs Is More Than A Text Editor!")
-  ;;(setq dashboard-startup-banner 'logo) ;; use standard emacs logo as banner
-  (setq dashboard-startup-banner "/home/mz/.config/emacs/images/emacs-dash.png")  ;; use custom image as banner
-  (setq dashboard-center-content nil) ;; set to 't' for centered content
-  (setq dashboard-items '((recents . 5)
-                          (agenda . 5 )
-                          (bookmarks . 3)
-                          (projects . 3)
-                          (registers . 3)))
-  :custom
-  (dashboard-modify-heading-icons '((recents . "file-text")
-                                    (bookmarks . "book")))
-  :config
-  (dashboard-setup-startup-hook))
+  (use-package dashboard
+    :ensure t 
+    :init
+    (setq initial-buffer-choice 'dashboard-open)
+    (setq dashboard-set-heading-icons t)
+    (setq dashboard-set-file-icons t)
+    (setq dashboard-banner-logo-title "Emacs Is More Than A Text Editor!")
+    ;;(setq dashboard-startup-banner 'logo) ;; use standard emacs logo as banner
+    (setq dashboard-startup-banner "/home/mz/.config/emacs/images/emacs-dash.png")  ;; use custom image as banner
+    (setq dashboard-center-content nil) ;; set to 't' for centered content
+    (setq dashboard-items '((recents . 5)
+                            (agenda . 5 )
+                            (bookmarks . 3)
+                            (projects . 3)
+                            (registers . 3)))
+    :custom
+    (dashboard-modify-heading-icons '((recents . "file-text")
+                                      (bookmarks . "book")))
+    :config
+    (dashboard-setup-startup-hook))
 
 (use-package diminish
   :ensure t
@@ -234,33 +234,33 @@
   :diminish
   :init (global-flycheck-mode))
 
-(set-face-attribute 'default nil
-  :font "JetBrains Mono"
-  :height 110
-  :weight 'medium)
-(set-face-attribute 'variable-pitch nil
-  :font "JetBrains Mono"
-  :height 120
-  :weight 'medium)
-(set-face-attribute 'fixed-pitch nil
-  :font "JetBrains Mono"
-  :height 110
-  :weight 'medium)
-;; Makes commented text and keywords italics.
-;; This is working in emacsclient but not emacs.
-;; Your font must have an italic face available.
-(set-face-attribute 'font-lock-comment-face nil
-  :slant 'italic)
-(set-face-attribute 'font-lock-keyword-face nil
-  :slant 'italic)
+  (set-face-attribute 'default nil
+    :font "JetBrains Mono"
+    :height 110
+    :weight 'medium)
+  (set-face-attribute 'variable-pitch nil
+    :font "JetBrains Mono"
+    :height 120
+    :weight 'medium)
+  (set-face-attribute 'fixed-pitch nil
+    :font "JetBrains Mono"
+    :height 110
+    :weight 'medium)
+  ;; Makes commented text and keywords italics.
+  ;; This is working in emacsclient but not emacs.
+  ;; Your font must have an italic face available.
+  (set-face-attribute 'font-lock-comment-face nil
+    :slant 'italic)
+  (set-face-attribute 'font-lock-keyword-face nil
+    :slant 'italic)
 
-;; This sets the default font on all graphical frames created after restarting Emacs.
-;; Does the same thing as 'set-face-attribute default' above, but emacsclient fonts
-;; are not right unless I also add this method of setting the default font.
-(add-to-list 'default-frame-alist '(font . "JetBrains Mono-11"))
+  ;; This sets the default font on all graphical frames created after restarting Emacs.
+  ;; Does the same thing as 'set-face-attribute default' above, but emacsclient fonts
+  ;; are not right unless I also add this method of setting the default font.
+  (add-to-list 'default-frame-alist '(font . "JetBrains Mono-11"))
 
-;; Uncomment the following line if line spacing needs adjusting.
-(setq-default line-spacing 0.12)
+  ;; Uncomment the following line if line spacing needs adjusting.
+  (setq-default line-spacing 0.12)
 
 (global-set-key (kbd "C-=") 'text-scale-increase)
 (global-set-key (kbd "C--") 'text-scale-decrease)
@@ -501,10 +501,10 @@
     "w s" '(evil-window-split :wk "Horizontal split window")
     "w v" '(evil-window-vsplit :wk "Vertical split window")
     ;; Window motions
-    "w h" '(evil-window-left :wk "Window left")
-    "w j" '(evil-window-down :wk "Window down")
-    "w k" '(evil-window-up :wk "Window up")
-    "w l" '(evil-window-right :wk "Window right")
+    "w <left>" '(evil-window-left :wk "Window left")
+    "w <down>" '(evil-window-down :wk "Window down")
+    "w <up>" '(evil-window-up :wk "Window up")
+    "w <right>" '(evil-window-right :wk "Window right")
     "w w" '(evil-window-next :wk "Goto next window")
     ;; Move Windows
     "w H" '(buf-move-left :wk "Buffer move left")
@@ -675,14 +675,14 @@
 
 (eval-after-load 'org-indent '(diminish 'org-indent-mode))
 
-(custom-set-faces
- '(org-level-1 ((t (:inherit outline-1 :height 1.7))))
- '(org-level-2 ((t (:inherit outline-2 :height 1.6))))
- '(org-level-3 ((t (:inherit outline-3 :height 1.5))))
- '(org-level-4 ((t (:inherit outline-4 :height 1.4))))
- '(org-level-5 ((t (:inherit outline-5 :height 1.3))))
- '(org-level-6 ((t (:inherit outline-5 :height 1.2))))
- '(org-level-7 ((t (:inherit outline-5 :height 1.1)))))
+  (custom-set-faces
+   '(org-level-1 ((t (:inherit outline-1 :height 1.7))))
+   '(org-level-2 ((t (:inherit outline-2 :height 1.6))))
+   '(org-level-3 ((t (:inherit outline-3 :height 1.5))))
+   '(org-level-4 ((t (:inherit outline-4 :height 1.4))))
+   '(org-level-5 ((t (:inherit outline-5 :height 1.3))))
+   '(org-level-6 ((t (:inherit outline-5 :height 1.2))))
+   '(org-level-7 ((t (:inherit outline-5 :height 1.1)))))
 
 (require 'org-tempo)
 
@@ -773,57 +773,57 @@
 (setq use-dialog-box nil)    ;; No dialog box
 (setq pop-up-windows nil)    ;; No popup windows
 
-(use-package eshell-syntax-highlighting
-  :ensure t
-  :after esh-mode
-  :config
-  (eshell-syntax-highlighting-global-mode +1))
+  (use-package eshell-syntax-highlighting
+    :ensure t
+    :after esh-mode
+    :config
+    (eshell-syntax-highlighting-global-mode +1))
 
-;; eshell-syntax-highlighting -- adds fish/zsh-like syntax highlighting.
-;; eshell-rc-script -- your profile for eshell; like a bashrc for eshell.
-;; eshell-aliases-file -- sets an aliases file for the eshell.
-  
-(setq eshell-rc-script (concat user-emacs-directory "eshell/profile")
-      eshell-aliases-file (concat user-emacs-directory "eshell/aliases")
-      eshell-history-size 5000
-      eshell-buffer-maximum-lines 5000
-      eshell-hist-ignoredups t
-      eshell-scroll-to-bottom-on-input t
-      eshell-destroy-buffer-when-process-dies t
-      eshell-visual-commands'("bash" "fish" "htop" "ssh" "top" "zsh"))
+  ;; eshell-syntax-highlighting -- adds fish/zsh-like syntax highlighting.
+  ;; eshell-rc-script -- your profile for eshell; like a bashrc for eshell.
+  ;; eshell-aliases-file -- sets an aliases file for the eshell.
+    
+  (setq eshell-rc-script (concat user-emacs-directory "eshell/profile")
+        eshell-aliases-file (concat user-emacs-directory "eshell/aliases")
+        eshell-history-size 5000
+        eshell-buffer-maximum-lines 5000
+        eshell-hist-ignoredups t
+        eshell-scroll-to-bottom-on-input t
+        eshell-destroy-buffer-when-process-dies t
+        eshell-visual-commands'("bash" "fish" "htop" "ssh" "top" "zsh"))
 
-(use-package vterm
-:ensure t
-:config
-(setq shell-file-name "/bin/fish"
-      vterm-max-scrollback 5000))
-
-(use-package vterm-toggle
-  :ensure t
-  :after vterm
-  :config
-  (setq vterm-toggle-fullscreen-p nil)
-  (setq vterm-toggle-scope 'project)
-  (add-to-list 'display-buffer-alist
-               '((lambda (buffer-or-name _)
-                     (let ((buffer (get-buffer buffer-or-name)))
-                       (with-current-buffer buffer
-                         (or (equal major-mode 'vterm-mode)
-                             (string-prefix-p vterm-buffer-name (buffer-name buffer))))))
-                  (display-buffer-reuse-window display-buffer-at-bottom)
-                  ;;(display-buffer-reuse-window display-buffer-in-direction)
-                  ;;display-buffer-in-direction/direction/dedicated is added in emacs27
-                  ;;(direction . bottom)
-                  ;;(dedicated . t) ;dedicated is supported in emacs27
-                  (reusable-frames . visible)
-                  (window-height . 0.6))))
-
-(use-package sudo-edit
+  (use-package vterm
   :ensure t
   :config
-    (mz/leader-keys
-      "fu" '(sudo-edit-find-file :wk "Sudo find file")
-      "fU" '(sudo-edit :wk "Sudo edit file")))
+  (setq shell-file-name "/bin/fish"
+        vterm-max-scrollback 5000))
+
+    (use-package vterm-toggle
+      :ensure t
+      :after vterm
+      :config
+      (setq vterm-toggle-fullscreen-p nil)
+      (setq vterm-toggle-scope 'project)
+      (add-to-list 'display-buffer-alist
+                   '((lambda (buffer-or-name _)
+                         (let ((buffer (get-buffer buffer-or-name)))
+                           (with-current-buffer buffer
+                             (or (equal major-mode 'vterm-mode)
+                                 (string-prefix-p vterm-buffer-name (buffer-name buffer))))))
+                      (display-buffer-reuse-window display-buffer-at-bottom)
+                      ;;(display-buffer-reuse-window display-buffer-in-direction)
+                      ;;display-buffer-in-direction/direction/dedicated is added in emacs27
+                      ;;(direction . bottom)
+                      ;;(dedicated . t) ;dedicated is supported in emacs27
+                      (reusable-frames . visible)
+                      (window-height . 0.6))))
+
+  (use-package sudo-edit
+    :ensure t
+    :config
+      (mz/leader-keys
+        "fu" '(sudo-edit-find-file :wk "Sudo find file")
+        "fU" '(sudo-edit :wk "Sudo edit file")))
 
 (add-to-list 'custom-theme-load-path "~/.config/emacs/themes/")
 

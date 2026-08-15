@@ -676,10 +676,10 @@ You can use the bindings CTRL plus =/- for zooming in/out.  You can also use CTR
     "w s" '(evil-window-split :wk "Horizontal split window")
     "w v" '(evil-window-vsplit :wk "Vertical split window")
     ;; Window motions
-    "w h" '(evil-window-left :wk "Window left")
-    "w j" '(evil-window-down :wk "Window down")
-    "w k" '(evil-window-up :wk "Window up")
-    "w l" '(evil-window-right :wk "Window right")
+    "w <left>" '(evil-window-left :wk "Window left")
+    "w <down>" '(evil-window-down :wk "Window down")
+    "w <up>" '(evil-window-up :wk "Window up")
+    "w <right>" '(evil-window-right :wk "Window right")
     "w w" '(evil-window-next :wk "Goto next window")
     ;; Move Windows
     "w H" '(buf-move-left :wk "Buffer move left")
