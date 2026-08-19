@@ -437,6 +437,13 @@ You can use the bindings CTRL plus =/- for zooming in/out.  You can also use CTR
 (global-set-key (kbd "<C-wheel-down>") 'text-scale-decrease)
 #+end_src
 
+#+begin_src emacs-lisp
+(global-set-key (kbd "C->")  'shrink-window-horizontally)
+(global-set-key (kbd "C-<") 'enlarge-window-horizontally)
+(global-set-key (kbd "C-+")  'shrink-window)
+(global-set-key (kbd "C-_")    'enlarge-window)
+#+end_src
+
 ** Nerd Fonts For Modeline
 #+begin_src emacs-lisp
 (use-package nerd-icons
@@ -682,10 +689,10 @@ You can use the bindings CTRL plus =/- for zooming in/out.  You can also use CTR
     "w <right>" '(evil-window-right :wk "Window right")
     "w w" '(evil-window-next :wk "Goto next window")
     ;; Move Windows
-    "w H" '(buf-move-left :wk "Buffer move left")
-    "w J" '(buf-move-down :wk "Buffer move down")
-    "w K" '(buf-move-up :wk "Buffer move up")
-    "w L" '(buf-move-right :wk "Buffer move right")
+    "w h" '(buf-move-left :wk "Buffer move left")
+    "w j" '(buf-move-down :wk "Buffer move down")
+    "w k" '(buf-move-up :wk "Buffer move up")
+    "w l" '(buf-move-right :wk "Buffer move right")
     ;; Words
     "w d" '(downcase-word :wk "Downcase word")
     "w u" '(upcase-word :wk "Upcase word")
@@ -1034,11 +1041,11 @@ Export org docs to Hugo-style markdown.  Hugo is a static website generator.
   ;; I'm only setting the additional binding because setting it
   ;; helps suppress an annoying warning message.
   (persp-mode-prefix-key (kbd "C-c M-p"))
+  ;; Sets a file to write to when we save states
+  (setq persp-state-default-file "~/.config/emacs/sessions")
   :init 
   (persp-mode)
   :config
-  ;; Sets a file to write to when we save states
-  (setq persp-state-default-file "~/.config/emacs/sessions"))
 
 ;; This will group buffers by persp-name in ibuffer.
 (add-hook 'ibuffer-hook
@@ -1048,9 +1055,10 @@ Export org docs to Hugo-style markdown.  Hugo is a static website generator.
               (ibuffer-do-sort-by-alphabetic))))
 
 ;; Automatically save perspective states to file when Emacs exits.
-(add-hook 'kill-emacs-hook #'persp-state-save)
+(add-hook 'kill-emacs-hook #'persp-state-save))
 
 #+end_src
+
 
 * PROJECTILE
 [[https://github.com/bbatsov/projectile][Projectile]] is a project interaction library for Emacs.  It should be noted that many projectile commands do not work if you have set "fish" as the "shell-file-name" for Emacs.  I had initially set "fish" as the "shell-file-name" in the Vterm section of this config, but oddly enough I changed it to "bin/sh" and projectile now works as expected, and Vterm still uses "fish" because my default user "sh" on my Linux system is "fish".

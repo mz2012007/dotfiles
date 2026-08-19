@@ -13,6 +13,7 @@
 .config/emacs/elfeed/
 .config/emacs/auto-save-list/
 .config/emacs/.bak
+.config/emacs/.Trash
 .config/zen
 setup.log
 .config/chromium/
@@ -35,6 +36,7 @@ scripts/services/images
 fcronscripts/backup_lvm/logs/
 
 dev/mypkg/src/cache/
+dev/myiso/venv
 
 
 

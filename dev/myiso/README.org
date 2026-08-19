@@ -1,0 +1,333 @@
+#+TITLE: myiso Installer
+#+SUBTITLE: Professional Terminal-Based Installer for Void Linux
+#+AUTHOR: Mohamed Zaki (MZ)
+#+STARTUP: showeverything
+#+OPTIONS: toc:2
+#+DATE: 2026-08-19
+
+
+* TABLE OF CONTENTS :toc:
+- [[#overview][Overview]]
+- [[#architecture][Architecture]]
+- [[#directory-structure][Directory Structure]]
+- [[#communication-model-python--bash][Communication Model (Python ↔ Bash)]]
+- [[#state-model][State Model]]
+- [[#error-handling][Error Handling]]
+- [[#security-considerations][Security Considerations]]
+- [[#installation-pipeline][Installation Pipeline]]
+- [[#profiles][Profiles]]
+- [[#configuration][Configuration]]
+- [[#dry-run-mode][Dry Run Mode]]
+- [[#logging][Logging]]
+- [[#running-the-installer][Running the Installer]]
+- [[#running-tests][Running Tests]]
+- [[#development-strategy][Development Strategy]]
+- [[#adding-a-new-stage][Adding a New Stage]]
+- [[#adding-a-new-profile][Adding a New Profile]]
+- [[#debugging-failures][Debugging Failures]]
+- [[#license][License]]
+
+* Overview
+
+  The myiso Installer is a terminal-based installation program for Void Linux. It follows a strict separation between the user interface (Python + Textual) and the system execution layer (Bash). All actual system modifications are performed by independent Bash scripts, while Python handles UI, state management, logging, and orchestration.
+
+  The project aims to provide a clean, modular, maintainable, and debuggable architecture similar to professional Linux installers.
+
+* Architecture
+
+  The system is divided into three layers:
+
+  1. *UI Layer* – Python + Textual, responsible for displaying information, capturing user input, and showing progress.
+  2. *Orchestration Layer* – Python services (runner, state, logger) that manage the installation pipeline and call Bash scripts.
+  3. *Execution Layer* – Bash scripts that perform all actual system operations (partitioning, formatting, package installation, etc.).
+
+  The communication flow is:
+
+  #+BEGIN_SRC text
+  Textual UI (Python)
+       │  asyncio subprocess
+       ▼
+  Python Orchestration (runner, state, logger)
+       │  calls bash scripts
+       ▼
+  Bash Scripts (all system operations)
+       │
+       ▼
+  Linux System (Void)
+  #+END_SRC
+
+  *Critical rule:* Python never executes low‑level system commands (like =mkfs= or =mount=) directly. It only invokes Bash scripts with explicit arguments and environment variables.
+
+* Directory Structure
+
+  #+BEGIN_SRC text
+  myiso/
+  ├── installer/              # Python UI and services
+  │   ├── __init__.py
+  │   ├── app.py              # Main Textual application
+  │   ├── screens/            # UI screens
+  │   │   ├── main_screen.py
+  │   │   ├── disk_screen.py
+  │   │   ├── confirm_screen.py
+  │   │   └── error_screen.py
+  │   ├── widgets/            # Reusable UI components
+  │   │   ├── stage_list.py
+  │   │   └── log_view.py
+  │   ├── services/           # Core services
+  │   │   ├── runner.py       # Asynchronous Bash runner
+  │   │   ├── logger.py       # Persistent and live logging
+  │   │   └── state.py        # Installation state management
+  │   └── models/             # Data models
+  │       └── installer_config.py
+  ├── scripts/                # Bash backend scripts
+  │   ├── list_disks.sh
+  │   ├── preflight.sh
+  │   ├── partition.sh
+  │   ├── format.sh
+  │   ├── mount.sh
+  │   ├── base.sh
+  │   ├── packages.sh
+  │   ├── kernel.sh
+  │   ├── network.sh
+  │   ├── users.sh
+  │   ├── configuration.sh
+  │   ├── bootloader.sh
+  │   ├── cleanup.sh
+  │   └── finalize.sh
+  ├── config/                 # Configuration files
+  │   ├── installer.conf
+  │   └── packages.conf
+  ├── tests/                  # Pytest tests
+  │   ├── test_runner.py
+  │   ├── test_state.py
+  │   └── test_config.py
+  ├── main.py                 # Entry point
+  ├── requirements.txt
+  └── README.org              # This file
+  #+END_SRC
+
+* Communication Model (Python ↔ Bash)
+
+  Python uses =asyncio.create_subprocess_exec= (never =shell=True=) to launch Bash scripts. Arguments are passed as a list, environment variables as a dictionary.
+
+  #+BEGIN_SRC python
+  await runner.run(
+      script="scripts/base.sh",
+      args=["--root", "/mnt/myiso", "--repo", "https://repo-default.voidlinux.org/current"],
+      environment={"TARGET_DISK": "/dev/sda"}
+  )
+  #+END_SRC
+
+  Inside the Bash script, arguments are parsed with a =while= loop and =case=, environment variables are accessed normally.
+
+  #+BEGIN_SRC bash
+  #!/usr/bin/env bash
+  set -Eeuo pipefail
+
+  ROOT=""
+  while [[ $# -gt 0 ]]; do
+      case "$1" in
+          --root) ROOT="$2"; shift 2 ;;
+          *) echo "Unknown option: $1" >&2; exit 1 ;;
+      esac
+  done
+
+  [[ -d "$ROOT" ]] || { echo "Invalid root" >&2; exit 1; }
+  #+END_SRC
+
+  Output from Bash (both stdout and stderr) is captured asynchronously and streamed line by line to the UI (RichLog) and to a persistent log file.
+
+* State Model
+
+  The installer maintains a state file at =logs/state.json= containing the status of each installation stage.
+
+  Example:
+
+  #+begin_src json
+  {
+      "preflight": "done",
+      "disk": "done",
+      "partition": "done",
+      "format": "done",
+      "mount": "done",
+      "base": "running",
+      "packages": "pending",
+      "kernel": "pending",
+      "network": "pending",
+      "users": "pending",
+      "configuration": "pending",
+      "bootloader": "pending",
+      "cleanup": "pending",
+      "finalize": "pending"
+  }
+  #+end_src
+
+  Stage statuses can be: =pending=, =running=, =done=, or =failed=.
+
+  *Important:* The state file is not blindly trusted during resume. Each Bash script should support a =--check= mode (not fully implemented in the initial version) to verify the actual system state before marking a stage as complete. The current demo does not implement resume, but the infrastructure is ready.
+
+* Error Handling
+
+  When a Bash script exits with a non‑zero code, the runner detects it, logs the error, and the UI displays an error screen with:
+  - The failing stage name.
+  - The exit code.
+  - Path to the log file.
+  - Options: Retry, View Logs, Exit.
+
+  The UI never hides the underlying error; the user can inspect the full log.
+
+* Security Considerations
+
+  - Python never uses =shell=True=; all arguments are passed as a list, preventing command injection.
+  - Bash scripts always quote variables: ="$variable"=, never =$variable=.
+  - Destructive operations (like partitioning/formatting) require explicit confirmation by typing =DESTROY=.
+  - Disk paths are validated before use (must be a block device, and not the live system disk unless explicitly intended).
+  - All user input is treated as untrusted.
+
+* Installation Pipeline
+
+  The pipeline consists of the following stages, displayed in the UI:
+
+  1. Preflight
+  2. Disk selection
+  3. Partitioning
+  4. Filesystem creation
+  5. Mounting
+  6. Base system installation
+  7. Package installation
+  8. Kernel setup
+  9. Network configuration
+  10. User creation
+  11. System configuration
+  12. Bootloader installation
+  13. Cleanup
+  14. Finalization
+
+  The UI shows the current stage with a checkbox/arrow indicator and updates the progress bar accordingly.
+
+* Profiles
+
+  The installer supports installation profiles that determine which packages are installed. Profiles are defined in =scripts/packages.sh=:
+
+  | Profile     | Description                       | Packages included                     |
+  |-------------+-----------------------------------+---------------------------------------|
+  | minimal     | Bare minimum system               | base-system, linux                    |
+  | server      | Server-oriented                   | base-system, linux, openssh, dhcpcd   |
+  | desktop     | Desktop environment               | base-system, linux, NetworkManager, xorg, plasma-desktop |
+  | development | Development tools                 | base-system, linux, git, vim, gcc, make |
+  | custom      | User-defined via packages.conf    | Read from =config/packages.conf=      |
+
+* Configuration
+
+  The main configuration file is =config/installer.conf=. It uses INI format and includes:
+
+  #+BEGIN_SRC conf
+  [installer]
+  hostname = myiso
+  username = user
+  timezone = UTC
+  locale = en_US.UTF-8
+  keyboard = us
+  filesystem = ext4
+  kernel = linux
+  profile = minimal
+  bootloader = grub
+  repo_url = https://repo-default.voidlinux.org/current
+  arch = x86_64
+  target_disk = /dev/sda
+  mount_root = /mnt/myiso
+  #+END_SRC
+
+  For the =custom= profile, packages are listed in =config/packages.conf= (one package per line).
+
+* Dry Run Mode
+
+  Every Bash script supports a =--dry-run= flag. In dry‑run mode the script prints what it would do without making any changes. This is useful for testing and debugging.
+
+  Example:
+
+  #+BEGIN_SRC bash
+  sudo ./scripts/partition.sh --disk /dev/sda --dry-run
+  #+END_SRC
+
+  The Python UI can be extended to pass =--dry-run= to all scripts for a complete simulation.
+
+* Logging
+
+  All output is written to a timestamped log file in the =logs/= directory:
+
+  #+BEGIN_SRC text
+  logs/installer-20260819-221042.log
+  #+END_SRC
+
+  The log includes timestamps, log levels, and the raw output from the Bash scripts. The UI also shows a live log stream.
+
+* Running the Installer
+
+  1. Install Python dependencies:
+
+     #+BEGIN_SRC bash
+     pip install -r requirements.txt
+     #+END_SRC
+
+  2. Ensure the target disk is set in =config/installer.conf= (or use the UI to select it).
+
+  3. Run as root:
+
+     #+BEGIN_SRC bash
+     sudo python main.py
+     #+END_SRC
+
+* Running Tests
+
+  #+BEGIN_SRC bash
+  pytest tests/
+  #+END_SRC
+
+  Tests cover:
+  - Bash runner success and failure.
+  - State management.
+  - Configuration loading.
+
+* Development Strategy
+
+  The project was built incrementally in phases:
+
+  1. Basic Textual UI with a fake Bash script.
+  2. Preflight script.
+  3. Disk partitioning and formatting scripts.
+  4. Base system installation.
+  5. Packages, kernel, network configuration.
+  6. Users and system configuration.
+  7. Bootloader installation.
+  8. State/resume/recovery infrastructure.
+  9. Testing and hardening.
+
+  Each phase remained runnable, allowing incremental testing and demonstration.
+
+* Adding a New Stage
+
+  1. Create a new Bash script in =scripts/= with the required interface.
+  2. Add the stage name to the =STAGES= list in =installer/services/state.py=.
+  3. Add a corresponding entry to the =stages_to_run= list in =MainScreen._run_stages()=.
+  4. Update the UI if necessary (automatic if using the existing stage list widget).
+
+* Adding a New Profile
+
+  1. Edit =scripts/packages.sh= and add a new =case= branch.
+  2. Optionally document the profile in this README.
+  3. The UI will automatically expose the new profile via the configuration file (if added to =installer.conf=).
+
+* Debugging Failures
+
+  If a stage fails, the error screen shows the exact exit code and log file path. You can also run the failed script manually from the terminal:
+
+  #+BEGIN_SRC bash
+  sudo ./scripts/base.sh --root /mnt/myiso --repo https://repo-default.voidlinux.org/current
+  #+END_SRC
+
+  Review the log file for detailed output.
+
+* License
+
+  This project is distributed under the MIT License. See the LICENSE file for details.

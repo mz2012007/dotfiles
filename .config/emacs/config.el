@@ -267,6 +267,11 @@
 (global-set-key (kbd "<C-wheel-up>") 'text-scale-increase)
 (global-set-key (kbd "<C-wheel-down>") 'text-scale-decrease)
 
+(global-set-key (kbd "C->")  'shrink-window-horizontally)
+(global-set-key (kbd "C-<") 'enlarge-window-horizontally)
+(global-set-key (kbd "C-+")  'shrink-window)
+(global-set-key (kbd "C-_")    'enlarge-window)
+
 (use-package nerd-icons
   :ensure t
   ;; :custom
@@ -507,10 +512,10 @@
     "w <right>" '(evil-window-right :wk "Window right")
     "w w" '(evil-window-next :wk "Goto next window")
     ;; Move Windows
-    "w H" '(buf-move-left :wk "Buffer move left")
-    "w J" '(buf-move-down :wk "Buffer move down")
-    "w K" '(buf-move-up :wk "Buffer move up")
-    "w L" '(buf-move-right :wk "Buffer move right")
+    "w h" '(buf-move-left :wk "Buffer move left")
+    "w j" '(buf-move-down :wk "Buffer move down")
+    "w k" '(buf-move-up :wk "Buffer move up")
+    "w l" '(buf-move-right :wk "Buffer move right")
     ;; Words
     "w d" '(downcase-word :wk "Downcase word")
     "w u" '(upcase-word :wk "Upcase word")
@@ -721,11 +726,11 @@
   ;; I'm only setting the additional binding because setting it
   ;; helps suppress an annoying warning message.
   (persp-mode-prefix-key (kbd "C-c M-p"))
+  ;; Sets a file to write to when we save states
+  (setq persp-state-default-file "~/.config/emacs/sessions")
   :init 
   (persp-mode)
   :config
-  ;; Sets a file to write to when we save states
-  (setq persp-state-default-file "~/.config/emacs/sessions"))
 
 ;; This will group buffers by persp-name in ibuffer.
 (add-hook 'ibuffer-hook
@@ -735,7 +740,7 @@
               (ibuffer-do-sort-by-alphabetic))))
 
 ;; Automatically save perspective states to file when Emacs exits.
-(add-hook 'kill-emacs-hook #'persp-state-save)
+(add-hook 'kill-emacs-hook #'persp-state-save))
 
 (use-package projectile
   :ensure t
