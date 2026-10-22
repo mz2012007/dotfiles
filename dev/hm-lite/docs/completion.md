@@ -89,24 +89,29 @@ that supports it.
 | `hm add` | `-h`, `--help` | one or more paths |
 | `hm gen` | `--name`, `--comment`, `--yes`, `-y`, `-h`, `--help` | — |
 | `hm list` | `--generation`, `--pending`, `--paths`, `--store`, `-h`, `--help` | — |
+| `hm status` | `-h`, `--help` | — |
+| `hm show` | `-h`, `--help` | exactly one generation id |
 | `hm switch` | `-h`, `--help` | exactly one generation id |
+| `hm delete` | `--yes`, `-y`, `-h`, `--help` | exactly one generation id |
 | `hm apply` | `--dry-run`, `--yes`, `-y`, `-h`, `--help` | one optional generation id |
 | `hm discard` | `-h`, `--help` | — |
 | `hm backup` | `-h`, `--help` | — |
 | `hm restore` | `--yes`, `-y`, `-h`, `--help` | exactly one backup archive |
 | `hm clean` | `--dry-run`, `--yes`, `-y`, `-h`, `--help` | — |
 
-At the command position the completion offers the ten commands, `help`,
+At the command position the completion offers the thirteen commands, `help`,
 `-h`, `--help` and `--version`.
 
 The argument is only completed while it is still valid:
 
 * `hm switch <TAB>` offers the generation ids, `hm switch 1 <TAB>` offers
   nothing.
+* `hm show <TAB>` and `hm delete <TAB>` offer the generation ids,
+  `hm show 1 <TAB>` and `hm delete 1 <TAB>` offer nothing.
 * `hm apply <TAB>` offers the generation ids, `hm apply 1 <TAB>` offers
   nothing.
-* `hm init <TAB>`, `hm gen <TAB>`, `hm backup <TAB>` and the other commands
-  without an argument offer nothing.
+* `hm init <TAB>`, `hm gen <TAB>`, `hm status <TAB>`, `hm backup <TAB>` and
+  the other commands without an argument offer nothing.
 * `hm gen --name <TAB>` offers nothing: `--name` and `--comment` are free
   text.
 

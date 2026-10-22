@@ -143,10 +143,10 @@ init() {
   hm_validate_store
 
   hm_log_success "HM-Lite is initialized."
-  printf '%s\n' "Project directory: $HM_DIR"
-  printf '%s\n' "Database:          $(hm_path_display "$(hm_db_file)")"
-  printf '%s\n' "Content store:     $(hm_path_display "$HM_STORE_ROOT")"
+  printf 'Project directory: %s%s%s\n' "$HM_C_OUT_CYAN" "$HM_DIR" "$HM_C_OUT_RESET"
+  printf 'Database:          %s%s%s\n' "$HM_C_OUT_CYAN" "$(hm_path_display "$(hm_db_file)")" "$HM_C_OUT_RESET"
+  printf 'Content store:     %s%s%s\n' "$HM_C_OUT_CYAN" "$(hm_path_display "$HM_STORE_ROOT")" "$HM_C_OUT_RESET"
   printf '%s\n' ""
-  printf '%s\n' "Next step: hm add <file|directory...>"
+  printf '%sNext step: hm add <file|directory...>%s\n' "$HM_C_OUT_BOLD" "$HM_C_OUT_RESET"
   return 0
 }

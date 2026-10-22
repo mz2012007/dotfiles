@@ -72,14 +72,19 @@ stays testable.
 | `core/add.sh` | Registration only: discovery → dedupe → preview → confirm → one transaction. |
 | `core/gen.sh` | Content capture: lock, stage, hash, store, one transaction, clear the pending set. |
 | `core/list.sh` | Read only views: generations, entries, tracked paths, pending paths, store statistics. |
+| `core/status.sh` | Read only dashboard: the project, the store space (referenced, unreferenced, missing) and the size of every generation. |
+| `core/show.sh` | Read only detail view of one generation: metadata and the rich entry table. |
+| `core/diff.sh` | Read only comparison of two or more generations: consecutive pairs, type/content hash/mode/owner/group/size, modification time ignored, never opens the store. |
+| `core/edit.sh` | Metadata edit of one generation: exclusive lock, preview, one `UPDATE`; the entries, the parent and the store are untouched. |
 | `core/switch.sh` | Select a generation and materialise it into `current/`. Never touches the live filesystem. |
+| `core/delete.sh` | Remove one generation and its entries in one transaction; the selected generation is refused. |
 | `core/apply.sh` | The live filesystem write path: preview → backup → confirm → write → verify → rollback. |
 | `core/discard.sh` | Reset `testing/` from `current/`. Only touches the HM owned workspace. |
 | `core/backup.sh` | Consistent backup: `sqlite3 .backup` + store + manifest with checksums. |
 | `core/restore.sh` | Validate → stage → verify → activate the restored state. |
 | `core/clean.sh` | Garbage collection: exact reference analysis → preview → confirm → delete. |
 | `lib/common.sh` | Error and report helpers, `require_cmd`, `confirm`, temporary files, configuration parsing. The exit code constants live in the dispatcher, there is no second definition. |
-| `lib/logging.sh` | The levels `ERROR`/`WARN`/`INFO`/`DEBUG`, the append only log file, the colour handling. |
+| `lib/logging.sh` | The levels `ERROR`/`WARN`/`INFO`/`DEBUG`, the append only log file, the colour handling: `HM_COLOR`, `NO_COLOR` and one palette per stream. |
 | `lib/paths.sh` | Path normalisation, validation, containment checks, safe joins, the runtime paths. |
 | `lib/database.sh` | The `sqlite3` invocation, the SQL quoting, the transaction helper, the schema version, the hex codec. |
 | `lib/hashing.sh` | The SHA-256 of a file and of staged bytes. |
@@ -167,7 +172,9 @@ The four concepts are four different tables:
   of its bytes and nothing else.
 * **generation entry** — the recorded state of a path inside a generation:
   the content, the mode, the owner, the timestamps.
-* **generation** — the immutable snapshot of all tracked paths.
+* **generation** — the immutable snapshot of all tracked paths. The
+  entries are immutable; the name and the comment are labels for the
+  human reader and can be changed with `hm edit`.
 
 Because the content object is shared, the metadata can never be shared:
 the mode of a file belongs to the generation entry, not to the object.
@@ -202,6 +209,52 @@ compared without any hidden context.
 A failure at any point leaves the previous state completely intact: either
 the transaction was not committed, or the pending paths are still pending
 and the next `hm gen` repeats the work.
+
+### Deleting a generation
+
+`hm delete` removes a history entry, it never touches a live file:
+
+```
+preview (metadata, entries, objects, the objects only this generation uses)
+   │
+   ▼
+confirmation  (--yes skips it)
+   │
+   ▼
+one transaction:
+  DELETE FROM generation_entries WHERE generation_id = …
+  DELETE FROM generations        WHERE id = …
+   │
+   ▼
+the foreign key clears the parent of the children
+the unreferenced content objects stay in the store until hm clean
+```
+
+Only the database changes. The content objects are shared by design, so
+this command never guesses whether an object is still needed: `hm clean`
+reclaims it after the exact reference analysis. A failure of either
+statement rolls the transaction back and not one row is lost.
+
+The selected generation is refused, because `current/` and an
+argument-less `hm apply` must always resolve to a generation that exists.
+
+### Editing the metadata
+
+`hm edit` changes `generations.name` and `generations.comment` with one
+`UPDATE` inside a transaction. It takes the exclusive lock even though the
+snapshot itself is immutable: the preview, the confirmation and the write
+must see one stable row. The selected generation may be edited, because
+`current/` and `hm apply` depend on the selection, not on the label.
+
+### Comparing generations
+
+`hm diff` pairs the generations in the given order and compares the
+entries by type, content hash, mode, owner, group and size. The
+modification time is ignored, for the same reason `hm apply` ignores it: a
+copy changes the timestamp without changing the content. The command is
+read only, takes the shared lock and never opens the store; it compares
+the recorded hashes. A difference is a result, not an error, so the exit
+code is `0`.
 
 ---
 
@@ -271,9 +324,9 @@ See [safety.md](safety.md) for the full model.
 
 | Command | Lock | Reason |
 |---|---|---|
-| `add`, `gen`, `apply`, `backup`, `restore`, `clean` | exclusive | They change the state. |
+| `add`, `gen`, `apply`, `backup`, `restore`, `clean`, `delete` | exclusive | They change the state. |
 | `switch`, `discard` | exclusive | They rewrite an HM owned workspace. |
-| `list` | shared | It only reads. |
+| `list`, `status`, `show` | shared | They only read. |
 
 The lock lives in `<runtime>/hm.lock` and is held with `flock`. A command
 that cannot acquire it within `HM_LOCK_TIMEOUT` seconds fails with exit
@@ -322,3 +375,9 @@ The environment wins because it is the more specific instruction of the
 user in that moment. The dispatcher collects the `HM_*` variables of the
 process before the libraries load their own defaults, so a value that was
 exported is never overwritten by the configuration file.
+
+`NO_COLOR` is not a configuration key, it is an environment convention: a
+non-empty value disables the colours even when `HM_COLOR=always` is set,
+and an empty value counts as unset. The diagnostics are coloured when
+standard error is a terminal, the human readable output when standard
+output is, so a redirected stream never receives an escape sequence.

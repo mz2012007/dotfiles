@@ -29,7 +29,8 @@ EOF
 _list_generations() {
   local rows row id created entries objects name
 
-  printf '%-6s %-21s %8s %8s  %s\n' "ID" "CREATED" "ENTRIES" "OBJECTS" "NAME"
+  printf '%s%-6s %-21s %8s %8s  %s%s\n' "$HM_C_OUT_BOLD" \
+    "ID" "CREATED" "ENTRIES" "OBJECTS" "NAME" "$HM_C_OUT_RESET"
 
   if ! hm_db_rows "
     SELECT g.id,
@@ -60,9 +61,11 @@ _list_generation() {
   created="$(hm_db_scalar "SELECT created_at FROM generations WHERE id = $(hm_sql_int "$id");")" ||
     hm_die "$HM_EX_DB" "Cannot read the generation $id from the database."
 
-  printf 'Generation %s, created %s\n' "$id" "$(hm_format_epoch "$created" || printf '%s' "$created")"
+  printf 'Generation %s%s%s, created %s\n' "$HM_C_OUT_CYAN" "$id" "$HM_C_OUT_RESET" \
+    "$(hm_format_epoch "$created" || printf '%s' "$created")"
   printf '\n'
-  printf '%-40s %-6s %-6s %10s  %s\n' "PATH" "TYPE" "MODE" "SIZE" "HASH"
+  printf '%s%-40s %-6s %-6s %10s  %s%s\n' "$HM_C_OUT_BOLD" \
+    "PATH" "TYPE" "MODE" "SIZE" "HASH" "$HM_C_OUT_RESET"
 
   if ! hm_gen_entries "$id" rows; then
     hm_die "$HM_EX_DB" "Cannot read the entries of the generation $id."
@@ -93,7 +96,7 @@ _list_generation() {
 _list_pending() {
   local rows row encoded kind added path
 
-  printf '%-40s %-6s %s\n' "PATH" "TYPE" "ADDED"
+  printf '%s%-40s %-6s %s%s\n' "$HM_C_OUT_BOLD" "PATH" "TYPE" "ADDED" "$HM_C_OUT_RESET"
 
   if ! hm_db_rows "
     SELECT hex(p.path),
@@ -120,7 +123,7 @@ _list_pending() {
 _list_paths() {
   local rows row encoded kind created path
 
-  printf '%-40s %-6s %s\n' "PATH" "TYPE" "REGISTERED"
+  printf '%s%-40s %-6s %s%s\n' "$HM_C_OUT_BOLD" "PATH" "TYPE" "REGISTERED" "$HM_C_OUT_RESET"
 
   if ! hm_db_rows "
     SELECT hex(path), kind, created_at
@@ -162,7 +165,11 @@ _list_store() {
   printf '%-24s %s\n' "Objects in the store:" "$objects"
   printf '%-24s %s\n' "Size in bytes:" "$size"
   printf '%-24s %s\n' "Objects in the database:" "$referenced"
-  printf '%-24s %s\n' "Unreferenced objects:" "$orphans"
+  if [[ "$orphans" -gt 0 ]]; then
+    printf '%-24s %s%s%s\n' "Unreferenced objects:" "$HM_C_OUT_YELLOW" "$orphans" "$HM_C_OUT_RESET"
+  else
+    printf '%-24s %s\n' "Unreferenced objects:" "$orphans"
+  fi
   printf '%-24s %s\n' "Generations:" "$generations"
   printf '%-24s %s\n' "Tracked paths:" "$paths_count"
   printf '%-24s %s\n' "Pending paths:" "$pending_count"

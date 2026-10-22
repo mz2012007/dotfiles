@@ -9,6 +9,14 @@ Every command is `hm <command> [options]`.
 * A declined confirmation ends the command with exit code `7`. A script
   can therefore tell "the user said no" apart from "the command did its
   work".
+* Colours are enabled automatically on a terminal and disabled on a pipe.
+  `HM_COLOR` and `NO_COLOR` override the detection, see
+  [Configuration](../README.md#colours). The human readable output of every
+  command uses the standard output palette; the diagnostics use the
+  standard error palette.
+* A difference is not an error: `hm diff` always ends with exit code `0`,
+  also when the compared generations differ. Exit code `1` stays reserved
+  for a generic runtime failure.
 * The exit codes are documented in the [README](../README.md#exit-codes).
 * All commands require an initialised project (`hm init`) except `init`
   itself.
@@ -144,6 +152,208 @@ ID     CREATED                ENTRIES  OBJECTS  NAME
 
 The generations are ordered by `created_at DESC, id DESC`.
 
+`hm list --store` is the raw view of the content store. The richer
+dashboard is [`hm status`](#hm-status).
+
+---
+
+## `hm status`
+
+Show a read-only dashboard of the project: the project itself, the content
+store and every generation with its size. The command only takes the
+shared lock and changes nothing.
+
+```
+Usage: hm status
+
+Options:
+  -h, --help     Show this help
+```
+
+```
+HM-Lite status
+
+  Project:         /home/user/.config/hm-lite
+  Generations:     3
+  Selected:        2
+  Tracked paths:   3
+  Pending paths:   0
+
+Store
+
+  Location:        /home/user/.config/hm-lite/store/objects
+  Objects:         2
+  Size:            6 B (6 bytes)
+  Referenced:      2 object(s), 6 B (6 bytes)
+  Unreferenced:    0 object(s), 0 B (0 bytes)
+  Missing:         0 object(s), 0 B (0 bytes)
+
+Generations
+
+ID     SEL CREATED                ENTRIES  OBJECTS       SIZE  NAME
+3          2026-10-22T16:13:02Z         3        2        6 B  third
+2      *   2026-10-22T16:13:02Z         2        1        2 B  second
+1          2026-10-22T16:13:02Z         1        1        2 B  first
+```
+
+* `SEL` marks the selected generation with `*`.
+* The size of a generation is the summed size of the **distinct** content
+  objects it references. Content that several paths or several generations
+  share is counted once, therefore the generation sizes never add up to
+  more than the store holds.
+* The store is classified in one pass:
+  * `Referenced` — the object is present and used by at least one
+    generation,
+  * `Unreferenced` — the object is present but no generation uses it; this
+    is the garbage that `hm clean` removes,
+  * `Missing` — a generation needs the object but the store does not have
+    it.
+* A damaged store does not fail the command: it is reported in the
+  `Missing:` line and with a warning, and nothing is repaired.
+* The sizes are human readable (`B`, `KiB`, `MiB`, …) with one decimal
+  place. The exact byte count of the store is printed next to the formatted
+  value.
+* Colours follow the same rules as every other command: they are enabled on
+  a terminal and disabled on a pipe, `HM_COLOR` and `NO_COLOR` override the
+  detection. The headings are bold, the selected generation is cyan,
+  unreferenced objects are yellow and missing objects are red.
+
+---
+
+## `hm show <generation>`
+
+Show the metadata and the complete entry list of one generation. The
+command is read only and only takes the shared lock.
+
+```
+Usage: hm show <generation>
+
+Options:
+  -h, --help     Show this help
+```
+
+The metadata block names the generation, whether it is the selected one,
+how many entries and content objects it holds and how many bytes the
+files occupy:
+
+```
+Generation 2
+
+  Name:       dotfiles-2026-10
+  Comment:    the working configuration
+  Created:    2026-10-22T14:01:44Z
+  Parent:     1
+  Selected:   no
+  Entries:    4
+  Objects:    2
+  Size:       8 bytes
+
+PATH                                     TYPE  MODE  OWNER           SIZE  MODIFIED            HASH
+/home/user/.bashrc                       file  644   1000:1000         12  2026-10-22T14:00:00Z 4e07408562be
+```
+
+* The entry table is the detailed variant of `hm list --generation`: it
+  adds the owner, the group and the modification time, and it always
+  shows the full path.
+* A content object that is missing from the store is reported on a
+  `Missing:` line and as a warning. The command still succeeds: it never
+  hides a damaged store behind a repair, and it never modifies anything.
+* An unknown generation is a state error (`4`), a missing or extra
+  argument is a usage error (`2`).
+
+---
+
+## `hm diff <generation> <generation> [<generation>…]`
+
+Compare the entries of two or more generations. The generations are
+compared in the order in which they are given, every consecutive pair is
+one comparison. The command is read only and only takes the shared lock.
+
+```
+Usage: hm diff <generation> <generation> [<generation>...]
+
+Options:
+  --all          Show the entries that did not change
+  -h, --help     Show this help
+```
+
+```
+HM-Lite diff
+
+Generation 1 -> 2
+
+  ~ /home/user/.bashrc (content, mode 600 -> 644)
+  + /home/user/.config/nvim/init.lua
+  - /home/user/.config/old.conf
+
+  1 added, 1 removed, 1 changed, 2 unchanged
+```
+
+* The marker and the colour name the kind of change: `+` green added,
+  `-` red removed, `~` yellow changed, `=` unchanged. The unchanged
+  entries are hidden unless `--all` is given.
+* An entry is compared by its type, its content hash, its mode, its owner
+  and its group. The modification time is recorded metadata but it is not
+  a difference: `hm apply` ignores it as well, and copying a file updates
+  it without changing the content. A size difference is only reported
+  when the content hash did not change.
+* The comparison uses the recorded hashes and never opens the content
+  store. A missing content object therefore does not change the result of
+  a comparison; `hm show`, `hm status` and `hm clean` report it.
+* The summary counts every path of the pair, including the paths that did
+  not change. When a pair has no difference at all the line
+  `No differences.` is printed.
+* The generations must be distinct. A duplicate, an unknown generation
+  and a generation that is not a positive integer are rejected before
+  anything is printed.
+* A difference is a normal result: the command always ends with exit code
+  `0`. A database failure stops it with exit code `5`, an unknown
+  generation is a state error (`4`), and a usage error is `2`.
+
+---
+
+## `hm edit <generation> [options]`
+
+Change the name and the comment of an existing generation.
+
+```
+Usage: hm edit <generation> [options]
+
+Options:
+  --name NAME        Set the name of the generation
+  --comment TEXT     Set the comment of the generation
+  --clear-name       Remove the name of the generation
+  --clear-comment    Remove the comment of the generation
+  --yes, -y          Do not ask for a confirmation
+  -h, --help         Show this help
+```
+
+```
+Edit preview for generation 2
+
+  Generation: 2
+  Name:       old label -> new label
+  Comment:    - -> the working configuration
+
+Apply the change? [y/N]
+```
+
+* At least one of `--name`, `--comment`, `--clear-name` and
+  `--clear-comment` is required. `--name` and `--clear-name` cannot be
+  combined, neither can `--comment` and `--clear-comment`.
+* An empty value is rejected with exit code `2`; removing a value has an
+  explicit flag. This keeps `--name ""` from wiping a label by accident.
+* Only the metadata of the generation changes. The entries, the content
+  objects, the parent and the selection are untouched: a generation is
+  immutable as a snapshot, the name and the comment are labels for the
+  human reader.
+* The command takes the **exclusive** lock and performs a single `UPDATE`
+  in one transaction. The selected generation may be edited; `hm delete`
+  is the command that refuses it.
+* An unknown generation is a state error (`4`), a declined confirmation
+  ends the command with exit code `7`, and a database failure stops it
+  with exit code `5` without changing anything.
+
 ---
 
 ## `hm switch <generation>`
@@ -161,6 +371,56 @@ Usage: hm switch <generation>
   hard link and never a symbolic link.
 * The selected generation is recorded in the `state` table and is used by
   `hm apply` when no generation is named.
+
+---
+
+## `hm delete <generation>`
+
+Delete a generation and its entries.
+
+```
+Usage: hm delete <generation> [options]
+
+Options:
+  --yes, -y      Do not ask for a confirmation
+  -h, --help     Show this help
+```
+
+The command prints a preview first: the metadata of the generation, the
+number of entries and objects, and how many content objects only this
+generation uses. Only then it asks.
+
+```
+Delete preview:
+
+  Generation: 3
+  Name:       (unnamed)
+  Created:    2026-10-22T14:05:12Z
+  Entries:    4
+  Objects:    2
+
+  1 content object(s) are used by no other generation.
+  They stay in the store until "hm clean" runs.
+
+Delete the generation? [y/N]
+```
+
+* **The selected generation is never deleted.** The command refuses it
+  with exit code `3`, because `current/` and a later `hm apply` without an
+  argument would otherwise point to a generation that no longer exists.
+  `hm switch` must select another generation first.
+* The removal runs in **one transaction**: the entries are deleted first,
+  then the generation row. A failure rolls everything back and the project
+  is unchanged. An unknown generation ends the command with exit code `4`
+  before anything is written.
+* The parent of the child generations becomes empty: the schema uses
+  `ON DELETE SET NULL`, so the remaining history stays readable. The
+  remaining generation is otherwise untouched.
+* The content objects and the `files` rows that no generation uses any
+  more are **not** deleted here. `hm clean` reclaims them, and both the
+  preview and the success message name how many objects are affected.
+* A declined confirmation ends the command with exit code `7` and a
+  message on standard error.
 
 ---
 

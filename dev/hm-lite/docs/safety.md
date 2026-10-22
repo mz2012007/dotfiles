@@ -90,6 +90,14 @@ place, so `current/` is always complete.
 
 `hm discard` only ever touches `<runtime>/testing/`.
 
+`hm delete` never removes a file either: it removes rows. The preview names
+the generation and the content objects that no other generation uses, the
+confirmation is mandatory unless `--yes` is given, and both `DELETE`
+statements share one transaction. The selected generation is refused,
+because `current/` and an argument-less `hm apply` must always resolve to a
+generation that exists. The content objects themselves are only removed by
+`hm clean`, after its exact reference analysis.
+
 ---
 
 ## 4. The backup is a real backup
@@ -116,9 +124,9 @@ support.
 
 | Command | Lock |
 |---|---|
-| `add`, `gen`, `apply`, `backup`, `restore`, `clean` | exclusive |
+| `add`, `gen`, `apply`, `backup`, `restore`, `clean`, `delete` | exclusive |
 | `switch`, `discard` | exclusive |
-| `list` | shared |
+| `list`, `status`, `show` | shared |
 
 The lock is a `flock` on `<runtime>/hm.lock`. A command that cannot
 acquire it within `HM_LOCK_TIMEOUT` seconds (default `10`) fails with exit

@@ -82,9 +82,13 @@ the code under test to check its own work.
 | `tests/cases/07_backup.sh` | `backup` and `restore`: the archive, the manifest, the validation, the activation. | 11 |
 | `tests/cases/08_clean.sh` | The garbage collection: the reference analysis, the removal, the missing objects. | 10 |
 | `tests/cases/09_completion.sh` | The three completion files: the commands, the options per command, the argument ranges, the generation ids, the paths with spaces, the fail-safe behaviour without a database, the absence of side effects. | 18 |
+| `tests/cases/10_show.sh` | `show`: the metadata block, the entry table, the selected marker, the missing objects, the usage and state errors, the read-only guarantee. | 12 |
+| `tests/cases/11_delete.sh` | `delete`: the preview, the confirmation, `--yes`/`-y`, the selected generation, the parent of the children, the orphan hand-off to `clean`, the rollback of a failing transaction. | 15 |
+| `tests/cases/12_color.sh` | The colours: the automatic detection on a terminal and on a pipe, `HM_COLOR`, `NO_COLOR`, the stream each palette follows, the unchanged plain output. | 8 |
+| `tests/cases/13_status.sh` | `status`: the project overview, the store space and its classification (referenced, unreferenced, missing), the size of every generation with the shared content counted once, the selected marker, the empty project, the read-only guarantee, the usage and state errors, the colours of the dashboard. | 15 |
 
-**121 test cases**, plus the static analysis. The runner reports 122 checks
-when ShellCheck is missing and 123 when it is installed.
+**171 test cases**, plus the static analysis. The runner reports 172 checks
+when ShellCheck is missing and 173 when it is installed.
 
 ---
 
@@ -119,6 +123,9 @@ have an explicit test:
 * An archive with a damaged file is refused by `hm restore`.
 * A content object that a generation needs but that is missing from the
   store is reported by `hm clean` and never removed.
+* `hm status` counts the size of a generation from its distinct content
+  objects: shared content is counted once, and the store totals always
+  match the objects on disk.
 * Every command that changes something asks for a confirmation, and a
   closed standard input answers "no".
 * A declined confirmation ends the command with exit code `7`, so a script
@@ -136,11 +143,21 @@ have an explicit test:
 * The completion never offers an option outside its command (`backup` has
   no `--yes`) and never offers an argument after a positional one that is
   already complete (`switch 1 <TAB>` offers nothing).
+* `hm delete` refuses the selected generation (exit `3`, nothing deleted),
+  clears the parent of its children and rolls both statements back when
+  the transaction fails (exit `5`, the generation and its entries are
+  still there).
+* The colours are decided per stream: a pipe gets no escape sequence, a
+  terminal does, `HM_COLOR=always` and `HM_COLOR=never` win over the
+  detection, and a non-empty `NO_COLOR` wins over everything. Stripping
+  the escape sequences from a coloured run gives exactly the plain output.
+* `hm show` records no change: the generation and entry counts are
+  identical before and after the calls.
 
-The Fish and Zsh tests need an optional interpreter. When `fish` or `zsh`
-is not on the `PATH` the affected tests print an explicit `SKIP` line on
-stderr and pass without executing that completion; the Bash tests always
-run.
+The Fish and Zsh tests need an optional interpreter, the pseudo terminal
+tests need `script` from util-linux. When `fish`, `zsh` or `script` is not
+on the `PATH` the affected tests print an explicit `SKIP` line on stderr
+and pass without executing that check; the Bash tests always run.
 
 ---
 

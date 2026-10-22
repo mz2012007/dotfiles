@@ -13,6 +13,7 @@
 | DB | SQLite (CLI) | 3.53.4 (2026-07-24) | 3.54.1 (2026-10-16) | Local CLI is 3.53.4 — no syntax newer than that. No deprecated features. |
 | Hashing | `sha256sum` (GNU coreutils) | 9.4 | 9.x | Content identity = SHA-256 of file bytes |
 | Locking | `flock` (util-linux) | 2.41.4 | 2.41.x | Project-level exclusive lock for mutating commands |
+| Colour | ANSI SGR, `printf -v` palettes | — | — | `HM_COLOR` (auto/always/never) plus a non-empty `NO_COLOR`; one palette per stream (stderr for diagnostics, stdout for the human readable output); auto = `[[ -t FD ]]`. The pseudo terminal tests use `script` (util-linux 2.41.4) and print `SKIP` when it is absent. |
 | Files | `find` 4.10.0, `install`/`stat`/`readlink`/`mv` coreutils 9.4, `tar` 1.35 | — | — | NUL-delimited traversal (`-print0`) |
 | Static analysis | ShellCheck | **0.11.0 (installed)** | 0.11.0 (2025-08-03) | Installed and **running** in the test suite: 0 findings. The runner still skips the step gracefully when the binary is absent. |
 | Completion | Bash builtins (`compgen`/`mapfile`/`compopt`), Zsh `compinit`/`compadd`/`_describe`, Fish `complete` | Bash 5.3.0, Fish 4.9.3, Zsh 5.9 (verified in a container) | — | Three self-contained files in `completions/`, **no shared library and no installer**. Bash does not need the `bash-completion` package. Zsh is not installed on the host, so the suite skips its two tests with an explicit `SKIP` line. |
@@ -44,8 +45,22 @@ hm <command> [args]
         ├── hm list  ──► read-only (shared lock): generations / entries / pending
         │                   (every query is checked: a failing query = exit 5, never an empty table)
         │
+        ├── hm status ──► read-only (shared lock): project + store space + size per generation
+        │                   ──► one pass over the store: referenced / unreferenced / missing
+        │                   ──► generation size = distinct content objects (shared bytes counted once)
+        │                   (a damaged store is reported, never repaired; missing = warning)
+        │
+        ├── hm show <gen> ──► read-only (shared lock): metadata + rich entry table
+        │                   ──► reuses hm_gen_entries + hm_gen_missing_objects
+        │                   (missing store objects are reported, never repaired)
+        │
         ├── hm switch <gen> ──► validate gen + objects ──► materialize staging
         │                   ──► atomic rename ──► current/  (live FS untouched)
+        │
+        ├── hm delete <gen> ──► LOCK ──► refuse the selected generation (exit 3)
+        │                   ──► preview + confirm ──► TX: delete entries, delete generation
+        │                   ──► children keep their rows, parent_id becomes empty
+        │                   ──► orphan objects stay in the store until hm clean
         │
         ├── hm apply ──► classify (CREATE/UPDATE/MODE/UNCHANGED/CONFLICT)
         │                   ──► conflict? refuse (exit 3), nothing changed
@@ -68,7 +83,7 @@ hm <command> [args]
 [Completion — outside the dispatcher]
 
 hm <TAB>, hm <cmd> <TAB>   ──► completions/hm.{bash,zsh,fish}  (sourced by the shell, never by hm)
-        │                      ├── static tables: 10 commands + help + -h/--help/--version,
+        │                      ├── static tables: 13 commands + help + -h/--help/--version,
         │                      │                   and the options of the current command only
         │                      └── paths: filesystem completion + tracked paths
         │                                (SELECT path FROM paths ORDER BY path)
@@ -107,14 +122,17 @@ Schema resolution order (single authoritative file, never duplicated in Bash):
 | `core/add.sh` | Registration only. Discovery → preview → confirm → TX(insert paths + pending). |
 | `core/gen.sh` | Content capture. Lock, stage, hash, store, TX, clear pending, verify. |
 | `core/list.sh` | Read-only views: generations, entries, pending, store stats. |
+| `core/status.sh` | Read-only dashboard: project, store space (referenced / unreferenced / missing) and every generation with its distinct-object size. |
+| `core/show.sh` | Read-only detail view of one generation: metadata block plus the rich entry table (owner, group, mtime, full path). |
 | `core/switch.sh` | Select generation + materialize into `current/` (atomic). Never touches live FS. |
+| `core/delete.sh` | Delete one generation and its entries in a single TX; refuses the selected generation; leaves the orphan objects to `hm clean`. |
 | `core/apply.sh` | Live-filesystem write path. Preview → backup → confirm → stage → verify → rollback. |
 | `core/discard.sh` | Reset `testing/` from `current/`. HM-owned workspace only. |
 | `core/backup.sh` | Consistent backup: `sqlite3 .backup` + store + manifest + checksums. |
 | `core/restore.sh` | Validate → stage → verify → activate restored runtime state. |
 | `core/clean.sh` | GC: exact reference analysis → preview → confirm → delete. |
 | `lib/common.sh` | Error/report, `require_cmd`, `confirm`, temp files, run helpers. (The exit codes live in the dispatcher.) |
-| `lib/logging.sh` | Levels ERROR/WARN/INFO/DEBUG; append-only file log; colour auto-disable. |
+| `lib/logging.sh` | Levels ERROR/WARN/INFO/DEBUG; append-only file log; colour palettes per stream, `HM_COLOR` + `NO_COLOR`. |
 | `lib/paths.sh` | Path normalization, validation, containment checks, safe join. |
 | `lib/database.sh` | sqlite3 invocation, `sql_quote` escaping, TX helper, migrations, `PRAGMA`s. |
 | `lib/hashing.sh` | `sha256` of a file / of staged bytes. |
@@ -157,6 +175,9 @@ Invariants:
 - `paths.path` UNIQUE; `files.hash` UNIQUE; `generation_entries` PK `(generation_id, path_id)`.
 - Foreign keys ON on every connection. `files` referenced by entries → `ON DELETE RESTRICT`.
 - Generations are immutable: entries are never rewritten, only inserted.
+- Deleting a generation is one TX (`generation_entries`, then `generations`): the
+  selected generation is refused (exit 3), `parent_id ON DELETE SET NULL` keeps the
+  children readable, and the released content objects are reclaimed only by `hm clean`.
 - Generation ordering = `ORDER BY created_at DESC, id DESC` (IDs are identifiers, not order).
 
 ### The checked-read rule (no silent empty state)
@@ -213,6 +234,21 @@ added no command, no option, no runtime dependency and no installation
 step to the application: the completion is a consumer that the user sources
 manually, and `hm` is unchanged by it.
 
+The inspection/deletion round added `hm show` (read only) and `hm delete`
+(one transaction, the selected generation refused, the orphan objects
+handed to `hm clean`) and made the colour handling honour `NO_COLOR` with
+one palette per stream (decision R). It added no schema change and no new
+runtime dependency; the only new test dependency is optional (`script` for
+the pseudo terminal checks).
+
+The status round added `hm status` (read only dashboard, decision S) and
+`hm_format_bytes` in `lib/common.sh`. It added no schema change, no new
+runtime dependency and no second store walker: the command reuses
+`hm_store_object_hashes`, `hm_store_path`, `hm_db_rows` and
+`hm_db_scalar`. The generation size is the size of the **distinct**
+content objects a generation references, so shared content is counted once
+and a generation never appears larger than the store.
+
 ### Closed decisions
 
 | ID | Decision | Status |
@@ -234,6 +270,8 @@ manually, and `hm` is unchanged by it.
 | O | The exit code constants live in the dispatcher (`hm`), the libraries use them, there is no second definition | DECIDED — implemented in `hm`; `HM_EX_OK`/`HM_EX_ERROR` are used for the bootstrap failures |
 | P | Every database and store read is checked; a failed query is never an empty result | DECIDED — implemented via the out-variable helpers; `clean` refuses to remove anything when a read fails |
 | Q | Completion = three independent, self-contained files (`completions/hm.bash`, `hm.zsh`, `hm.fish`) with **no** shared library and **no** installer. The dynamic part is a direct read-only `sqlite3` query, not `hm list`: no lock, no write, no `PRAGMA integrity_check`, and every failure degenerates to "no suggestion" with exit 0. Commands and options are hard-coded from the real CLI surface (`backup` has no `--yes`), positional arguments are only completed while they are still valid. | DECIDED — implemented; covered by `tests/cases/09_completion.sh` (18 tests). Zsh is verified in a container because it is not installed on the host (documented limit) |
+| R | `hm show` = read-only detail view (shared lock, metadata + rich entry table, reuses `hm_gen_entries`); `hm delete` = one transaction (`generation_entries`, then `generations`), refuses the selected generation (exit 3), lets `ON DELETE SET NULL` clear the children and leaves the unreferenced objects to `hm clean`; colours: a non-empty `NO_COLOR` always disables, otherwise `HM_COLOR=always/never` wins over the `auto` detection, and each stream gets its own palette (stderr diagnostics, stdout output) | DECIDED — implemented in `core/show.sh`, `core/delete.sh`, `lib/logging.sh`; covered by `10_show.sh` (12), `11_delete.sh` (15), `12_color.sh` (8) |
+| S | `hm status` = read-only dashboard (shared lock, no argument except `-h/--help`). Store space is the on-disk byte sum, classified in one pass as referenced (used by ≥1 generation), unreferenced (garbage for `hm clean`) or missing (needed but absent). A generation's size is the sum of its **distinct** content objects (`files.size` once per hash), so shared content is never double counted. Sizes are human readable with the exact byte count next to the store totals (`hm_format_bytes`, binary units, locale-safe integer arithmetic). Colours reuse the stdout palette: bold headings, cyan selection, yellow unreferenced, red missing, green clean. | DECIDED — implemented in `core/status.sh` + `lib/common.sh`; covered by `13_status.sh` (15 tests) |
 
 ### Legacy artifacts
 
@@ -261,13 +299,16 @@ manually, and `hm` is unchanged by it.
 | 8 | `clean` (GC) | DONE — `tests/cases/08_clean.sh` (10 tests) |
 | 9 | Hardening, static analysis, documentation | DONE — `docs/`, `README.md`, `db/migrations/README.md`, **105 checks green** |
 | 10 | Shell completion (Bash, Zsh, Fish) | DONE — `completions/`, `docs/completion.md`, `tests/cases/09_completion.sh` (18 tests); **123 checks green** on the host, 2 Zsh tests skipped there |
+| 11 | `show`, `delete`, automatic colours (`NO_COLOR`) + integration | DONE — `core/show.sh`, `core/delete.sh`, `lib/logging.sh`, `10_show.sh` (12), `11_delete.sh` (15), `12_color.sh` (8); **158 checks green** on the host |
+| 12 | `status` (store space + per-generation size, colourful dashboard) + integration | DONE — `core/status.sh`, `lib/common.sh`, `13_status.sh` (15), `09_completion.sh` (18); **173 checks green** on the host |
 
-Test totals: **123 checks, 123 passing** (`./tests/run.sh`) = 121 test
+Test totals: **173 checks, 173 passing** (`./tests/run.sh`) = 171 test
 cases + `bash -n` syntax check + ShellCheck (0 findings). The runner
-reports 122 checks when ShellCheck is not on the `PATH`. On this host the
+reports 172 checks when ShellCheck is not on the `PATH`. On this host the
 two Zsh tests print an explicit `SKIP` line (Zsh is not installed) and
-count as passed without exercising the Zsh completion; a missing
-interpreter never fails the suite.
+count as passed without exercising the Zsh completion; the two pseudo
+terminal colour tests would print `SKIP` without `script` from util-linux.
+A missing optional tool never fails the suite.
 
 ### Documentation
 
@@ -291,6 +332,14 @@ interpreter never fails the suite.
   tracked path that no longer exists is dropped. Decision C supersedes the original proposal.
 - The parent of a new generation is always the newest generation (`created_at DESC, id DESC`),
   the history is linear.
+- `hm delete` leaves a gap in that linear history: the children keep their rows and their
+  `parent_id` becomes empty (`ON DELETE SET NULL`). The content objects that no generation
+  uses any more are reclaimed only by `hm clean`, never by the delete itself.
+- `hm status` reports a generation size from its **distinct** content objects, not from the
+  entry sizes: content that several paths share inside one generation is counted once. The
+  unformatted byte counts stay available in the database and in `hm list --store`.
+- A non-empty `NO_COLOR` disables the colours even when `HM_COLOR=always` is set (decision R);
+  an empty `NO_COLOR` counts as unset, following the convention.
 - The metadata of an entry is type, mode, uid, gid, mtime and size. ACLs, extended
   attributes, file capabilities and hard links are **not** tracked (decision H).
 - Only regular files and directories are tracked. Symbolic links and special files are skipped

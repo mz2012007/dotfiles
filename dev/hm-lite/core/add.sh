@@ -214,7 +214,7 @@ add() {
   removed_count=${#removed[@]}
 
   # Preview.
-  printf '%s\n' "Paths selected for registration:"
+  printf '%sPaths selected for registration:%s\n' "$HM_C_OUT_BOLD" "$HM_C_OUT_RESET"
   printf '\n'
 
   # The preview is NUL delimited, a file name may contain a newline.
@@ -222,21 +222,21 @@ add() {
   while IFS= read -r -d '' sorted_path; do
     label="${status[$sorted_path]:-}"
     case "$label" in
-      NEW) printf '  %s[NEW]%s      %s\n' "$HM_C_GREEN" "$HM_C_RESET" "$(hm_path_display "$sorted_path")" ;;
-      TRACKED) printf '  %s[TRACKED]%s  %s\n' "$HM_C_YELLOW" "$HM_C_RESET" "$(hm_path_display "$sorted_path")" ;;
-      PENDING) printf '  %s[PENDING]%s  %s\n' "$HM_C_BLUE" "$HM_C_RESET" "$(hm_path_display "$sorted_path")" ;;
+      NEW) printf '  %s[NEW]%s      %s\n' "$HM_C_OUT_GREEN" "$HM_C_OUT_RESET" "$(hm_path_display "$sorted_path")" ;;
+      TRACKED) printf '  %s[TRACKED]%s  %s\n' "$HM_C_OUT_YELLOW" "$HM_C_OUT_RESET" "$(hm_path_display "$sorted_path")" ;;
+      PENDING) printf '  %s[PENDING]%s  %s\n' "$HM_C_OUT_BLUE" "$HM_C_OUT_RESET" "$(hm_path_display "$sorted_path")" ;;
     esac
   done < <(printf '%s\0' "${!candidates[@]}" | sort -z)
 
   if [[ $removed_count -gt 0 ]]; then
     while IFS= read -r -d '' sorted_path; do
-      printf '  %s[REMOVED]%s  %s\n' "$HM_C_RED" "$HM_C_RESET" "$(hm_path_display "$sorted_path")"
+      printf '  %s[REMOVED]%s  %s\n' "$HM_C_OUT_RED" "$HM_C_OUT_RESET" "$(hm_path_display "$sorted_path")"
     done < <(printf '%s\0' "${removed[@]}" | sort -z)
   fi
 
   printf '\n'
   printf '%d paths discovered\n' "$discovered"
-  printf '%d new paths\n' "$new_count"
+  printf '%s%d new paths%s\n' "$HM_C_OUT_GREEN" "$new_count" "$HM_C_OUT_RESET"
   printf '%d paths queued again\n' "$requeue_count"
   printf '%d paths already pending\n' "$pending_count"
   printf '%d paths removed from the pending set\n' "$removed_count"

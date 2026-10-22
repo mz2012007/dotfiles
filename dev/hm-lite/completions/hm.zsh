@@ -107,6 +107,9 @@ _hm_is_value_option() {
     gen:--name | gen:--comment | list:--generation)
       return 0
       ;;
+    edit:--name | edit:--comment)
+      return 0
+      ;;
     *)
       return 1
       ;;
@@ -122,7 +125,12 @@ _hm_commands() {
     'add:Register paths for the next generation'
     'gen:Create a generation from the pending paths'
     'list:Show generations, entries and pending paths'
+    'status:Show the project, the content store and every generation'
+    'show:Show the metadata and the entries of a generation'
+    'diff:Compare the entries of two or more generations'
+    'edit:Change the name and the comment of a generation'
     'switch:Select a generation and materialize it in current/'
+    'delete:Delete a generation that is not selected'
     'apply:Apply a generation to the tracked live paths'
     'discard:Reset the testing workspace from current/'
     'backup:Create a consistent backup of the project state'
@@ -146,8 +154,27 @@ _hm_options() {
   local -a options
 
   case $1 in
-    init | add | switch | discard | backup)
+    init | add | status | show | switch | discard | backup)
       options=(
+        '-h:Show the usage of the command'
+        '--help:Show the usage of the command'
+      )
+      ;;
+    diff)
+      options=(
+        '--all:Show the entries that did not change'
+        '-h:Show the usage of the command'
+        '--help:Show the usage of the command'
+      )
+      ;;
+    edit)
+      options=(
+        '--name:Name of the generation'
+        '--comment:Comment of the generation'
+        '--clear-name:Remove the name of the generation'
+        '--clear-comment:Remove the comment of the generation'
+        '--yes:Do not ask for a confirmation'
+        '-y:Do not ask for a confirmation'
         '-h:Show the usage of the command'
         '--help:Show the usage of the command'
       )
@@ -181,7 +208,7 @@ _hm_options() {
         '--help:Show the usage of the command'
       )
       ;;
-    restore)
+    restore | delete)
       options=(
         '--yes:Do not ask for a confirmation'
         '-y:Do not ask for a confirmation'
@@ -227,10 +254,18 @@ _hm_argument() {
       (( ${#candidates} )) && compadd -- $candidates
       _files
       ;;
-    switch | apply)
+    switch | apply | show | delete)
       if (( $2 == 0 )); then
         _hm_value --generation
       fi
+      ;;
+    edit)
+      if (( $2 == 0 )); then
+        _hm_value --generation
+      fi
+      ;;
+    diff)
+      _hm_value --generation
       ;;
     restore)
       if (( $2 == 0 )); then

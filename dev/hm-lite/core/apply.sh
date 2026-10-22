@@ -298,19 +298,20 @@ apply() {
   done <<< "$rows"
 
   # --- Preview -------------------------------------------------------------
-  printf 'Apply preview for generation %s:\n' "$generation"
+  printf '%sApply preview for generation %s%s%s\n' \
+    "$HM_C_OUT_BOLD" "$HM_C_OUT_CYAN" "$generation" "$HM_C_OUT_RESET"
   printf '\n'
 
   local encoded
   for encoded in "${order[@]}"; do
     hm_hex_decode path "$encoded"
     case "${actions[$encoded]}" in
-      CREATE) printf '  %-10s %s\n' "CREATE" "$(hm_path_display "$path")" ;;
-      UPDATE) printf '  %-10s %s\n' "UPDATE" "$(hm_path_display "$path")" ;;
-      MODE) printf '  %-10s %s\n' "MODE" "$(hm_path_display "$path")" ;;
+      CREATE) printf '  %s%-10s%s %s\n' "$HM_C_OUT_GREEN" "CREATE" "$HM_C_OUT_RESET" "$(hm_path_display "$path")" ;;
+      UPDATE) printf '  %s%-10s%s %s\n' "$HM_C_OUT_YELLOW" "UPDATE" "$HM_C_OUT_RESET" "$(hm_path_display "$path")" ;;
+      MODE) printf '  %s%-10s%s %s\n' "$HM_C_OUT_YELLOW" "MODE" "$HM_C_OUT_RESET" "$(hm_path_display "$path")" ;;
       UNCHANGED) printf '  %-10s %s\n' "UNCHANGED" "$(hm_path_display "$path")" ;;
-      CONFLICT) printf '  %-10s %s\n' "CONFLICT" "$(hm_path_display "$path")"
-        printf '  %-10s %s\n' "" "${reasons[$encoded]}" ;;
+      CONFLICT) printf '  %s%-10s%s %s\n' "$HM_C_OUT_RED" "CONFLICT" "$HM_C_OUT_RESET" "$(hm_path_display "$path")"
+        printf '  %s%-10s %s%s\n' "$HM_C_OUT_RED" "" "${reasons[$encoded]}" "$HM_C_OUT_RESET" ;;
     esac
   done
 
@@ -466,11 +467,11 @@ apply() {
   done
 
   hm_log_success "Generation $generation was applied."
-  printf '%s\n' "Created:   $create"
-  printf '%s\n' "Updated:   $update"
-  printf '%s\n' "Modes:     $mode_change"
-  printf '%s\n' "Unchanged: $unchanged"
-  printf '%s\n' "Backup:    $(hm_path_display "$backup")"
+  printf 'Created:   %s%s%s\n' "$HM_C_OUT_GREEN" "$create" "$HM_C_OUT_RESET"
+  printf 'Updated:   %s%s%s\n' "$HM_C_OUT_GREEN" "$update" "$HM_C_OUT_RESET"
+  printf 'Modes:     %s%s%s\n' "$HM_C_OUT_YELLOW" "$mode_change" "$HM_C_OUT_RESET"
+  printf 'Unchanged: %s\n' "$unchanged"
+  printf 'Backup:    %s%s%s\n' "$HM_C_OUT_CYAN" "$(hm_path_display "$backup")" "$HM_C_OUT_RESET"
 
   return 0
 }

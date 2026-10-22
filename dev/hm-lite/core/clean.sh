@@ -118,20 +118,22 @@ clean() {
   done
 
   # --- Preview ---------------------------------------------------------------
-  printf 'Clean preview:\n'
+  printf '%sClean preview:%s\n' "$HM_C_OUT_BOLD" "$HM_C_OUT_RESET"
   printf '\n'
-  printf '  %d unreferenced object(s) in the store\n' "${#objects[@]}"
+  printf '  %s%d unreferenced object(s) in the store%s\n' \
+    "$HM_C_OUT_YELLOW" "${#objects[@]}" "$HM_C_OUT_RESET"
   printf '  %d unreferenced row(s) in the database\n' "${#rows_to_remove[@]}"
-  printf '  %d missing object(s) that a generation needs\n' "${#missing[@]}"
+  printf '  %s%d missing object(s) that a generation needs%s\n' \
+    "$HM_C_OUT_RED" "${#missing[@]}" "$HM_C_OUT_RESET"
   printf '\n'
 
   local index
   for index in "${objects[@]}"; do
-    printf '  REMOVE  %s\n' "$index"
+    printf '  %sREMOVE%s  %s\n' "$HM_C_OUT_YELLOW" "$HM_C_OUT_RESET" "$index"
   done
 
   for index in "${missing[@]}"; do
-    printf '  MISSING %s\n' "$index"
+    printf '  %sMISSING%s %s\n' "$HM_C_OUT_RED" "$HM_C_OUT_RESET" "$index"
   done
 
   if [[ ${#missing[@]} -gt 0 ]]; then

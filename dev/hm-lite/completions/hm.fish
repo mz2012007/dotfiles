@@ -138,7 +138,12 @@ complete -c hm -n '__fish_use_subcommand' -a init -d 'Initialize the HM-Lite pro
 complete -c hm -n '__fish_use_subcommand' -a add -d 'Register paths for the next generation'
 complete -c hm -n '__fish_use_subcommand' -a gen -d 'Create a generation from the pending paths'
 complete -c hm -n '__fish_use_subcommand' -a list -d 'Show generations, entries and pending paths'
+complete -c hm -n '__fish_use_subcommand' -a status -d 'Show the project, the content store and every generation'
+complete -c hm -n '__fish_use_subcommand' -a show -d 'Show the metadata and the entries of a generation'
+complete -c hm -n '__fish_use_subcommand' -a diff -d 'Compare the entries of two or more generations'
+complete -c hm -n '__fish_use_subcommand' -a edit -d 'Change the name and the comment of a generation'
 complete -c hm -n '__fish_use_subcommand' -a switch -d 'Select a generation and materialize it in current/'
+complete -c hm -n '__fish_use_subcommand' -a delete -d 'Delete a generation that is not selected'
 complete -c hm -n '__fish_use_subcommand' -a apply -d 'Apply a generation to the tracked live paths'
 complete -c hm -n '__fish_use_subcommand' -a discard -d 'Reset the testing workspace from current/'
 complete -c hm -n '__fish_use_subcommand' -a backup -d 'Create a consistent backup of the project state'
@@ -171,6 +176,32 @@ complete -c hm -n '__fish_seen_subcommand_from list' -l store -d 'Show the stati
 # switch
 complete -c hm -n '__fish_seen_subcommand_from switch' -l help -s h -d 'Show the usage of the command'
 complete -c hm -n '__fish_seen_subcommand_from switch; and __hm_positional_slot switch' -a '(__hm_generation_ids)' -d 'Identifier of the generation'
+
+# status
+complete -c hm -n '__fish_seen_subcommand_from status' -l help -s h -d 'Show the usage of the command'
+
+# show
+complete -c hm -n '__fish_seen_subcommand_from show' -l help -s h -d 'Show the usage of the command'
+complete -c hm -n '__fish_seen_subcommand_from show; and __hm_positional_slot show' -a '(__hm_generation_ids)' -d 'Identifier of the generation'
+
+# diff
+complete -c hm -n '__fish_seen_subcommand_from diff' -l help -s h -d 'Show the usage of the command'
+complete -c hm -n '__fish_seen_subcommand_from diff' -l all -d 'Show the entries that did not change'
+complete -c hm -n '__fish_seen_subcommand_from diff' -a '(__hm_generation_ids)' -d 'Identifier of the generation'
+
+# edit
+complete -c hm -n '__fish_seen_subcommand_from edit' -l help -s h -d 'Show the usage of the command'
+complete -c hm -n '__fish_seen_subcommand_from edit' -l name -r -f -d 'Name of the generation'
+complete -c hm -n '__fish_seen_subcommand_from edit' -l comment -r -f -d 'Comment of the generation'
+complete -c hm -n '__fish_seen_subcommand_from edit' -l clear-name -d 'Remove the name of the generation'
+complete -c hm -n '__fish_seen_subcommand_from edit' -l clear-comment -d 'Remove the comment of the generation'
+complete -c hm -n '__fish_seen_subcommand_from edit' -l yes -s y -d 'Do not ask for a confirmation'
+complete -c hm -n '__fish_seen_subcommand_from edit; and __hm_positional_slot edit' -a '(__hm_generation_ids)' -d 'Identifier of the generation'
+
+# delete
+complete -c hm -n '__fish_seen_subcommand_from delete' -l help -s h -d 'Show the usage of the command'
+complete -c hm -n '__fish_seen_subcommand_from delete' -l yes -s y -d 'Do not ask for a confirmation'
+complete -c hm -n '__fish_seen_subcommand_from delete; and __hm_positional_slot delete' -a '(__hm_generation_ids)' -d 'Identifier of the generation'
 
 # apply
 complete -c hm -n '__fish_seen_subcommand_from apply' -l help -s h -d 'Show the usage of the command'

@@ -296,7 +296,7 @@ gen() {
   fi
 
   # --- Preview -------------------------------------------------------------
-  printf '%s\n' "Generation preview:"
+  printf '%sGeneration preview:%s\n' "$HM_C_OUT_BOLD" "$HM_C_OUT_RESET"
   printf '\n'
   printf '  %d path(s) captured\n' "$captured"
   printf '  %d new content object(s)\n' "$new_objects"
@@ -305,7 +305,7 @@ gen() {
   printf '  %d path(s) dropped, they no longer exist\n' "${#dropped_ids[@]}"
   printf '\n'
 
-  printf '%s\n' "Captured paths:"
+  printf '%sCaptured paths:%s\n' "$HM_C_OUT_BOLD" "$HM_C_OUT_RESET"
   for index in "${!pend_paths[@]}"; do
     printf '  %s\n' "$(hm_path_display "${pend_paths[$index]}")"
   done
@@ -378,9 +378,9 @@ gen() {
   generation_id="$(hm_gen_latest)"
 
   hm_log_success "Created generation $generation_id with $((captured + carried)) entries."
-  printf '%s\n' "Generation: $generation_id"
+  printf 'Generation: %s%s%s\n' "$HM_C_OUT_GREEN" "$generation_id" "$HM_C_OUT_RESET"
   if [[ -n "$parent_id" ]]; then
-    printf '%s\n' "Parent:    $parent_id"
+    printf 'Parent:    %s%s%s\n' "$HM_C_OUT_CYAN" "$parent_id" "$HM_C_OUT_RESET"
   fi
 
   return 0

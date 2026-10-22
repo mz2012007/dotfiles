@@ -143,9 +143,9 @@ restore() {
   paths="$(sqlite3 "$stage/db.sqlite" 'SELECT COUNT(*) FROM paths;' 2>/dev/null || printf '?')"
   objects="$(sqlite3 "$stage/db.sqlite" 'SELECT COUNT(*) FROM files;' 2>/dev/null || printf '?')"
 
-  printf 'Restore preview:\n'
+  printf '%sRestore preview:%s\n' "$HM_C_OUT_BOLD" "$HM_C_OUT_RESET"
   printf '\n'
-  printf '  Backup:       %s\n' "$(hm_path_display "$archive")"
+  printf '  Backup:       %s%s%s\n' "$HM_C_OUT_CYAN" "$(hm_path_display "$archive")" "$HM_C_OUT_RESET"
   printf '  Generations:  %s\n' "$generations"
   printf '  Paths:        %s\n' "$paths"
   printf '  Objects:      %s\n' "$objects"

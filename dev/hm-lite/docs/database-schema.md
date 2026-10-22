@@ -80,6 +80,12 @@ The order of the generations is always `ORDER BY created_at DESC, id DESC`.
 The identifier is never used as an ordering, because two generations can
 share the same second.
 
+`parent_id` is the link of the linear history. `hm delete` removes a
+generation row, so `ON DELETE SET NULL` clears the parent of its children
+and the remaining history stays readable; the entries cascade with the
+row. A snapshot is never edited, it is either present or removed as a
+whole.
+
 ### `generation_entries`
 
 The recorded state of a path inside a generation. One row per path.

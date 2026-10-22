@@ -19,6 +19,9 @@ userland.
 | Registration | `hm add` records *paths only*. It never hashes, never writes to the store and never creates a generation. |
 | Content store | Every file is stored once, addressed by the SHA-256 of its bytes (`store/objects/ab/abcdef…`). |
 | Generations | An immutable snapshot of all tracked paths: pending paths are captured fresh, the other tracked paths carry the content of the parent generation forward. |
+| Inspection | `hm show` prints the metadata and the complete entry list of one generation, read only and without taking the exclusive lock. |
+| Status | `hm status` is a read-only dashboard: the project, the store space (referenced, unreferenced and missing objects) and the size of every generation. |
+| Deletion | `hm delete` removes a generation after a preview and a confirmation. The selected generation is never deleted, the content objects it releases are reclaimed by `hm clean`. |
 | Workspaces | `hm switch` materialises a generation into `current/`, `hm discard` resets `testing/` from it. The live filesystem is never touched. |
 | Live writes | `hm apply` writes a generation to the real paths with a preview, a per file backup, a manifest, a verification and an automatic rollback. |
 | Backup | `hm backup` creates one consistent archive (database, store, checksum manifest). `hm restore` validates and activates it. |
@@ -63,6 +66,7 @@ hm init                              # create the project directory
 hm add ~/.bashrc ~/.config/nvim    # register the paths
 hm gen                              # capture the content into a generation
 hm list                             # show the state
+hm status                           # store space and the size of every generation
 hm switch 1                         # materialise the generation in current/
 hm apply 1                          # write it to the live filesystem
 ```
@@ -73,6 +77,7 @@ A complete tour with the safety features enabled:
 hm add ~/dotfiles                   # register a directory
 hm gen --name "dotfiles-2026-10"    # create a named generation
 hm list --generation 1              # show what it contains
+hm show 1                           # the same generation with the full metadata
 hm apply 1 --dry-run                # preview the live changes
 hm apply 1                          # write them, with a backup and a rollback
 hm backup                           # create a consistent archive
@@ -90,7 +95,10 @@ hm clean --dry-run                  # show the garbage of the content store
 | `hm add <path…>` | Register paths for the next generation. |
 | `hm gen` | Capture the pending paths into a new generation. |
 | `hm list` | Show the generations, the tracked paths, the pending paths and the store. |
+| `hm status` | Show the project, the store space and the size of every generation. |
+| `hm show <generation>` | Show the metadata and the entries of one generation. |
 | `hm switch <generation>` | Select a generation and materialise it into `current/`. |
+| `hm delete <generation>` | Delete a generation that is not selected. |
 | `hm apply [generation]` | Write a generation to the live filesystem. |
 | `hm discard` | Reset the `testing/` workspace from `current/`. |
 | `hm backup` | Create a consistent backup of the project state. |
@@ -104,7 +112,7 @@ it does anything. A declined confirmation ends the command with exit code
 `7`, so a script can tell "the user said no" apart from "the command did
 its work". `hm backup` is the exception: it only writes a new archive and
 never changes the project state, so it never asks and can be run from a
-cron job.
+cron job. `hm show` only reads the project and never asks either.
 
 ---
 
@@ -155,6 +163,18 @@ An environment variable always wins over the configuration file:
 ```sh
 HM_LOG_LEVEL=DEBUG HM_ALLOW_OUTSIDE_HOME=1 hm apply 1
 ```
+
+### Colours
+
+Colours are enabled automatically when the stream is a terminal. `HM_COLOR`
+overrides the detection: `never` always disables the colours, `always`
+enables them even in a pipe and `auto` keeps the detection.
+
+A non-empty `NO_COLOR` environment variable always disables the colours,
+even when `HM_COLOR=always` is set, and an empty `NO_COLOR` counts as unset.
+The diagnostics follow standard error while the human readable output
+follows standard output, so a redirected stream never receives an escape
+sequence.
 
 ---
 
@@ -213,8 +233,13 @@ See [docs/testing.md](docs/testing.md).
   special files are skipped with a warning and are never followed.
 * The recorded metadata is type, mode, uid, gid, mtime and size. ACLs,
   extended attributes, file capabilities and hard links are **not** tracked.
+* The size that `hm status` reports for a generation is the size of its
+  distinct content objects, not the sum of the entry sizes: content that
+  several paths share is counted once.
 * The generation history is linear: the parent of a new generation is
-  always the newest existing generation.
+  always the newest existing generation. Deleting a generation leaves a
+  gap: the parent of its children becomes empty, the remaining history
+  stays readable.
 * `hm apply` refuses a destination that is a symbolic link, whose type
   does not match the generation, that is not absolute or that is the root
   of the filesystem. It never writes through a link.

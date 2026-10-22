@@ -99,7 +99,7 @@ _hm_backup_archives() {
 # _hm_command_names
 # Print the commands of the application, one per line.
 _hm_command_names() {
-  printf '%s\n' init add gen list switch apply discard backup restore clean help
+  printf '%s\n' init add gen list status show diff edit switch delete apply discard backup restore clean help
 }
 
 # _hm_global_options
@@ -125,8 +125,23 @@ _hm_command_options() {
     list)
       printf '%s\n' --generation= --pending --paths --store -h --help
       ;;
+    status)
+      printf '%s\n' -h --help
+      ;;
+    show)
+      printf '%s\n' -h --help
+      ;;
+    diff)
+      printf '%s\n' --all -h --help
+      ;;
+    edit)
+      printf '%s\n' --name= --comment= --clear-name --clear-comment --yes -y -h --help
+      ;;
     switch)
       printf '%s\n' -h --help
+      ;;
+    delete)
+      printf '%s\n' --yes -y -h --help
       ;;
     apply)
       printf '%s\n' --dry-run --yes -y -h --help
@@ -290,6 +305,24 @@ _hm_complete_argument() {
       _hm_complete_path "$current"
       ;;
     switch)
+      if (( count == 0 )); then
+        _hm_complete_generation "$current" ""
+      fi
+      ;;
+    show)
+      if (( count == 0 )); then
+        _hm_complete_generation "$current" ""
+      fi
+      ;;
+    diff)
+      _hm_complete_generation "$current" ""
+      ;;
+    edit)
+      if (( count == 0 )); then
+        _hm_complete_generation "$current" ""
+      fi
+      ;;
+    delete)
       if (( count == 0 )); then
         _hm_complete_generation "$current" ""
       fi

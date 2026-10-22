@@ -69,7 +69,8 @@ discard() {
     hm_die "$HM_EX_STATE" "No generation is selected. Run 'hm switch <generation>' first."
   fi
 
-  printf 'The testing workspace is reset from generation %s.\n' "$selected"
+  printf 'The testing workspace is reset from generation %s%s%s.\n' \
+    "$HM_C_OUT_CYAN" "$selected" "$HM_C_OUT_RESET"
   printf 'The live filesystem is not touched.\n'
   printf '\n'
 

@@ -142,7 +142,12 @@ Commands:
   add <file|dir...>        Register paths for the next generation
   gen [options]            Create a generation from the pending paths
   list [options]           Show generations, entries and pending paths
+  status                   Show the project, the content store and every generation
+  show <generation>        Show the metadata and the entries of a generation
+  diff <generation...>     Compare the entries of two or more generations
+  edit <generation>        Change the name and the comment of a generation
   switch <generation>      Select a generation and materialize it in current/
+  delete <generation>      Delete a generation that is not selected
   apply [options]          Apply a generation to the tracked live paths
   discard [options]        Reset the testing workspace from current/
   backup [options]         Create a consistent backup of the project state
@@ -163,7 +168,7 @@ EOF
 # Command table
 # ---------------------------------------------------------------------------
 
-HM_COMMANDS=(init add gen list switch apply discard backup restore clean)
+HM_COMMANDS=(init add gen list status show diff edit switch delete apply discard backup restore clean)
 
 hm_is_command() {
   local candidate="$1" known

@@ -137,7 +137,12 @@ test_completion_bash_offers_the_commands() {
   assert_contains "$candidates" "add" "the completion offers add"
   assert_contains "$candidates" "gen" "the completion offers gen"
   assert_contains "$candidates" "list" "the completion offers list"
+  assert_contains "$candidates" "status" "the completion offers status"
+  assert_contains "$candidates" "show" "the completion offers show"
+  assert_contains "$candidates" "edit" "the completion offers edit"
+  assert_contains "$candidates" "diff" "the completion offers diff"
   assert_contains "$candidates" "switch" "the completion offers switch"
+  assert_contains "$candidates" "delete" "the completion offers delete"
   assert_contains "$candidates" "apply" "the completion offers apply"
   assert_contains "$candidates" "discard" "the completion offers discard"
   assert_contains "$candidates" "backup" "the completion offers backup"
@@ -174,6 +179,26 @@ test_completion_bash_offers_the_options_of_each_command() {
   assert_eq "--yes --help " "$candidates" \
     "restore offers its long options"
 
+  candidates="$(_completion_bash hm delete '--' | tr '\n' ' ')"
+  assert_eq "--yes --help " "$candidates" \
+    "delete offers its long options"
+
+  candidates="$(_completion_bash hm show '--' | tr '\n' ' ')"
+  assert_eq "--help " "$candidates" \
+    "show offers only the help option"
+
+  candidates="$(_completion_bash hm status '--' | tr '\n' ' ')"
+  assert_eq "--help " "$candidates" \
+    "status offers only the help option"
+
+  candidates="$(_completion_bash hm edit '--' | tr '\n' ' ')"
+  assert_eq "--name --comment --clear-name --clear-comment --yes --help " "$candidates" \
+    "edit offers its long options"
+
+  candidates="$(_completion_bash hm diff '--' | tr '\n' ' ')"
+  assert_eq "--all --help " "$candidates" \
+    "diff offers its long options"
+
   candidates="$(_completion_bash hm init '--' | tr '\n' ' ')"
   assert_eq "--help " "$candidates" \
     "init offers only the help option"
@@ -200,6 +225,19 @@ test_completion_bash_does_not_offer_unsupported_options() {
   assert_not_contains "$candidates" "--yes" "switch does not offer --yes"
   assert_not_contains "$candidates" "--dry-run" "switch does not offer --dry-run"
 
+  candidates="$(_completion_bash hm show '--')"
+  assert_not_contains "$candidates" "--yes" "show does not offer --yes"
+
+  candidates="$(_completion_bash hm edit '--')"
+  assert_not_contains "$candidates" "--dry-run" "edit does not offer --dry-run"
+
+  candidates="$(_completion_bash hm diff '--')"
+  assert_not_contains "$candidates" "--yes" "diff does not offer --yes"
+
+  candidates="$(_completion_bash hm status '--')"
+  assert_not_contains "$candidates" "--yes" "status does not offer --yes"
+  assert_not_contains "$candidates" "--dry-run" "status does not offer --dry-run"
+
   candidates="$(_completion_bash hm gen '--')"
   assert_not_contains "$candidates" "--dry-run" "gen does not offer --dry-run"
 }
@@ -211,6 +249,15 @@ test_completion_bash_does_not_offer_arguments_out_of_range() {
 
   candidates="$(_completion_bash hm switch 1 '')"
   assert_eq "" "$candidates" "switch offers nothing after its generation"
+
+  candidates="$(_completion_bash hm show 1 '')"
+  assert_eq "" "$candidates" "show offers nothing after its generation"
+
+  candidates="$(_completion_bash hm edit 1 '')"
+  assert_eq "" "$candidates" "edit offers nothing after its generation"
+
+  candidates="$(_completion_bash hm delete 1 '')"
+  assert_eq "" "$candidates" "delete offers nothing after its generation"
 
   candidates="$(_completion_bash hm apply 1 '')"
   assert_eq "" "$candidates" "apply offers nothing after its generation"
@@ -226,6 +273,9 @@ test_completion_bash_does_not_offer_arguments_out_of_range() {
 
   candidates="$(_completion_bash hm list '')"
   assert_eq "" "$candidates" "list offers no argument"
+
+  candidates="$(_completion_bash hm status '')"
+  assert_eq "" "$candidates" "status offers no argument"
 
   candidates="$(_completion_bash hm restore archive.tar.gz '')"
   assert_eq "" "$candidates" "restore offers nothing after its archive"
@@ -244,6 +294,21 @@ test_completion_bash_offers_the_generation_ids() {
 
   candidates="$(_completion_bash hm apply '' | tr '\n' ' ')"
   assert_eq "2 1 " "$candidates" "apply offers the ids, newest first"
+
+  candidates="$(_completion_bash hm show '' | tr '\n' ' ')"
+  assert_eq "2 1 " "$candidates" "show offers the ids, newest first"
+
+  candidates="$(_completion_bash hm edit '' | tr '\n' ' ')"
+  assert_eq "2 1 " "$candidates" "edit offers the ids, newest first"
+
+  candidates="$(_completion_bash hm diff '' | tr '\n' ' ')"
+  assert_eq "2 1 " "$candidates" "diff offers the ids, newest first"
+
+  candidates="$(_completion_bash hm diff 1 '' | tr '\n' ' ')"
+  assert_eq "2 1 " "$candidates" "diff keeps offering the ids after the first one"
+
+  candidates="$(_completion_bash hm delete '' | tr '\n' ' ')"
+  assert_eq "2 1 " "$candidates" "delete offers the ids, newest first"
 
   candidates="$(_completion_bash hm list --generation '' | tr '\n' ' ')"
   assert_eq "2 1 " "$candidates" "list --generation offers the ids, newest first"
@@ -341,6 +406,11 @@ test_completion_bash_does_not_modify_the_project() {
   _completion_bash hm '' > /dev/null
   _completion_bash hm gen '--' > /dev/null
   _completion_bash hm switch '' > /dev/null
+  _completion_bash hm show '' > /dev/null
+  _completion_bash hm edit '' > /dev/null
+  _completion_bash hm diff '' > /dev/null
+  _completion_bash hm status '' > /dev/null
+  _completion_bash hm delete '' > /dev/null
   _completion_bash hm add "$SRC_DIR/" > /dev/null
   _completion_bash hm restore '' > /dev/null
   _completion_bash hm list '--generation=' > /dev/null
@@ -371,7 +441,12 @@ test_completion_fish_offers_the_commands() {
   assert_contains "$candidates" "add" "the fish completion offers add"
   assert_contains "$candidates" "gen" "the fish completion offers gen"
   assert_contains "$candidates" "list" "the fish completion offers list"
+  assert_contains "$candidates" "status" "the fish completion offers status"
+  assert_contains "$candidates" "show" "the fish completion offers show"
+  assert_contains "$candidates" "edit" "the fish completion offers edit"
+  assert_contains "$candidates" "diff" "the fish completion offers diff"
   assert_contains "$candidates" "switch" "the fish completion offers switch"
+  assert_contains "$candidates" "delete" "the fish completion offers delete"
   assert_contains "$candidates" "apply" "the fish completion offers apply"
   assert_contains "$candidates" "discard" "the fish completion offers discard"
   assert_contains "$candidates" "backup" "the fish completion offers backup"
@@ -405,6 +480,28 @@ test_completion_fish_offers_the_options_of_each_command() {
   candidates="$(_completion_fish 'hm backup --')"
   assert_contains "$candidates" "--help" "the fish completion offers --help for backup"
   assert_not_contains "$candidates" "--yes" "the fish completion does not offer --yes for backup"
+
+  candidates="$(_completion_fish 'hm delete --')"
+  assert_contains "$candidates" "--yes" "the fish completion offers --yes for delete"
+
+  candidates="$(_completion_fish 'hm show --')"
+  assert_contains "$candidates" "--help" "the fish completion offers --help for show"
+  assert_not_contains "$candidates" "--yes" "the fish completion does not offer --yes for show"
+
+  candidates="$(_completion_fish 'hm status --')"
+  assert_contains "$candidates" "--help" "the fish completion offers --help for status"
+  assert_not_contains "$candidates" "--yes" "the fish completion does not offer --yes for status"
+
+  candidates="$(_completion_fish 'hm edit --')"
+  assert_contains "$candidates" "--name" "the fish completion offers --name for edit"
+  assert_contains "$candidates" "--comment" "the fish completion offers --comment for edit"
+  assert_contains "$candidates" "--clear-name" "the fish completion offers --clear-name for edit"
+  assert_contains "$candidates" "--clear-comment" "the fish completion offers --clear-comment for edit"
+  assert_contains "$candidates" "--yes" "the fish completion offers --yes for edit"
+
+  candidates="$(_completion_fish 'hm diff --')"
+  assert_contains "$candidates" "--all" "the fish completion offers --all for diff"
+  assert_not_contains "$candidates" "--yes" "the fish completion does not offer --yes for diff"
 }
 
 test_completion_fish_offers_the_generation_ids() {
@@ -424,6 +521,21 @@ test_completion_fish_offers_the_generation_ids() {
 
   candidates="$(_completion_fish 'hm apply --dry-run ')"
   assert_contains "$candidates" "2" "the fish completion offers the ids after an option"
+
+  candidates="$(_completion_fish 'hm show ')"
+  assert_contains "$candidates" "2" "the fish completion offers the ids for show"
+
+  candidates="$(_completion_fish 'hm edit ')"
+  assert_contains "$candidates" "2" "the fish completion offers the ids for edit"
+
+  candidates="$(_completion_fish 'hm diff ')"
+  assert_contains "$candidates" "2" "the fish completion offers the ids for diff"
+
+  candidates="$(_completion_fish 'hm diff 1 ')"
+  assert_contains "$candidates" "2" "the fish completion offers the ids after the first one"
+
+  candidates="$(_completion_fish 'hm delete ')"
+  assert_contains "$candidates" "2" "the fish completion offers the ids for delete"
 
   candidates="$(_completion_fish 'hm restore --yes ')"
   assert_contains "$candidates" "hm-backup-" "the fish completion offers the archives after an option"
@@ -448,11 +560,20 @@ test_completion_fish_does_not_offer_arguments_out_of_range() {
   candidates="$(_completion_fish 'hm apply 1 ')"
   assert_eq "" "$candidates" "fish offers nothing after the generation of apply"
 
+  candidates="$(_completion_fish 'hm delete 1 ')"
+  assert_eq "" "$candidates" "fish offers nothing after the generation of delete"
+
   candidates="$(_completion_fish 'hm apply --dry-run 1 ')"
   assert_eq "" "$candidates" "fish offers nothing after the generation following an option"
 
   candidates="$(_completion_fish 'hm init ')"
   assert_eq "" "$candidates" "fish offers no argument for init"
+
+  candidates="$(_completion_fish 'hm status ')"
+  assert_eq "" "$candidates" "fish offers no argument for status"
+
+  candidates="$(_completion_fish 'hm edit 1 ')"
+  assert_eq "" "$candidates" "fish offers nothing after the generation of edit"
 
   candidates="$(_completion_fish 'hm gen --name ')"
   assert_eq "" "$candidates" "fish offers no value for --name"

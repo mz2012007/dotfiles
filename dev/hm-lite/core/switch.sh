@@ -96,7 +96,8 @@ switch() {
   objects="$(hm_gen_object_count "$generation")" ||
     hm_die "$HM_EX_DB" "Cannot read the generation $generation from the database."
 
-  printf 'Generation %s: %s entries, %s content objects.\n' "$generation" "$entries" "$objects"
+  printf 'Generation %s%s%s: %s entries, %s content objects.\n' \
+    "$HM_C_OUT_CYAN" "$generation" "$HM_C_OUT_RESET" "$entries" "$objects"
   printf 'The tree is written to: %s\n' "$(hm_path_display "$HM_CURRENT_DIR")"
   printf '\n'
 
@@ -141,7 +142,7 @@ switch() {
   hm_gen_set_selected "$generation"
 
   hm_log_success "Generation $generation is now materialized in current/."
-  printf '%s\n' "Selected generation: $generation"
+  printf 'Selected generation: %s%s%s\n' "$HM_C_OUT_GREEN" "$generation" "$HM_C_OUT_RESET"
 
   return 0
 }

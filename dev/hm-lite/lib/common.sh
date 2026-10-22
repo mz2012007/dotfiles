@@ -64,6 +64,34 @@ hm_utc_stamp() {
   date -u +%Y%m%dT%H%M%SZ
 }
 
+# --- Byte sizes ------------------------------------------------------------
+
+# hm_format_bytes BYTES
+# Print a byte count in a human readable unit: one decimal place and the
+# binary units (KiB, MiB, ...). The exact byte count stays available to the
+# caller, this format is only meant for humans.
+hm_format_bytes() {
+  local bytes="${1:-0}"
+  local -a units=(B KiB MiB GiB TiB PiB)
+  local unit=0 scale=1 whole fraction
+
+  [[ "$bytes" =~ ^[0-9]+$ ]] || return 1
+
+  while (( unit < 5 && bytes >= scale * 1024 )); do
+    scale=$((scale * 1024))
+    unit=$((unit + 1))
+  done
+
+  if (( unit == 0 )); then
+    printf '%d B' "$bytes"
+    return 0
+  fi
+
+  whole=$((bytes / scale))
+  fraction=$(((bytes % scale) * 10 / scale))
+  printf '%d.%d %s' "$whole" "$fraction" "${units[unit]}"
+}
+
 # --- File modes ------------------------------------------------------------
 
 # hm_mode_to_decimal OCTAL
