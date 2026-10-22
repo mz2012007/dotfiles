@@ -61,19 +61,28 @@ clean() {
 
   # --- The hashes that a generation uses ------------------------------------
   local -A referenced=()
-  local row hash id
+  local rows row hash id
+
+  if ! hm_db_rows "
+    SELECT DISTINCT f.hash
+      FROM generation_entries ge
+      JOIN files f ON f.id = ge.file_id;" rows; then
+    hm_die "$HM_EX_DB" "Cannot read the referenced content objects, nothing was removed."
+  fi
 
   while IFS= read -r row; do
     [[ -n "$row" ]] || continue
     referenced["$row"]=1
-  done < <(hm_db_query "
-    SELECT DISTINCT f.hash
-      FROM generation_entries ge
-      JOIN files f ON f.id = ge.file_id;")
+  done <<< "$rows"
 
   # --- The objects that the store holds -------------------------------------
   local -a objects=()
   local -A in_store=()
+  local object_hashes=""
+
+  if ! hm_store_object_hashes object_hashes; then
+    hm_die "$HM_EX_IO" "Cannot read the content store, nothing was removed."
+  fi
 
   while IFS= read -r hash; do
     [[ -n "$hash" ]] || continue
@@ -81,19 +90,23 @@ clean() {
     if [[ -z "${referenced[$hash]:-}" ]]; then
       objects+=("$hash")
     fi
-  done < <(hm_store_object_hashes)
+  done <<< "$object_hashes"
 
   # --- The database rows that no generation uses -----------------------------
-  local -a rows=()
+  local -a rows_to_remove=()
+
+  if ! hm_db_rows "
+    SELECT f.id, f.hash
+      FROM files f
+     WHERE f.id NOT IN (SELECT file_id FROM generation_entries WHERE file_id IS NOT NULL);" rows; then
+    hm_die "$HM_EX_DB" "Cannot read the unreferenced rows, nothing was removed."
+  fi
 
   while IFS= read -r row; do
     [[ -n "$row" ]] || continue
     IFS="$HM_FIELD_SEP" read -r id hash <<< "$row"
-    rows+=("$id")
-  done < <(hm_db_query "
-    SELECT f.id, f.hash
-      FROM files f
-     WHERE f.id NOT IN (SELECT file_id FROM generation_entries WHERE file_id IS NOT NULL);")
+    rows_to_remove+=("$id")
+  done <<< "$rows"
 
   # --- The objects that a generation needs but that are missing --------------
   local -a missing=()
@@ -108,7 +121,7 @@ clean() {
   printf 'Clean preview:\n'
   printf '\n'
   printf '  %d unreferenced object(s) in the store\n' "${#objects[@]}"
-  printf '  %d unreferenced row(s) in the database\n' "${#rows[@]}"
+  printf '  %d unreferenced row(s) in the database\n' "${#rows_to_remove[@]}"
   printf '  %d missing object(s) that a generation needs\n' "${#missing[@]}"
   printf '\n'
 
@@ -126,7 +139,7 @@ clean() {
     hm_log_warn "Restore them from a backup, the generations cannot be materialized without them."
   fi
 
-  if [[ ${#objects[@]} -eq 0 && ${#rows[@]} -eq 0 ]]; then
+  if [[ ${#objects[@]} -eq 0 && ${#rows_to_remove[@]} -eq 0 ]]; then
     hm_log_info "The content store holds no garbage, nothing was removed."
     return 0
   fi
@@ -139,7 +152,7 @@ clean() {
   if [[ $assume_yes -eq 0 ]]; then
     if ! hm_confirm "Remove the unreferenced content objects? [y/N]"; then
       hm_log_info "Cancelled, nothing was removed."
-      return 0
+      return "$HM_EX_DECLINED"
     fi
   fi
 
@@ -154,11 +167,11 @@ clean() {
   done
 
   # --- Remove the database rows ---------------------------------------------
-  if [[ ${#rows[@]} -gt 0 ]]; then
+  if [[ ${#rows_to_remove[@]} -gt 0 ]]; then
     {
       printf 'DELETE FROM files WHERE id IN ('
       local first=1
-      for id in "${rows[@]}"; do
+      for id in "${rows_to_remove[@]}"; do
         if [[ $first -eq 1 ]]; then
           first=0
         else
@@ -174,7 +187,7 @@ clean() {
     hm_log_warn "The missing objects were not touched."
   fi
 
-  hm_log_success "Removed $removed object(s) and ${#rows[@]} database row(s)."
+  hm_log_success "Removed $removed object(s) and ${#rows_to_remove[@]} database row(s)."
 
   return 0
 }

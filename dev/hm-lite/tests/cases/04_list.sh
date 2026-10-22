@@ -2,6 +2,9 @@
 #
 # tests/cases/04_list.sh - list behaviour.
 #
+# The test list is read by the runner, shellcheck only sees this
+# file and therefore reports the variable as unused.
+# shellcheck disable=SC2034
 
 TESTS=(
   test_list_shows_the_generations
@@ -14,6 +17,8 @@ TESTS=(
   test_list_rejects_unknown_options
   test_list_does_not_change_the_project
   test_list_requires_an_initialized_project
+  test_list_fails_when_a_query_fails
+  test_list_fails_when_a_count_query_fails
 )
 
 # _list_fixture - create two generations with one path each.
@@ -150,4 +155,30 @@ test_list_requires_an_initialized_project() {
 
   assert_rc 3 "$HM_STATUS" "list fails on an uninitialized project"
   assert_contains "$HM_OUTPUT" "not initialized" "the error explains the problem"
+}
+
+test_list_fails_when_a_query_fails() {
+  _list_fixture
+
+  # The table of the overview does not exist any more, the command must
+  # report the failure instead of printing an empty table.
+  sqlite3 "$HM_DIR/db.sqlite" 'DROP TABLE generation_entries;'
+
+  run_hm list
+
+  assert_rc 5 "$HM_STATUS" "a failing query stops the command"
+  assert_contains "$HM_OUTPUT" "Cannot read the generations" "the reason is named"
+}
+
+test_list_fails_when_a_count_query_fails() {
+  _list_fixture
+
+  # The pending set does not exist any more, the count of the pending paths
+  # cannot be read.
+  sqlite3 "$HM_DIR/db.sqlite" 'DROP TABLE pending_paths;'
+
+  run_hm list --store
+
+  assert_rc 5 "$HM_STATUS" "a failing count stops the command"
+  assert_contains "$HM_OUTPUT" "Cannot read the database" "the reason is named"
 }

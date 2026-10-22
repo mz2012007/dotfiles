@@ -81,26 +81,40 @@ _add_collect() {
 # Load the tracked paths and the pending set from the database into the two
 # associative arrays named by the caller.
 _add_load_state() {
+  # The two namerefs write into the arrays of the caller, shellcheck cannot
+  # see through them.
+  # shellcheck disable=SC2034
   local -n known_ref="$1"
+  # shellcheck disable=SC2034
   local -n pending_ref="$2"
-  local row encoded kind path
+  local rows row encoded kind path
 
   known_ref=()
   pending_ref=()
+
+  if ! hm_db_rows "SELECT hex(path), kind FROM paths;" rows; then
+    hm_die "$HM_EX_DB" "Cannot read the tracked paths from the database."
+  fi
 
   while IFS= read -r row; do
     [[ -n "$row" ]] || continue
     encoded="${row%%"$HM_FIELD_SEP"*}"
     kind="${row#*"$HM_FIELD_SEP"}"
     hm_hex_decode path "$encoded"
+    # shellcheck disable=SC2034
     known_ref["$path"]="$kind"
-  done < <(hm_db_query "SELECT hex(path), kind FROM paths;")
+  done <<< "$rows"
+
+  if ! hm_db_rows "SELECT hex(path) FROM paths p JOIN pending_paths pp ON pp.path_id = p.id;" rows; then
+    hm_die "$HM_EX_DB" "Cannot read the pending paths from the database."
+  fi
 
   while IFS= read -r row; do
     [[ -n "$row" ]] || continue
     hm_hex_decode path "$row"
+    # shellcheck disable=SC2034
     pending_ref["$path"]=1
-  done < <(hm_db_query "SELECT hex(path) FROM paths p JOIN pending_paths pp ON pp.path_id = p.id;")
+  done <<< "$rows"
 }
 
 # add PATH...
@@ -235,7 +249,7 @@ add() {
 
   if ! hm_confirm "Continue? [y/N]"; then
     hm_log_info "Cancelled, nothing was changed."
-    return 0
+    return "$HM_EX_DECLINED"
   fi
 
   now="$(hm_now_epoch)"

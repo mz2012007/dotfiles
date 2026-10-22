@@ -22,43 +22,6 @@
 
 # --- Helpers ---------------------------------------------------------------
 
-# _gen_pending_rows
-# Print one row per pending path, ordered by path.
-# The fields are separated by HM_FIELD_SEP: path_id hex(path) kind
-_gen_pending_rows() {
-  hm_db_query "
-    SELECT p.id,
-           hex(p.path),
-           p.kind
-      FROM paths p
-      JOIN pending_paths pp ON pp.path_id = p.id
-     ORDER BY p.path;"
-}
-
-# _gen_parent_rows GENERATION_ID
-# Print one row per entry of the parent generation.
-# The fields are separated by HM_FIELD_SEP:
-#   path_id hex(path) entry_type file_id mode uid gid mtime size
-_gen_parent_rows() {
-  local id
-  id="$(hm_sql_int "$1")"
-
-  hm_db_query "
-    SELECT ge.path_id,
-           hex(p.path),
-           ge.entry_type,
-           COALESCE(ge.file_id, 0),
-           ge.mode,
-           ge.owner_uid,
-           ge.group_gid,
-           ge.mtime,
-           ge.size
-      FROM generation_entries ge
-      JOIN paths p ON p.id = ge.path_id
-     WHERE ge.generation_id = $id
-     ORDER BY p.path;"
-}
-
 # _gen_stat FILE
 # Print the metadata of FILE as "mode uid gid mtime size". The mode is
 # converted into its decimal representation, the database stores it that way.
@@ -155,7 +118,17 @@ gen() {
 
   # --- Read the pending manifest -----------------------------------------
   local -a pend_ids=() pend_paths=() pend_kinds=()
-  local row pid hexpath kind path
+  local rows row pid hexpath kind path
+
+  if ! hm_db_rows "
+    SELECT p.id,
+           hex(p.path),
+           p.kind
+      FROM paths p
+      JOIN pending_paths pp ON pp.path_id = p.id
+     ORDER BY p.path;" rows; then
+    hm_die "$HM_EX_DB" "Cannot read the pending manifest from the database."
+  fi
 
   while IFS= read -r row; do
     [[ -n "$row" ]] || continue
@@ -164,7 +137,7 @@ gen() {
     pend_ids+=("$pid")
     pend_paths+=("$path")
     pend_kinds+=("$kind")
-  done < <(_gen_pending_rows)
+  done <<< "$rows"
 
   if [[ ${#pend_paths[@]} -eq 0 ]]; then
     hm_log_info "There are no pending paths, nothing to capture."
@@ -202,7 +175,8 @@ gen() {
 
   # --- Parent generation --------------------------------------------------
   local parent_id=""
-  parent_id="$(hm_gen_latest 2>/dev/null || true)"
+  parent_id="$(hm_gen_latest)"
+  [[ -n "$parent_id" ]] && parent_id="$(hm_sql_int "$parent_id")"
 
   # --- Capture the pending content ----------------------------------------
   local stage
@@ -212,7 +186,7 @@ gen() {
 
   local -A hashes=() modes=() uids=() gids=() mtimes=() sizes=()
   local new_objects=0 reused_objects=0 captured=0
-  local hash mode uid gid mtime size before after staged source_mode
+  local hash mode uid gid mtime size before after staged
 
   for index in "${!pend_paths[@]}"; do
     path="${pend_paths[$index]}"
@@ -279,6 +253,23 @@ gen() {
   local carried=0
 
   if [[ -n "$parent_id" ]]; then
+    if ! hm_db_rows "
+      SELECT ge.path_id,
+             hex(p.path),
+             ge.entry_type,
+             COALESCE(ge.file_id, 0),
+             ge.mode,
+             ge.owner_uid,
+             ge.group_gid,
+             ge.mtime,
+             ge.size
+        FROM generation_entries ge
+        JOIN paths p ON p.id = ge.path_id
+       WHERE ge.generation_id = $parent_id
+       ORDER BY p.path;" rows; then
+      hm_die "$HM_EX_DB" "Cannot read the parent generation from the database."
+    fi
+
     while IFS= read -r row; do
       [[ -n "$row" ]] || continue
       IFS="$HM_FIELD_SEP" read -r pid hexpath kind _file_id _mode _uid _gid _mtime _size <<< "$row"
@@ -301,7 +292,7 @@ gen() {
       else
         dropped_ids+=("$pid")
       fi
-    done < <(_gen_parent_rows "$parent_id")
+    done <<< "$rows"
   fi
 
   # --- Preview -------------------------------------------------------------
@@ -323,7 +314,7 @@ gen() {
   if [[ $assume_yes -eq 0 ]]; then
     if ! hm_confirm "Create the generation? [y/N]"; then
       hm_log_info "Cancelled, nothing was changed."
-      return 0
+      return "$HM_EX_DECLINED"
     fi
   fi
 

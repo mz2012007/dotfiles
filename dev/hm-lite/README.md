@@ -98,6 +98,13 @@ hm clean --dry-run                  # show the garbage of the content store
 
 The detailed reference lives in [docs/commands.md](docs/commands.md).
 
+Every command that changes the project state asks for a confirmation before
+it does anything. A declined confirmation ends the command with exit code
+`7`, so a script can tell "the user said no" apart from "the command did
+its work". `hm backup` is the exception: it only writes a new archive and
+never changes the project state, so it never asks and can be run from a
+cron job.
+
 ---
 
 ## Configuration
@@ -138,6 +145,11 @@ HM_LOG_LEVEL=DEBUG HM_ALLOW_OUTSIDE_HOME=1 hm apply 1
 | `7` | The user declined a confirmation. |
 | `8` | The project lock could not be acquired. |
 | `9` | Filesystem or input/output failure. |
+
+A database that cannot be read stops a command with exit code `5` and an
+unreadable content store stops it with exit code `9`. An empty result and
+a failed query are never confused with each other, the command always
+reports the failure instead of acting on an empty state.
 
 ---
 

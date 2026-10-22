@@ -24,17 +24,6 @@ hm_sha256_file() {
   printf '%s\n' "$hash"
 }
 
-# hm_sha256_stdin
-# Print the SHA-256 hash of the data read from standard input.
-hm_sha256_stdin() {
-  local line hash
-
-  line="$(sha256sum 2>/dev/null)" || return 1
-  hash="${line%% *}"
-
-  printf '%s\n' "$hash"
-}
-
 # hm_is_sha256 VALUE
 # Return 0 when VALUE is a lower case hexadecimal SHA-256 hash.
 hm_is_sha256() {

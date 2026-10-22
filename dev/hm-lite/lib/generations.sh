@@ -14,15 +14,27 @@
 #
 
 # hm_gen_selected - print the id of the selected generation, if any.
+# An empty result means that no generation was selected, a database error
+# is reported and never hidden behind an empty result.
 hm_gen_selected() {
-  hm_db_scalar "SELECT value FROM state WHERE key = 'selected_generation';"
+  local value
+
+  value="$(hm_db_scalar "SELECT value FROM state WHERE key = 'selected_generation';")" ||
+    hm_die "$HM_EX_DB" "Cannot read the selected generation from the database."
+
+  printf '%s\n' "$value"
 }
 
 # hm_gen_latest - print the id of the newest generation.
 # The order is created_at DESC, id DESC, the identifier alone is not an
 # order because it does not reflect the creation time.
 hm_gen_latest() {
-  hm_db_scalar "SELECT id FROM generations ORDER BY created_at DESC, id DESC LIMIT 1;"
+  local value
+
+  value="$(hm_db_scalar "SELECT id FROM generations ORDER BY created_at DESC, id DESC LIMIT 1;")" ||
+    hm_die "$HM_EX_DB" "Cannot read the generations from the database."
+
+  printf '%s\n' "$value"
 }
 
 # hm_gen_set_selected GENERATION_ID
@@ -38,7 +50,10 @@ hm_gen_set_selected() {
 hm_gen_exists() {
   local id count
   id="$(hm_sql_int "$1")"
-  count="$(hm_db_scalar "SELECT COUNT(*) FROM generations WHERE id = $id;")"
+
+  count="$(hm_db_scalar "SELECT COUNT(*) FROM generations WHERE id = $id;")" ||
+    hm_die "$HM_EX_DB" "Cannot read the generations from the database."
+
   [[ "$count" != "0" ]]
 }
 
@@ -57,17 +72,26 @@ hm_gen_object_count() {
   hm_db_scalar "SELECT COUNT(DISTINCT file_id) FROM generation_entries WHERE generation_id = $id AND file_id IS NOT NULL;"
 }
 
-# hm_gen_entries GENERATION_ID
-# Print one line per generation entry. The fields are separated by
-# HM_FIELD_SEP:
+# hm_gen_entries GENERATION_ID VARIABLE
+# Store one line per generation entry in VARIABLE. The fields are separated
+# by HM_FIELD_SEP:
 #   hex(path) entry_type hex(hash) mode uid gid mtime size
 # The path and the hash are hex encoded so that any byte survives the
 # round trip through the result format.
+#
+# The function fails with HM_EX_DB when the query fails, an empty result
+# and a failed query are never confused with each other.
 hm_gen_entries() {
   local id
+  # The nameref writes into the variable of the caller, shellcheck cannot
+  # see through it.
+  # shellcheck disable=SC2034
+  local -n hm__entries_ref="$2"
+
   id="$(hm_sql_int "$1")"
 
-  hm_db_query "
+  # shellcheck disable=SC2034
+  hm__entries_ref="$(hm_db_query "
     SELECT hex(p.path),
            ge.entry_type,
            hex(COALESCE(f.hash, '')),
@@ -80,30 +104,39 @@ hm_gen_entries() {
       JOIN paths p ON p.id = ge.path_id
       LEFT JOIN files f ON f.id = ge.file_id
      WHERE ge.generation_id = $id
-     ORDER BY p.path;"
+     ORDER BY p.path;")" || return "$HM_EX_DB"
+
+  return 0
 }
 
-# hm_gen_missing_objects GENERATION_ID
-# Print the hashes of the objects a generation needs but that are missing
-# from the content store.
+# hm_gen_missing_objects GENERATION_ID VARIABLE
+# Store the hashes of the objects a generation needs but that are missing
+# from the content store in VARIABLE, one hash per line.
 hm_gen_missing_objects() {
   local id
-  id="$(hm_sql_int "$1")"
+  local -n hm__missing_ref="$2"
+  local rows row encoded hash
 
-  hm_db_query "
+  id="$(hm_sql_int "$1")"
+  hm__missing_ref=""
+
+  rows="$(hm_db_query "
     SELECT hex(f.hash)
       FROM generation_entries ge
       JOIN files f ON f.id = ge.file_id
      WHERE ge.generation_id = $id
-     ORDER BY f.hash;" |
-    while IFS= read -r row; do
-      local encoded="${row%%"$HM_FIELD_SEP"*}"
-      local hash
-      hm_hex_decode hash "$encoded"
-      if ! hm_store_has "$hash"; then
-        printf '%s\n' "$hash"
-      fi
-    done
+     ORDER BY f.hash;")" || return "$HM_EX_DB"
+
+  while IFS= read -r row; do
+    [[ -n "$row" ]] || continue
+    encoded="${row%%"$HM_FIELD_SEP"*}"
+    hm_hex_decode hash "$encoded"
+    if ! hm_store_has "$hash"; then
+      hm__missing_ref+="$hash"$'\n'
+    fi
+  done <<< "$rows"
+
+  return 0
 }
 
 # hm_gen_materialize GENERATION_ID TARGET_DIR
@@ -117,22 +150,27 @@ hm_gen_missing_objects() {
 # children.
 hm_gen_materialize() {
   local id="$1" target="$2"
-  local row encoded entry_type hash_hex hash mode uid gid mtime size
+  local rows row encoded entry_type hash_hex hash mode mtime
   local path dest parent
   local -a e_path=() e_type=() e_hash=() e_mode=() e_mtime=()
   local index=0
 
+  if ! hm_gen_entries "$id" rows; then
+    hm_log_error "Cannot read the entries of the generation $id."
+    return "$HM_EX_DB"
+  fi
+
   while IFS= read -r row; do
     [[ -n "$row" ]] || continue
-    IFS="$HM_FIELD_SEP" read -r encoded entry_type hash_hex mode uid gid mtime size <<< "$row"
+    IFS="$HM_FIELD_SEP" read -r encoded entry_type hash_hex mode _uid _gid mtime _size <<< "$row"
 
-    e_path[$index]="$encoded"
-    e_type[$index]="$entry_type"
-    e_hash[$index]="$hash_hex"
-    e_mode[$index]="$mode"
-    e_mtime[$index]="$mtime"
+    e_path[index]="$encoded"
+    e_type[index]="$entry_type"
+    e_hash[index]="$hash_hex"
+    e_mode[index]="$mode"
+    e_mtime[index]="$mtime"
     index=$((index + 1))
-  done < <(hm_gen_entries "$id")
+  done <<< "$rows"
 
   # Pass 1, the directory tree.
   for ((index = 0; index < ${#e_path[@]}; index++)); do

@@ -15,6 +15,7 @@ a rollback.
 | **No raw path in SQL.** | Every path is quoted with the SQL quoting helper, or stored as the hexadecimal encoding of its bytes. A path with a quote or a newline in it cannot break out of a statement. |
 | **No half applied state.** | Every write that belongs together runs inside one transaction. The database is either fully updated or not updated at all. |
 | **No surprise changes.** | Every command that changes something shows a preview and asks for a confirmation. `--yes` skips the prompt, `--dry-run` stops before the change. |
+| **No silent empty state.** | Every query is checked. A database that cannot be read stops the command with exit code `5`, an unreadable store with exit code `9`. An empty result and a failed query are never confused. |
 | **One writer at a time.** | Every mutating command holds an exclusive `flock` on `<runtime>/hm.lock`. A second writer waits, and fails with exit code `8` after `HM_LOCK_TIMEOUT` seconds. |
 
 ---
@@ -155,6 +156,6 @@ These are deliberate limits, not bugs:
   weaken this by accident, because the environment wins over the file.
 * **The content store grows until `hm clean` runs.** Nothing is removed
   in the background, a generation is never broken by a background job.
-* **`shellcheck` is not available on the target machine**, so the static
-  analysis step of the test suite is skipped. The suite runs it as soon
-  as the binary is installed.
+* **`shellcheck` is optional.** The static analysis step of the test suite
+  is skipped when the binary is not installed and runs automatically as
+  soon as it is available.

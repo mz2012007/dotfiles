@@ -2,6 +2,9 @@
 #
 # tests/cases/02_add.sh - registration behaviour.
 #
+# The test list is read by the runner, shellcheck only sees this
+# file and therefore reports the variable as unused.
+# shellcheck disable=SC2034
 
 TESTS=(
   test_add_registers_a_single_file
@@ -202,7 +205,7 @@ test_add_declining_changes_nothing() {
   run_hm_input 'n
 ' add "$SRC_DIR/a.txt"
 
-  assert_rc 0 "$HM_STATUS" "declining is not an error"
+  assert_rc 7 "$HM_STATUS" "the decline is reported with its own exit code"
   assert_contains "$HM_OUTPUT" "Cancelled" "the cancellation is reported"
   assert_sql "0" "SELECT COUNT(*) FROM paths;" "no path was registered"
   assert_sql "0" "SELECT COUNT(*) FROM pending_paths;" "the pending set is unchanged"

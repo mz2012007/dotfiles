@@ -130,6 +130,26 @@ hm_db_scalar() {
   } | sqlite3 -bail "$(hm_db_file)" -noheader -list
 }
 
+# hm_db_rows SQL VARIABLE
+# Execute a statement and store the result rows in VARIABLE, one row per
+# line. The rows use the same format as hm_db_query.
+#
+# The function fails with HM_EX_DB when the statement fails. This is the
+# only safe way to read a result set: a shell process substitution hides
+# the exit status of the command it runs, therefore an empty result and a
+# failed query would be indistinguishable.
+hm_db_rows() {
+  local sql="$1"
+  # The nameref writes into the variable of the caller, shellcheck cannot
+  # see through it.
+  # shellcheck disable=SC2034
+  local -n hm__rows_ref="$2"
+
+  # shellcheck disable=SC2034
+  hm__rows_ref="$(hm_db_query "$sql")" || return "$HM_EX_DB"
+  return 0
+}
+
 # hm_db_tx
 # Read SQL statements from standard input and execute them inside a single
 # transaction. The transaction is committed only when every statement

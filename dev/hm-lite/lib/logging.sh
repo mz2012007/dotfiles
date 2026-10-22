@@ -23,7 +23,6 @@ HM_C_GREEN=''
 HM_C_YELLOW=''
 HM_C_BLUE=''
 HM_C_CYAN=''
-HM_C_BOLD=''
 HM_LOG_LEVEL="${HM_LOG_LEVEL:-INFO}"
 HM_LOG_FILE="${HM_LOG_FILE:-1}"
 
@@ -46,7 +45,6 @@ hm_log_init() {
     HM_C_YELLOW=$'\033[33m'
     HM_C_BLUE=$'\033[34m'
     HM_C_CYAN=$'\033[36m'
-    HM_C_BOLD=$'\033[1m'
   else
     HM_C_RESET=''
     HM_C_RED=''
@@ -54,7 +52,6 @@ hm_log_init() {
     HM_C_YELLOW=''
     HM_C_BLUE=''
     HM_C_CYAN=''
-    HM_C_BOLD=''
   fi
 
   HM_LOG_LEVEL="${HM_LOG_LEVEL:-INFO}"

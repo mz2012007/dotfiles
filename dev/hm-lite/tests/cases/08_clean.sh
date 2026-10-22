@@ -2,6 +2,9 @@
 #
 # tests/cases/08_clean.sh - garbage collection behaviour.
 #
+# The test list is read by the runner, shellcheck only sees this
+# file and therefore reports the variable as unused.
+# shellcheck disable=SC2034
 
 TESTS=(
   test_clean_keeps_the_referenced_objects
@@ -12,6 +15,8 @@ TESTS=(
   test_clean_declining_changes_nothing
   test_clean_dry_run_changes_nothing
   test_clean_rejects_unknown_options
+  test_clean_fails_when_a_query_fails
+  test_clean_fails_when_the_store_cannot_be_read
 )
 
 # _clean_fixture - a project with one generation and one content object.
@@ -103,7 +108,7 @@ test_clean_declining_changes_nothing() {
   run_hm_input 'n
 ' clean
 
-  assert_rc 0 "$HM_STATUS" "declining is not an error"
+  assert_rc 7 "$HM_STATUS" "the decline is reported with its own exit code"
   assert_contains "$HM_OUTPUT" "Cancelled" "the cancellation is reported"
   assert_count "1" "$(find "$STORE_DIR" -type f | wc -l)" "the object was kept"
   assert_sql "1" "SELECT COUNT(*) FROM files;" "the row was kept"
@@ -126,4 +131,34 @@ test_clean_rejects_unknown_options() {
   run_hm clean --bogus
 
   assert_rc 2 "$HM_STATUS" "an unknown option is a usage error"
+}
+
+test_clean_fails_when_a_query_fails() {
+  _clean_fixture
+  sqlite3 "$HM_DIR/db.sqlite" 'PRAGMA foreign_keys = ON; DELETE FROM generations; DROP TABLE files;'
+
+  run_hm clean --yes
+
+  assert_rc 5 "$HM_STATUS" "a failing query stops the command"
+  assert_contains "$HM_OUTPUT" "Cannot read the referenced content objects" "the reason is named"
+  assert_count "1" "$(find "$STORE_DIR" -type f | wc -l)" "the object was kept"
+}
+
+test_clean_fails_when_the_store_cannot_be_read() {
+  _clean_fixture
+  sqlite3 "$HM_DIR/db.sqlite" 'PRAGMA foreign_keys = ON; DELETE FROM generations;'
+
+  # The store cannot be listed any more, the garbage collector must not
+  # guess which objects are still needed.
+  chmod 000 "$STORE_DIR"
+
+  run_hm clean --yes
+
+  # The permissions are restored before the assertions, the test teardown
+  # has to be able to remove the directory.
+  chmod 755 "$STORE_DIR"
+
+  assert_rc 9 "$HM_STATUS" "an unreadable store stops the command"
+  assert_contains "$HM_OUTPUT" "Cannot read the content store" "the reason is named"
+  assert_count "1" "$(find "$STORE_DIR" -type f | wc -l)" "the object was kept"
 }

@@ -76,14 +76,14 @@ the code under test to check its own work.
 | `tests/cases/01_init.sh` | The bootstrap: directories, configuration, schema, idempotence, the version. | 11 |
 | `tests/cases/02_add.sh` | The registration: discovery, symlink skipping, deduplication, the preview, the confirmation, hostile file names. | 15 |
 | `tests/cases/03_gen.sh` | The capture: hashing, the store, the transaction, the missing path, the carry forward. | 15 |
-| `tests/cases/04_list.sh` | The read only views and their error cases. | 10 |
+| `tests/cases/04_list.sh` | The read only views and their error cases. | 12 |
 | `tests/cases/05_switch.sh` | `switch` and `discard`: the materialisation, the atomic rename, the recorded mode. | 13 |
 | `tests/cases/06_apply.sh` | The live write path: the classification, the backup, the manifest, the conflicts, the rollback. | 16 |
-| `tests/cases/07_backup.sh` | `backup` and `restore`: the archive, the manifest, the validation, the activation. | 10 |
-| `tests/cases/08_clean.sh` | The garbage collection: the reference analysis, the removal, the missing objects. | 8 |
+| `tests/cases/07_backup.sh` | `backup` and `restore`: the archive, the manifest, the validation, the activation. | 11 |
+| `tests/cases/08_clean.sh` | The garbage collection: the reference analysis, the removal, the missing objects. | 10 |
 
-**98 test cases**, plus the static analysis. The runner reports 99 checks
-when ShellCheck is missing and 100 when it is installed.
+**103 test cases**, plus the static analysis. The runner reports 104 checks
+when ShellCheck is missing and 105 when it is installed.
 
 ---
 
@@ -97,9 +97,9 @@ After the test cases the runner analyses the code:
    `-x -S style -e SC1090,SC1091`, because the dynamic `source` of the
    command modules cannot be followed statically.
 
-On the development machine ShellCheck is **not installed** (the package
-needs root to install), so the step reports `SKIP`. The runner picks it up
-automatically as soon as the binary is on the `PATH`.
+On the development machine ShellCheck **is** installed, so the step runs and
+the project is free of findings. The runner skips it automatically when the
+binary is not on the `PATH`.
 
 ---
 
@@ -120,6 +120,11 @@ have an explicit test:
   store is reported by `hm clean` and never removed.
 * Every command that changes something asks for a confirmation, and a
   closed standard input answers "no".
+* A declined confirmation ends the command with exit code `7`, so a script
+  can tell "the user said no" apart from "the command did its work".
+* A failing query stops the command instead of producing an empty result:
+  `hm list` and `hm clean` report the database failure, and `hm clean`
+  removes nothing when the store cannot be read.
 
 ---
 

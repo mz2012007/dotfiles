@@ -16,9 +16,34 @@
 # configuration file that does not exist, so `hm init` works on a machine
 # where nothing has been installed yet.
 #
+# The exit code constants live here and are used by the libraries and the
+# command modules. Shellcheck only sees this file, therefore the check for
+# unused variables is switched off for the whole file.
+# shellcheck disable=SC2034
+#
 set -euo pipefail
 
 HM_VERSION="0.1.0"
+
+# ---------------------------------------------------------------------------
+# Exit codes
+# ---------------------------------------------------------------------------
+#
+# The exit codes are part of the public interface of HM-Lite and are
+# documented in docs/commands.md. They are defined here, in the entry
+# point, so that the dispatcher reports its own bootstrap failures with the
+# same contract as the commands. Every library and every command module
+# uses these constants, there is no second definition anywhere.
+HM_EX_OK=0          # success
+HM_EX_ERROR=1       # generic runtime failure
+HM_EX_USAGE=2       # invalid command line usage
+HM_EX_VALIDATION=3  # validation or precondition failure
+HM_EX_STATE=4       # inconsistent state (for example a vanished source path)
+HM_EX_DB=5          # database failure
+HM_EX_STORE=6       # content store failure
+HM_EX_DECLINED=7    # the user declined a confirmation
+HM_EX_LOCK=8        # the project lock could not be acquired
+HM_EX_IO=9          # filesystem or input/output failure
 
 # ---------------------------------------------------------------------------
 # Runtime and code directories
@@ -48,13 +73,13 @@ hm_resolve_code_dir() {
 if [[ -z "${HM_CODE_DIR:-}" ]]; then
   HM_CODE_DIR="$(hm_resolve_code_dir)" || {
     printf '[ERROR] Unable to resolve the HM-Lite code directory.\n' >&2
-    exit 1
+    exit "$HM_EX_ERROR"
   }
 fi
 
 if [[ ! -d "$HM_CODE_DIR" ]]; then
   printf '[ERROR] HM-Lite code directory not found: %s\n' "$HM_CODE_DIR" >&2
-  exit 1
+  exit "$HM_EX_ERROR"
 fi
 
 # ---------------------------------------------------------------------------
@@ -79,12 +104,12 @@ hm_load_libs() {
     file="$HM_CODE_DIR/lib/$lib.sh"
     if [[ ! -f "$file" ]]; then
       printf '[ERROR] Missing HM-Lite library: %s\n' "$file" >&2
-      exit 1
+      exit "$HM_EX_ERROR"
     fi
     # shellcheck source=/dev/null
     source "$file" || {
       printf '[ERROR] Failed to load HM-Lite library: %s\n' "$file" >&2
-      exit 1
+      exit "$HM_EX_ERROR"
     }
   done
 }
@@ -159,7 +184,7 @@ main() {
 
   if [[ $# -eq 0 ]]; then
     hm_usage >&2
-    exit 2
+    exit "$HM_EX_USAGE"
   fi
 
   cmd="$1"
@@ -168,18 +193,18 @@ main() {
   case "$cmd" in
     -h | --help | help)
       hm_usage
-      exit 0
+      exit "$HM_EX_OK"
       ;;
     --version)
       printf 'hm %s\n' "$HM_VERSION"
-      exit 0
+      exit "$HM_EX_OK"
       ;;
   esac
 
   if ! hm_is_command "$cmd"; then
     printf '[ERROR] Unknown command: %s\n\n' "$cmd" >&2
     hm_usage >&2
-    exit 2
+    exit "$HM_EX_USAGE"
   fi
 
   hm_collect_environment
@@ -199,13 +224,13 @@ main() {
   module="$HM_CODE_DIR/core/$cmd.sh"
   if [[ ! -f "$module" ]]; then
     printf '[ERROR] Command module not found: %s\n' "$module" >&2
-    exit 1
+    exit "$HM_EX_ERROR"
   fi
 
   # shellcheck source=/dev/null
   source "$module" || {
     printf '[ERROR] Failed to load command module: %s\n' "$module" >&2
-    exit 1
+    exit "$HM_EX_ERROR"
   }
 
   "$cmd" "$@"

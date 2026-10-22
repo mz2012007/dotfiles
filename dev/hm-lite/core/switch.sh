@@ -77,7 +77,9 @@ switch() {
   # Every object of the generation must be present, a half materialized tree
   # would be worse than no tree at all.
   local missing
-  missing="$(hm_gen_missing_objects "$generation")"
+  if ! hm_gen_missing_objects "$generation" missing; then
+    hm_die "$HM_EX_DB" "Cannot read the generation $generation from the database."
+  fi
   if [[ -n "$missing" ]]; then
     local hash count=0
     while IFS= read -r hash; do
@@ -89,8 +91,10 @@ switch() {
   fi
 
   local entries objects
-  entries="$(hm_gen_entry_count "$generation")"
-  objects="$(hm_gen_object_count "$generation")"
+  entries="$(hm_gen_entry_count "$generation")" ||
+    hm_die "$HM_EX_DB" "Cannot read the generation $generation from the database."
+  objects="$(hm_gen_object_count "$generation")" ||
+    hm_die "$HM_EX_DB" "Cannot read the generation $generation from the database."
 
   printf 'Generation %s: %s entries, %s content objects.\n' "$generation" "$entries" "$objects"
   printf 'The tree is written to: %s\n' "$(hm_path_display "$HM_CURRENT_DIR")"

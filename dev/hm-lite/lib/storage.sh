@@ -118,23 +118,42 @@ hm_store_put() {
   return 0
 }
 
-# hm_store_object_hashes
-# Print the hash of every object in the store, one per line. Only files
-# whose name is a valid SHA-256 hash are reported, everything else is
-# ignored so that a malformed store cannot confuse the caller.
+# hm_store_object_hashes VARIABLE
+# Store the hash of every object in the store in VARIABLE, one per line.
+# Only files whose name is a valid SHA-256 hash are reported, everything
+# else is ignored so that a malformed store cannot confuse the caller.
+#
+# The function fails with HM_EX_IO when the store cannot be read. A
+# partially listed store would make the garbage collector believe that
+# objects are missing.
 hm_store_object_hashes() {
-  local root prefix_len
+  local -n hm__hashes_ref="$1"
+  local root listing file name
+
   root="$(hm_store_root)"
-  prefix_len="$(hm_store_prefix_len)"
+  hm__hashes_ref=""
 
   [[ -d "$root" ]] || return 0
 
+  # The listing is written to a file, a command substitution would drop the
+  # NUL bytes that keep the file names apart.
+  listing="$(hm_mktemp_file)" || return "$HM_EX_IO"
+
+  if ! find "$root" -mindepth 2 -maxdepth 2 -type f -name '*' -print0 > "$listing" 2>/dev/null; then
+    rm -f -- "$listing"
+    return "$HM_EX_IO"
+  fi
+
   while IFS= read -r -d '' file; do
-    local name="${file##*/}"
+    name="${file##*/}"
     if [[ ${#name} -eq 64 ]] && hm_is_sha256 "$name"; then
-      printf '%s\n' "$name"
+      hm__hashes_ref+="$name"$'\n'
     fi
-  done < <(find "$root" -mindepth 2 -maxdepth 2 -type f -name '*' -print0 2>/dev/null)
+  done < "$listing"
+
+  rm -f -- "$listing"
+
+  return 0
 }
 
 # hm_store_remove HASH
@@ -160,25 +179,35 @@ hm_store_remove() {
 # hm_store_count - print the number of objects in the store.
 hm_store_count() {
   local count=0
+  local hashes=""
   local hash
+
+  hm_store_object_hashes hashes || return "$HM_EX_IO"
+
   while IFS= read -r hash; do
     [[ -n "$hash" ]] && count=$((count + 1))
-  done < <(hm_store_object_hashes)
+  done <<< "$hashes"
+
   printf '%d\n' "$count"
 }
 
 # hm_store_total_size - print the summed size of all objects in bytes.
 hm_store_total_size() {
   local total=0
+  local hashes=""
   local path hash
+  local size
+
+  hm_store_object_hashes hashes || return "$HM_EX_IO"
+
   while IFS= read -r hash; do
     [[ -n "$hash" ]] || continue
     path="$(hm_store_path "$hash")"
     if [[ -f "$path" ]]; then
-      local size
       size="$(stat -c '%s' -- "$path" 2>/dev/null || printf '0')"
       total=$((total + size))
     fi
-  done < <(hm_store_object_hashes)
+  done <<< "$hashes"
+
   printf '%d\n' "$total"
 }

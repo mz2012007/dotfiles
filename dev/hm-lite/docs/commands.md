@@ -4,7 +4,11 @@ Every command is `hm <command> [options]`.
 
 * Commands that change something ask for a confirmation. `--yes` (`-y`)
   skips the prompt, `--dry-run` shows the preview without changing
-  anything.
+  anything. `hm backup` never changes the project state and therefore
+  never asks.
+* A declined confirmation ends the command with exit code `7`. A script
+  can therefore tell "the user said no" apart from "the command did its
+  work".
 * The exit codes are documented in the [README](../README.md#exit-codes).
 * All commands require an initialised project (`hm init`) except `init`
   itself.
@@ -233,8 +237,11 @@ Create a consistent backup of the project state.
 Usage: hm backup [options]
 
 Options:
-  --yes, -y      Do not ask for a confirmation
+  -h, --help     Show this help
 ```
+
+The backup never changes the project state, therefore it does not ask for a
+confirmation and it can be run from a cron job.
 
 The archive is a single compressed file in `<runtime>/backup/`:
 
@@ -302,6 +309,11 @@ The reference analysis is exact:
 * an object that a generation needs but that is missing from the store is
   reported as `MISSING` and is never touched, because it is the symptom
   of a damaged project.
+
+Every query of the analysis is checked. A database that cannot be read
+stops the command with exit code `5` and an unreadable store stops it
+with exit code `9`, **before** a single object is removed. An empty
+result and a failed query are never confused with each other.
 
 ```
 Clean preview:

@@ -24,8 +24,10 @@ Usage: hm backup [options]
 
 Create a consistent backup of the project state.
 
+The backup never changes the project state, therefore it does not ask for a
+confirmation and it can be run from a cron job.
+
 Options:
-  --yes, -y      Do not ask for a confirmation
   -h, --help     Show this help
 EOF
 }
@@ -46,16 +48,11 @@ _backup_cleanup_stage() {
 
 # backup - create a consistent backup of the project state.
 backup() {
-  local assume_yes=0
   local argument
 
   while [[ $# -gt 0 ]]; do
     argument="$1"
     case "$argument" in
-      --yes | -y)
-        assume_yes=1
-        shift
-        ;;
       -h | --help)
         _backup_usage
         return 0

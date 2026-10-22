@@ -2,6 +2,9 @@
 #
 # tests/cases/07_backup.sh - backup and restore behaviour.
 #
+# The test list is read by the runner, shellcheck only sees this
+# file and therefore reports the variable as unused.
+# shellcheck disable=SC2034
 
 TESTS=(
   test_backup_creates_an_archive
@@ -9,6 +12,7 @@ TESTS=(
   test_backup_writes_a_checksum_manifest
   test_backup_is_consistent
   test_backup_rejects_unknown_arguments
+  test_backup_rejects_the_yes_option
   test_restore_brings_the_state_back
   test_restore_validates_the_archive
   test_restore_refuses_a_damaged_archive
@@ -102,6 +106,17 @@ test_backup_rejects_unknown_arguments() {
   assert_rc 2 "$HM_STATUS" "an unknown argument is a usage error"
 }
 
+test_backup_rejects_the_yes_option() {
+  _backup_fixture
+
+  # The backup never asks for a confirmation, an option that promises to
+  # skip it would be a lie.
+  run_hm backup --yes
+
+  assert_rc 2 "$HM_STATUS" "the yes option is a usage error"
+  assert_contains "$HM_OUTPUT" "Unknown argument" "the reason is named"
+}
+
 test_restore_brings_the_state_back() {
   _backup_fixture
   local archive
@@ -188,6 +203,6 @@ test_restore_declining_changes_nothing() {
   run_hm_input 'n
 ' restore "$archive"
 
-  assert_rc 0 "$HM_STATUS" "declining is not an error"
+  assert_rc 7 "$HM_STATUS" "the decline is reported with its own exit code"
   assert_sql "2" "SELECT COUNT(*) FROM generations;" "the state was not changed"
 }

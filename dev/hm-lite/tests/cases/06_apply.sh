@@ -2,6 +2,9 @@
 #
 # tests/cases/06_apply.sh - apply behaviour.
 #
+# The test list is read by the runner, shellcheck only sees this
+# file and therefore reports the variable as unused.
+# shellcheck disable=SC2034
 
 TESTS=(
   test_apply_creates_a_missing_file
@@ -174,7 +177,7 @@ test_apply_declining_changes_nothing() {
   run_hm_input 'n
 ' apply 1
 
-  assert_rc 0 "$HM_STATUS" "declining is not an error"
+  assert_rc 7 "$HM_STATUS" "the decline is reported with its own exit code"
   assert_file_content "$SRC_DIR/a.txt" "changed" "the file was not changed"
 }
 

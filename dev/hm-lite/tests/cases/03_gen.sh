@@ -2,6 +2,9 @@
 #
 # tests/cases/03_gen.sh - generation behaviour.
 #
+# The test list is read by the runner, shellcheck only sees this
+# file and therefore reports the variable as unused.
+# shellcheck disable=SC2034
 
 TESTS=(
   test_gen_creates_a_generation
@@ -223,7 +226,7 @@ test_gen_declining_changes_nothing() {
   run_hm_input 'n
 ' gen
 
-  assert_rc 0 "$HM_STATUS" "declining is not an error"
+  assert_rc 7 "$HM_STATUS" "the decline is reported with its own exit code"
   assert_contains "$HM_OUTPUT" "Cancelled" "the cancellation is reported"
   assert_sql "0" "SELECT COUNT(*) FROM generations;" "no generation was created"
   assert_sql "1" "SELECT COUNT(*) FROM pending_paths;" "the pending set was not changed"

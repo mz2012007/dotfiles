@@ -157,7 +157,7 @@ restore() {
   if [[ $assume_yes -eq 0 ]]; then
     if ! hm_confirm "Restore the backup? [y/N]"; then
       hm_log_info "Cancelled, nothing was changed."
-      return 0
+      return "$HM_EX_DECLINED"
     fi
   fi
 

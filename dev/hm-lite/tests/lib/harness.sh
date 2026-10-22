@@ -9,6 +9,10 @@
 #   HM_BIN     path of the hm executable under test
 #   TEST_ROOT  root of the temporary test area
 #
+# The variables of the harness are read by the test cases, shellcheck only
+# sees this file and therefore reports the ones it cannot find here.
+# shellcheck disable=SC2034
+#
 
 TESTS=()
 

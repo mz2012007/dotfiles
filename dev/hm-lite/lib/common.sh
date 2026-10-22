@@ -2,26 +2,16 @@
 #
 # lib/common.sh - shared helpers.
 #
-# Provides: exit codes, fatal error reporting, external command checks,
-# user confirmation, secure temporary files, time helpers and the
-# configuration file parser.
+# Provides: fatal error reporting, external command checks, user
+# confirmation, secure temporary files, time helpers and the configuration
+# file parser.
+#
+# The exit codes are defined by the entry point, see the HM_EX_* constants
+# in the "hm" script. They live there so that the dispatcher can report
+# its own bootstrap failures with the same contract.
 #
 # The file only defines functions. Sourcing it has no side effects.
 #
-
-# --- Exit codes -----------------------------------------------------------
-# The exit codes are part of the public interface of HM-Lite and are
-# documented in docs/commands.md.
-HM_EX_OK=0          # success
-HM_EX_ERROR=1       # generic runtime failure
-HM_EX_USAGE=2       # invalid command line usage
-HM_EX_VALIDATION=3  # validation or precondition failure
-HM_EX_STATE=4       # inconsistent state (for example a vanished source path)
-HM_EX_DB=5          # database failure
-HM_EX_STORE=6       # content store failure
-HM_EX_DECLINED=7    # the user declined a confirmation
-HM_EX_LOCK=8        # the project lock could not be acquired
-HM_EX_IO=9          # filesystem or input/output failure
 
 # --- Errors ---------------------------------------------------------------
 

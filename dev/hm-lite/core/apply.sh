@@ -98,9 +98,9 @@ _apply_restore() {
 # reverse order, a child is therefore always removed before its parent.
 _apply_rollback() {
   local manifest="$1" backup="$2"
-  local line action hexpath backup_name old_mode new_mode path
+  local action hexpath backup_name old_mode path
 
-  while IFS=$'\t' read -r action hexpath backup_name old_mode new_mode; do
+  while IFS=$'\t' read -r action hexpath backup_name old_mode _new_mode; do
     [[ -n "$action" ]] || continue
     hm_hex_decode path "$hexpath"
 
@@ -174,7 +174,7 @@ apply() {
 
   # --- Resolve the generation ---------------------------------------------
   if [[ -z "$generation" ]]; then
-    generation="$(hm_gen_selected 2>/dev/null || true)"
+    generation="$(hm_gen_selected)"
     if [[ -z "$generation" ]]; then
       hm_die "$HM_EX_STATE" "No generation is selected. Run 'hm switch <generation>' or name a generation."
     fi
@@ -185,7 +185,9 @@ apply() {
   fi
 
   local missing
-  missing="$(hm_gen_missing_objects "$generation")"
+  if ! hm_gen_missing_objects "$generation" missing; then
+    hm_die "$HM_EX_DB" "Cannot read the generation $generation from the database."
+  fi
   if [[ -n "$missing" ]]; then
     local hash count=0
     while IFS= read -r hash; do
@@ -203,12 +205,17 @@ apply() {
   local allow_outside
   allow_outside="$(hm_config_get HM_ALLOW_OUTSIDE_HOME 0)"
 
-  local row encoded entry_type hash_hex mode uid gid mtime size
+  local row encoded entry_type hash_hex mode
   local path hash action reason current_hash current_mode ancestor
+  local rows
+
+  if ! hm_gen_entries "$generation" rows; then
+    hm_die "$HM_EX_DB" "Cannot read the entries of the generation $generation."
+  fi
 
   while IFS= read -r row; do
     [[ -n "$row" ]] || continue
-    IFS="$HM_FIELD_SEP" read -r encoded entry_type hash_hex mode uid gid mtime size <<< "$row"
+    IFS="$HM_FIELD_SEP" read -r encoded entry_type hash_hex mode _uid _gid _mtime _size <<< "$row"
 
     hm_hex_decode path "$encoded"
     hm_hex_decode hash "$hash_hex"
@@ -288,7 +295,7 @@ apply() {
       UNCHANGED) unchanged=$((unchanged + 1)) ;;
       CONFLICT) conflict=$((conflict + 1)) ;;
     esac
-  done < <(hm_gen_entries "$generation")
+  done <<< "$rows"
 
   # --- Preview -------------------------------------------------------------
   printf 'Apply preview for generation %s:\n' "$generation"
@@ -330,7 +337,7 @@ apply() {
   if [[ $assume_yes -eq 0 ]]; then
     if ! hm_confirm "Apply the generation to the live filesystem? [y/N]"; then
       hm_log_info "Cancelled, nothing was changed."
-      return 0
+      return "$HM_EX_DECLINED"
     fi
   fi
 

@@ -64,7 +64,7 @@ discard() {
   fi
 
   local selected
-  selected="$(hm_gen_selected 2>/dev/null || printf '')"
+  selected="$(hm_gen_selected)"
   if [[ -z "$selected" ]]; then
     hm_die "$HM_EX_STATE" "No generation is selected. Run 'hm switch <generation>' first."
   fi

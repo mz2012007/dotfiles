@@ -12,6 +12,10 @@ HM_SCHEMA_VERSION=1
 
 # hm_runtime_init - derive every runtime path from the project directory.
 # It only computes values, it never touches the filesystem.
+#
+# The paths are consumed by the other modules, shellcheck only sees this
+# file and therefore reports the ones it cannot find here.
+# shellcheck disable=SC2034
 hm_runtime_init() {
   HM_DIR="${HM_DIR%/}"
   [[ -n "$HM_DIR" ]] || HM_DIR="/"

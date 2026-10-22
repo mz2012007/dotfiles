@@ -15,9 +15,13 @@ set -uo pipefail
 HERE="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 PROJECT_ROOT="$(dirname -- "$HERE")"
 
-export HM_BIN="$PROJECT_ROOT/hm"
-export TEST_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/hm-lite-tests.XXXXXXXX")"
+HM_BIN="$PROJECT_ROOT/hm"
+export HM_BIN
+TEST_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/hm-lite-tests.XXXXXXXX")"
+export TEST_ROOT
 
+# The cleanup runs from the exit trap, shellcheck cannot see that.
+# shellcheck disable=SC2329
 cleanup() {
   rm -rf -- "$TEST_ROOT"
 }

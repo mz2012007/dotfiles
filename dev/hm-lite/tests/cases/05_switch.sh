@@ -2,6 +2,9 @@
 #
 # tests/cases/05_switch.sh - switch and discard behaviour.
 #
+# The test list is read by the runner, shellcheck only sees this
+# file and therefore reports the variable as unused.
+# shellcheck disable=SC2034
 
 TESTS=(
   test_switch_materializes_the_generation

@@ -2,6 +2,9 @@
 #
 # tests/cases/01_init.sh - initialisation behaviour.
 #
+# The test list is read by the runner, shellcheck only sees this
+# file and therefore reports the variable as unused.
+# shellcheck disable=SC2034
 
 TESTS=(
   test_init_creates_the_project

@@ -27,9 +27,20 @@ EOF
 
 # _list_generations - print the overview of every generation.
 _list_generations() {
-  local row id created entries objects name
+  local rows row id created entries objects name
 
   printf '%-6s %-21s %8s %8s  %s\n' "ID" "CREATED" "ENTRIES" "OBJECTS" "NAME"
+
+  if ! hm_db_rows "
+    SELECT g.id,
+           g.created_at,
+           (SELECT COUNT(*) FROM generation_entries ge WHERE ge.generation_id = g.id),
+           (SELECT COUNT(DISTINCT ge.file_id) FROM generation_entries ge WHERE ge.generation_id = g.id AND ge.file_id IS NOT NULL),
+           COALESCE(g.name, '')
+      FROM generations g
+     ORDER BY g.created_at DESC, g.id DESC;" rows; then
+    hm_die "$HM_EX_DB" "Cannot read the generations from the database."
+  fi
 
   while IFS= read -r row; do
     [[ -n "$row" ]] || continue
@@ -38,30 +49,28 @@ _list_generations() {
     printf '%-6s %-21s %8s %8s  %s\n' \
       "$id" "$(hm_format_epoch "$created" || printf '%s' "$created")" \
       "$entries" "$objects" "${name:-(unnamed)}"
-  done < <(hm_db_query "
-    SELECT g.id,
-           g.created_at,
-           (SELECT COUNT(*) FROM generation_entries ge WHERE ge.generation_id = g.id),
-           (SELECT COUNT(DISTINCT ge.file_id) FROM generation_entries ge WHERE ge.generation_id = g.id AND ge.file_id IS NOT NULL),
-           COALESCE(g.name, '')
-      FROM generations g
-     ORDER BY g.created_at DESC, g.id DESC;")
+  done <<< "$rows"
 }
 
 # _list_generation ID - print the entries of a single generation.
 _list_generation() {
   local id="$1"
-  local row encoded entry_type hash_hex mode uid gid mtime size path hash created
+  local rows row encoded entry_type hash_hex mode size path hash created
 
-  created="$(hm_db_scalar "SELECT created_at FROM generations WHERE id = $(hm_sql_int "$id");")"
+  created="$(hm_db_scalar "SELECT created_at FROM generations WHERE id = $(hm_sql_int "$id");")" ||
+    hm_die "$HM_EX_DB" "Cannot read the generation $id from the database."
 
   printf 'Generation %s, created %s\n' "$id" "$(hm_format_epoch "$created" || printf '%s' "$created")"
   printf '\n'
   printf '%-40s %-6s %-6s %10s  %s\n' "PATH" "TYPE" "MODE" "SIZE" "HASH"
 
+  if ! hm_gen_entries "$id" rows; then
+    hm_die "$HM_EX_DB" "Cannot read the entries of the generation $id."
+  fi
+
   while IFS= read -r row; do
     [[ -n "$row" ]] || continue
-    IFS="$HM_FIELD_SEP" read -r encoded entry_type hash_hex mode uid gid mtime size <<< "$row"
+    IFS="$HM_FIELD_SEP" read -r encoded entry_type hash_hex mode _uid _gid _mtime size <<< "$row"
 
     hm_hex_decode path "$encoded"
     hm_hex_decode hash "$hash_hex"
@@ -77,14 +86,24 @@ _list_generation() {
         "$(hm_mode_to_octal "$mode" || printf '%s' "$mode")" \
         "$size" "-"
     fi
-  done < <(hm_gen_entries "$id")
+  done <<< "$rows"
 }
 
 # _list_pending - print the paths that are queued for the next generation.
 _list_pending() {
-  local row encoded kind added path
+  local rows row encoded kind added path
 
   printf '%-40s %-6s %s\n' "PATH" "TYPE" "ADDED"
+
+  if ! hm_db_rows "
+    SELECT hex(p.path),
+           p.kind,
+           pp.added_at
+      FROM pending_paths pp
+      JOIN paths p ON p.id = pp.path_id
+     ORDER BY p.path;" rows; then
+    hm_die "$HM_EX_DB" "Cannot read the pending paths from the database."
+  fi
 
   while IFS= read -r row; do
     [[ -n "$row" ]] || continue
@@ -94,20 +113,21 @@ _list_pending() {
 
     printf '%-40s %-6s %s\n' \
       "$(hm_path_display "$path")" "$kind" "$(hm_format_epoch "$added" || printf '%s' "$added")"
-  done < <(hm_db_query "
-    SELECT hex(p.path),
-           p.kind,
-           pp.added_at
-      FROM pending_paths pp
-      JOIN paths p ON p.id = pp.path_id
-     ORDER BY p.path;")
+  done <<< "$rows"
 }
 
 # _list_paths - print the tracked paths.
 _list_paths() {
-  local row encoded kind created path
+  local rows row encoded kind created path
 
   printf '%-40s %-6s %s\n' "PATH" "TYPE" "REGISTERED"
+
+  if ! hm_db_rows "
+    SELECT hex(path), kind, created_at
+      FROM paths
+     ORDER BY path;" rows; then
+    hm_die "$HM_EX_DB" "Cannot read the tracked paths from the database."
+  fi
 
   while IFS= read -r row; do
     [[ -n "$row" ]] || continue
@@ -117,23 +137,24 @@ _list_paths() {
 
     printf '%-40s %-6s %s\n' \
       "$(hm_path_display "$path")" "$kind" "$(hm_format_epoch "$created" || printf '%s' "$created")"
-  done < <(hm_db_query "
-    SELECT hex(path), kind, created_at
-      FROM paths
-     ORDER BY path;")
+  done <<< "$rows"
 }
 
 # _list_store - print the statistics of the content store.
 _list_store() {
   local objects size referenced orphans generations paths_count pending_count
 
-  objects="$(hm_store_count)"
-  size="$(hm_store_total_size)"
+  objects="$(hm_store_count)" || hm_die "$HM_EX_IO" "Cannot read the content store."
+  size="$(hm_store_total_size)" || hm_die "$HM_EX_IO" "Cannot read the content store."
 
-  referenced="$(hm_db_scalar "SELECT COUNT(DISTINCT hash) FROM files;")"
-  generations="$(hm_db_scalar "SELECT COUNT(*) FROM generations;")"
-  paths_count="$(hm_db_scalar "SELECT COUNT(*) FROM paths;")"
-  pending_count="$(hm_db_scalar "SELECT COUNT(*) FROM pending_paths;")"
+  referenced="$(hm_db_scalar "SELECT COUNT(DISTINCT hash) FROM files;")" ||
+    hm_die "$HM_EX_DB" "Cannot read the database."
+  generations="$(hm_db_scalar "SELECT COUNT(*) FROM generations;")" ||
+    hm_die "$HM_EX_DB" "Cannot read the database."
+  paths_count="$(hm_db_scalar "SELECT COUNT(*) FROM paths;")" ||
+    hm_die "$HM_EX_DB" "Cannot read the database."
+  pending_count="$(hm_db_scalar "SELECT COUNT(*) FROM pending_paths;")" ||
+    hm_die "$HM_EX_DB" "Cannot read the database."
 
   orphans=$((objects - referenced))
   [[ $orphans -ge 0 ]] || orphans=0

@@ -66,7 +66,7 @@ stays testable.
 
 | File | Responsibility |
 |---|---|
-| `hm` | Dispatcher only. Bootstrap aware: `hm init` works with no configuration and no database present. |
+| `hm` | Dispatcher only. Bootstrap aware: `hm init` works with no configuration and no database present. It also owns the exit code constants, so that the dispatcher reports its own bootstrap failures with the same contract as the commands. |
 | `config` | Default `KEY=VALUE` configuration template. Parsed as data, never executed. |
 | `core/init.sh` | Create the directories, write the configuration, apply `db/schema.sql`, validate the result. Idempotent. |
 | `core/add.sh` | Registration only: discovery → dedupe → preview → confirm → one transaction. |
@@ -78,7 +78,7 @@ stays testable.
 | `core/backup.sh` | Consistent backup: `sqlite3 .backup` + store + manifest with checksums. |
 | `core/restore.sh` | Validate → stage → verify → activate the restored state. |
 | `core/clean.sh` | Garbage collection: exact reference analysis → preview → confirm → delete. |
-| `lib/common.sh` | Exit codes, error and report helpers, `require_cmd`, `confirm`, temporary files, configuration parsing. |
+| `lib/common.sh` | Error and report helpers, `require_cmd`, `confirm`, temporary files, configuration parsing. The exit code constants live in the dispatcher, there is no second definition. |
 | `lib/logging.sh` | The levels `ERROR`/`WARN`/`INFO`/`DEBUG`, the append only log file, the colour handling. |
 | `lib/paths.sh` | Path normalisation, validation, containment checks, safe joins, the runtime paths. |
 | `lib/database.sh` | The `sqlite3` invocation, the SQL quoting, the transaction helper, the schema version, the hex codec. |
@@ -87,6 +87,44 @@ stays testable.
 | `lib/generations.sh` | The creation of a generation, the materialisation, the listing of the entries. |
 | `lib/validation.sh` | The validation of the runtime directory, the database, the schema version and the store. |
 | `lib/locking.sh` | The `flock` wrapper for `<runtime>/hm.lock`. |
+
+### Every query is checked
+
+A result set is never read through a process substitution:
+
+```bash
+while IFS= read -r row; do … done < <(hm_db_query "SELECT …")   # wrong
+```
+
+Bash discards the exit status of the command inside a process
+substitution. A failing query would look exactly like an empty result and
+the command would act on a state that does not exist. In `hm clean` that
+would have meant: every content object of the store looks unreferenced,
+so every object is deleted.
+
+Every read therefore goes through a helper that writes the rows into a
+variable of the caller **and** returns the status of the query:
+
+| Helper | Fills with |
+|---|---|
+| `hm_db_rows SQL VARIABLE` | the rows of an arbitrary statement |
+| `hm_gen_entries GENERATION_ID VARIABLE` | the entries of a generation |
+| `hm_gen_missing_objects GENERATION_ID VARIABLE` | the objects a generation needs but that are missing |
+| `hm_store_object_hashes VARIABLE` | the hashes of the objects in the store |
+
+The caller checks the status and stops with a clear error:
+
+```bash
+local rows
+if ! hm_db_rows "SELECT …" rows; then
+  hm_die "$HM_EX_DB" "Cannot read the referenced content objects, nothing was removed."
+fi
+```
+
+The single row reads follow the same rule: `hm_db_scalar` is only used when
+its status was checked, and the helpers of `lib/generations.sh`
+(`hm_gen_selected`, `hm_gen_latest`, `hm_gen_exists`) report a database
+failure themselves instead of returning an empty value.
 
 ---
 
