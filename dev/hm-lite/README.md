@@ -23,6 +23,7 @@ userland.
 | Live writes | `hm apply` writes a generation to the real paths with a preview, a per file backup, a manifest, a verification and an automatic rollback. |
 | Backup | `hm backup` creates one consistent archive (database, store, checksum manifest). `hm restore` validates and activates it. |
 | Garbage collection | `hm clean` removes the content objects that no generation uses any more. |
+| Completion | `completions/` completes the commands, their options, the generation ids, the tracked paths and the backup archives for Bash, Zsh and Fish. It never runs `hm`, never takes the lock and never changes the state. |
 | Safety | No `sudo`, no blind `rm -rf`, no raw path interpolation into SQL, an exclusive lock for every mutating command, and a confirmation before anything is changed. |
 
 ---
@@ -107,6 +108,32 @@ cron job.
 
 ---
 
+## Shell completion
+
+Optional completion files for Bash, Zsh and Fish live in `completions/`.
+They are self contained, they never run `hm` and they never change the
+project state: the generation ids are read with a single read-only
+`sqlite3` query, and a missing or unreadable database simply means "no
+dynamic suggestion".
+
+```sh
+# Bash
+source ~/.local/share/hm-lite/completions/hm.bash
+
+# Zsh, after compinit
+source ~/.local/share/hm-lite/completions/hm.zsh
+
+# Fish
+source ~/.local/share/hm-lite/completions/hm.fish
+```
+
+The commands, the options of every command, the generation ids, the
+tracked paths and the backup archives are completed. See
+[docs/completion.md](docs/completion.md) for the permanent installation of
+each shell, the exact scope and the verification notes.
+
+---
+
 ## Configuration
 
 The configuration file is `<runtime>/config`. It is parsed as **data**,
@@ -174,6 +201,7 @@ See [docs/testing.md](docs/testing.md).
 | [docs/architecture.md](docs/architecture.md) | The two roots, the module map, the data flow, the design decisions. |
 | [docs/database-schema.md](docs/database-schema.md) | The tables, the relations, the invariants. |
 | [docs/commands.md](docs/commands.md) | Every command, its options, its output and its errors. |
+| [docs/completion.md](docs/completion.md) | The Bash, Zsh and Fish completion: activation, scope, dynamic suggestions, limits. |
 | [docs/safety.md](docs/safety.md) | The safety model, the backups, the rollback and the known limits. |
 | [docs/testing.md](docs/testing.md) | The test harness and the test inventory. |
 

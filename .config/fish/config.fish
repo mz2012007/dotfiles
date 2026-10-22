@@ -23,6 +23,9 @@ end
 for n in $HOME/.config/fish/myfunc/*.fish
     source $n
 end
+for n in $HOME/.config/fish/myfunc/completions/*
+    source $n
+end
 
 # ENV VARIABLES
 set -Ux desktop_session sway
@@ -197,3 +200,4 @@ end
 
 # opencode
 fish_add_path /home/mz/.opencode/bin
+fish_add_path /home/mz/dev/hm-lite

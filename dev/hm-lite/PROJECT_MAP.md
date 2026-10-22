@@ -15,6 +15,7 @@
 | Locking | `flock` (util-linux) | 2.41.4 | 2.41.x | Project-level exclusive lock for mutating commands |
 | Files | `find` 4.10.0, `install`/`stat`/`readlink`/`mv` coreutils 9.4, `tar` 1.35 | — | — | NUL-delimited traversal (`-print0`) |
 | Static analysis | ShellCheck | **0.11.0 (installed)** | 0.11.0 (2025-08-03) | Installed and **running** in the test suite: 0 findings. The runner still skips the step gracefully when the binary is absent. |
+| Completion | Bash builtins (`compgen`/`mapfile`/`compopt`), Zsh `compinit`/`compadd`/`_describe`, Fish `complete` | Bash 5.3.0, Fish 4.9.3, Zsh 5.9 (verified in a container) | — | Three self-contained files in `completions/`, **no shared library and no installer**. Bash does not need the `bash-completion` package. Zsh is not installed on the host, so the suite skips its two tests with an explicit `SKIP` line. |
 | OS | Void Linux, kernel 7.2.3 | — | — | Target: POSIX-ish Linux, GNU userland |
 
 ---
@@ -64,6 +65,19 @@ hm <command> [args]
                             (a failing query = exit 5, an unreadable store = exit 9,
                              nothing is removed in either case)
 
+[Completion — outside the dispatcher]
+
+hm <TAB>, hm <cmd> <TAB>   ──► completions/hm.{bash,zsh,fish}  (sourced by the shell, never by hm)
+        │                      ├── static tables: 10 commands + help + -h/--help/--version,
+        │                      │                   and the options of the current command only
+        │                      └── paths: filesystem completion + tracked paths
+        │                                (SELECT path FROM paths ORDER BY path)
+        │
+        └── dynamic ──► sqlite3 -readonly -noheader -list <runtime>/db.sqlite
+                           'SELECT id FROM generations ORDER BY created_at DESC, id DESC;'
+                        (newest first, like hm list; no hm invocation, no project lock,
+                         no write of any kind; any failure = no suggestion, exit 0)
+
 A declined confirmation ends every command that asks for one with exit
 code **7**. A script can therefore tell "the user said no" apart from "the
 command did its work".
@@ -78,7 +92,7 @@ command did its work".
 | Root | Env | Default | Contains |
 |---|---|---|---|
 | **Runtime dir** | `HM_DIR` | `~/.config/hm-lite` | `db.sqlite`, `store/objects/`, `current/`, `testing/`, `backup/`, `logs/`, `tmp/`, `config`, `hm.lock` |
-| **Code dir** | `HM_CODE_DIR` | realpath of the `hm` script | `hm`, `core/`, `lib/`, `db/schema.sql`, `db/migrations/`, `tests/`, `docs/` |
+| **Code dir** | `HM_CODE_DIR` | realpath of the `hm` script | `hm`, `core/`, `lib/`, `completions/`, `db/schema.sql`, `db/migrations/`, `tests/`, `docs/` |
 
 Schema resolution order (single authoritative file, never duplicated in Bash):
 `$HM_SCHEMA_FILE` → `<code_dir>/db/schema.sql` → `<runtime_dir>/db/schema.sql`
@@ -108,6 +122,21 @@ Schema resolution order (single authoritative file, never duplicated in Bash):
 | `lib/generations.sh` | Generation creation, materialization, entry listing. |
 | `lib/validation.sh` | Validate runtime dir, db, schema version, store integrity. |
 | `lib/locking.sh` | `flock` wrapper (exclusive / shared) on `<runtime_dir>/hm.lock`. |
+| `completions/hm.bash` | Bash completion: `_hm` + `complete -o filenames -F _hm hm`. Builtins only, self-contained. |
+| `completions/hm.zsh` | Zsh completion: `#compdef hm`, `_hm`. Works through `source` and through autoload as `_hm`. |
+| `completions/hm.fish` | Fish completion: `complete -c hm` rules, no helper file. |
+
+The `completions/` directory is a **consumer of the command surface**, not a
+layer of the application. It is never loaded by `hm`, never writes, never
+takes the project lock and never runs a command. The generation ids come
+from one read-only `sqlite3` query against `<runtime>/db.sqlite` (the same
+`ORDER BY created_at DESC, id DESC` as `hm list`); anything that fails —
+missing file, unreadable file, damaged file — is treated as "no dynamic
+suggestion" and not as an error. The only schema knowledge outside
+`db/schema.sql` and `lib/` are that one-line query and
+`SELECT path FROM paths ORDER BY path`, deliberately duplicated in the
+three files: a shared library would have to be sourced by three different
+shells.
 
 ### Data model (schema v1 — authoritative file `db/schema.sql`)
 
@@ -179,6 +208,11 @@ returns exit code 7 (decision M), `hm backup` lost its inert `--yes` flag
 (decision N) and the exit code constants moved into the dispatcher
 (decision O). ShellCheck is installed and the project has **0 findings**.
 
+The completion phase added three optional shell files (decision Q). It
+added no command, no option, no runtime dependency and no installation
+step to the application: the completion is a consumer that the user sources
+manually, and `hm` is unchanged by it.
+
 ### Closed decisions
 
 | ID | Decision | Status |
@@ -199,6 +233,7 @@ returns exit code 7 (decision M), `hm backup` lost its inert `--yes` flag
 | N | `hm backup` has **no** `--yes` flag: the backup never changes the project state and therefore never prompts (it must stay scriptable for cron) | DECIDED — implemented in `core/backup.sh`; the flag is rejected with exit 2 |
 | O | The exit code constants live in the dispatcher (`hm`), the libraries use them, there is no second definition | DECIDED — implemented in `hm`; `HM_EX_OK`/`HM_EX_ERROR` are used for the bootstrap failures |
 | P | Every database and store read is checked; a failed query is never an empty result | DECIDED — implemented via the out-variable helpers; `clean` refuses to remove anything when a read fails |
+| Q | Completion = three independent, self-contained files (`completions/hm.bash`, `hm.zsh`, `hm.fish`) with **no** shared library and **no** installer. The dynamic part is a direct read-only `sqlite3` query, not `hm list`: no lock, no write, no `PRAGMA integrity_check`, and every failure degenerates to "no suggestion" with exit 0. Commands and options are hard-coded from the real CLI surface (`backup` has no `--yes`), positional arguments are only completed while they are still valid. | DECIDED — implemented; covered by `tests/cases/09_completion.sh` (18 tests). Zsh is verified in a container because it is not installed on the host (documented limit) |
 
 ### Legacy artifacts
 
@@ -225,10 +260,14 @@ returns exit code 7 (decision M), `hm backup` lost its inert `--yes` flag
 | 7 | `backup` / `restore` | DONE — `tests/cases/07_backup.sh` (11 tests) |
 | 8 | `clean` (GC) | DONE — `tests/cases/08_clean.sh` (10 tests) |
 | 9 | Hardening, static analysis, documentation | DONE — `docs/`, `README.md`, `db/migrations/README.md`, **105 checks green** |
+| 10 | Shell completion (Bash, Zsh, Fish) | DONE — `completions/`, `docs/completion.md`, `tests/cases/09_completion.sh` (18 tests); **123 checks green** on the host, 2 Zsh tests skipped there |
 
-Test totals: **105 checks, 105 passing** (`./tests/run.sh`) = 103 test
+Test totals: **123 checks, 123 passing** (`./tests/run.sh`) = 121 test
 cases + `bash -n` syntax check + ShellCheck (0 findings). The runner
-reports 104 checks when ShellCheck is not on the `PATH`.
+reports 122 checks when ShellCheck is not on the `PATH`. On this host the
+two Zsh tests print an explicit `SKIP` line (Zsh is not installed) and
+count as passed without exercising the Zsh completion; a missing
+interpreter never fails the suite.
 
 ### Documentation
 
@@ -240,6 +279,7 @@ reports 104 checks when ShellCheck is not on the `PATH`.
 | `docs/commands.md` | Every command with its options, its output and its errors. |
 | `docs/safety.md` | The safety model, the live write path, the backup, the known limits. |
 | `docs/testing.md` | The harness, the assertions, the test inventory, the static analysis. |
+| `docs/completion.md` | The Bash, Zsh and Fish completion: activation, scope, dynamic suggestions, requirements, verification, limits. |
 | `db/migrations/README.md` | The naming convention and the rules of a schema migration. |
 
 ### Known gaps / documented limits (not pending work)
@@ -260,3 +300,14 @@ reports 104 checks when ShellCheck is not on the `PATH`.
   generation, that is not absolute or that is the root of the filesystem; it never writes
   through a link.
 - `hm` never escalates privileges: no `sudo`, no setuid helper, no `su`, no daemon.
+- Completion is a snapshot taken at the moment of `<TAB>`; a generation
+  created in another terminal afterwards does not appear in an already
+  opened menu.
+- Completion reads `generations.id` and `paths.path` directly. A schema
+  migration has to update `completions/hm.bash`, `hm.zsh` and `hm.fish`
+  together (decision Q).
+- Zsh is not installed on the development host. The Zsh completion was
+  verified with `zsh -n`, a `compinit` registration check, a behavioural
+  harness with stubbed completion primitives and a real interactive
+  pseudo terminal inside a Debian container (Zsh 5.9); on the host the
+  suite prints `SKIP` for its two Zsh tests.

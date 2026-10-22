@@ -87,6 +87,18 @@ stays testable.
 | `lib/generations.sh` | The creation of a generation, the materialisation, the listing of the entries. |
 | `lib/validation.sh` | The validation of the runtime directory, the database, the schema version and the store. |
 | `lib/locking.sh` | The `flock` wrapper for `<runtime>/hm.lock`. |
+| `completions/hm.bash` | Bash completion. Self contained builtins only, no `bash-completion` dependency. |
+| `completions/hm.zsh` | Zsh completion. Loaded with `source` or autoloaded as `_hm` by `compinit`. |
+| `completions/hm.fish` | Fish completion. Loaded with `source` or by the `completions/` directory of Fish. |
+
+The `completions/` directory is a consumer of the command surface, not a
+layer of the application: it is never loaded by `hm`, it never writes, it
+never takes the lock and it treats a failed database read as "no dynamic
+suggestion" instead of an error. The only schema knowledge outside
+`db/schema.sql` and `lib/` are two one-line read-only queries
+(`generations.id`, `paths.path`), duplicated in the three files on purpose:
+the alternative would be a fourth shared library that none of the shells
+could source.
 
 ### Every query is checked
 

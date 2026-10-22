@@ -90,6 +90,7 @@ collect_shell_files() {
     "$PROJECT_ROOT/hm" \
     "$PROJECT_ROOT"/lib/*.sh \
     "$PROJECT_ROOT"/core/*.sh \
+    "$PROJECT_ROOT"/completions/hm.bash \
     "$PROJECT_ROOT"/tests/run.sh \
     "$PROJECT_ROOT"/tests/lib/*.sh \
     "$PROJECT_ROOT"/tests/cases/*.sh

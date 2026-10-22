@@ -81,9 +81,10 @@ the code under test to check its own work.
 | `tests/cases/06_apply.sh` | The live write path: the classification, the backup, the manifest, the conflicts, the rollback. | 16 |
 | `tests/cases/07_backup.sh` | `backup` and `restore`: the archive, the manifest, the validation, the activation. | 11 |
 | `tests/cases/08_clean.sh` | The garbage collection: the reference analysis, the removal, the missing objects. | 10 |
+| `tests/cases/09_completion.sh` | The three completion files: the commands, the options per command, the argument ranges, the generation ids, the paths with spaces, the fail-safe behaviour without a database, the absence of side effects. | 18 |
 
-**103 test cases**, plus the static analysis. The runner reports 104 checks
-when ShellCheck is missing and 105 when it is installed.
+**121 test cases**, plus the static analysis. The runner reports 122 checks
+when ShellCheck is missing and 123 when it is installed.
 
 ---
 
@@ -125,6 +126,21 @@ have an explicit test:
 * A failing query stops the command instead of producing an empty result:
   `hm list` and `hm clean` report the database failure, and `hm clean`
   removes nothing when the store cannot be read.
+* The completion never changes the project: a fingerprint of the project
+  directory, the database and the files of the store is identical before
+  and after the completion calls, and no journal, WAL or shared memory file
+  appears.
+* The completion fails safe: without a database, and with a database that
+  is not a database, it exits 0, offers no generation id, prints no shell
+  error and does not create the database as a side effect.
+* The completion never offers an option outside its command (`backup` has
+  no `--yes`) and never offers an argument after a positional one that is
+  already complete (`switch 1 <TAB>` offers nothing).
+
+The Fish and Zsh tests need an optional interpreter. When `fish` or `zsh`
+is not on the `PATH` the affected tests print an explicit `SKIP` line on
+stderr and pass without executing that completion; the Bash tests always
+run.
 
 ---
 
