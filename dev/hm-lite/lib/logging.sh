@@ -24,8 +24,8 @@ HM_C_YELLOW=''
 HM_C_BLUE=''
 HM_C_CYAN=''
 HM_C_BOLD=''
-HM_LOG_LEVEL="INFO"
-HM_LOG_FILE="1"
+HM_LOG_LEVEL="${HM_LOG_LEVEL:-INFO}"
+HM_LOG_FILE="${HM_LOG_FILE:-1}"
 
 # hm_log_init
 # Prepare the colour palette. Colours are disabled automatically when the
@@ -117,10 +117,4 @@ hm_log_debug() {
   hm_log_level_enabled DEBUG || return 0
   printf '%s[DEBUG]%s %s\n' "$HM_C_CYAN" "$HM_C_RESET" "$*" >&2
   hm_log_write DEBUG "$*"
-}
-
-# hm_log_plain MESSAGE
-# Print a message without a level prefix. Used for help text.
-hm_log_plain() {
-  printf '%s\n' "$*"
 }

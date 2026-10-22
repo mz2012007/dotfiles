@@ -66,6 +66,18 @@ hm_hex_decode() {
   return 0
 }
 
+# hm_hex_encode TEXT
+# Print the hexadecimal representation of TEXT. The encoding is byte exact
+# and locale independent.
+hm_hex_encode() {
+  local value="$1"
+
+  [[ -n "$value" ]] || return 0
+
+  printf '%s' "$value" | od -An -v -tx1 | tr -d ' \n'
+  return 0
+}
+
 # --- Running statements ---------------------------------------------------
 
 # _hm_sqlite_header - the connection settings of every statement.
@@ -151,13 +163,6 @@ hm_db_tx() {
 # hm_db_schema_version - print the schema version of the project database.
 hm_db_schema_version() {
   hm_db_scalar 'PRAGMA user_version;'
-}
-
-# hm_db_set_schema_version VERSION
-hm_db_set_schema_version() {
-  local version
-  version="$(hm_sql_int "$1")"
-  hm_db_exec "PRAGMA user_version = $version;"
 }
 
 # hm_db_apply_schema FILE

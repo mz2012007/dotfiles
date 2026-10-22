@@ -185,6 +185,9 @@ HM_CONFIG_KEYS=(
 # Parse a KEY=VALUE configuration file as *data*. The file is never executed,
 # it is not sourced, therefore it cannot run arbitrary code. Missing files
 # are not an error, malformed lines are reported and ignored.
+#
+# A value that is already present in the environment wins over the file. The
+# environment is the more specific instruction of the user.
 hm_config_load() {
   local file="$1"
   local line key value
@@ -217,10 +220,29 @@ hm_config_load() {
       continue
     fi
 
+    if hm_config_key_from_environment "$key"; then
+      hm_log_debug "Keeping the environment value of $key."
+      continue
+    fi
+
     printf -v "$key" '%s' "$value"
   done < "$file"
 
   return 0
+}
+
+# hm_config_key_from_environment KEY
+# Return 0 when KEY was present in the environment of the process.
+hm_config_key_from_environment() {
+  local candidate="$1" name
+
+  for name in "${HM_ENV_KEYS[@]:-}"; do
+    if [[ "$name" == "$candidate" ]]; then
+      return 0
+    fi
+  done
+
+  return 1
 }
 
 # hm_config_key_known KEY

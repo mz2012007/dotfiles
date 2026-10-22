@@ -89,6 +89,21 @@ hm_load_libs() {
   done
 }
 
+# Collect the HM_* variables that the environment provides. The environment
+# wins over the configuration file, therefore the names are recorded before
+# the libraries are loaded and before they set their own defaults.
+hm_collect_environment() {
+  local name
+
+  HM_ENV_KEYS=()
+  for name in $(compgen -v); do
+    case "$name" in
+      HM_*) HM_ENV_KEYS+=("$name") ;;
+    esac
+  done
+  return 0
+}
+
 # ---------------------------------------------------------------------------
 # Usage
 # ---------------------------------------------------------------------------
@@ -167,6 +182,7 @@ main() {
     exit 2
   fi
 
+  hm_collect_environment
   hm_load_libs
 
   # Derive every runtime path from the project directory. This only

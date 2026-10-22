@@ -37,8 +37,8 @@ test_switch_materializes_the_generation() {
   run_hm switch 1
 
   assert_rc 0 "$HM_STATUS" "switch succeeds"
-  assert_file_exists "$HM_DIR/current$SRC_DIR/sub/a.txt" "the file was materialized"
-  assert_file_content "$HM_DIR/current$SRC_DIR/sub/a.txt" "hello" "the content is correct"
+  assert_file_exists "$CURRENT_DIR$SRC_DIR/sub/a.txt" "the file was materialized"
+  assert_file_content "$CURRENT_DIR$SRC_DIR/sub/a.txt" "hello" "the content is correct"
 }
 
 test_switch_mirrors_the_absolute_paths() {
@@ -47,12 +47,11 @@ test_switch_mirrors_the_absolute_paths() {
   run_hm switch 1
 
   assert_rc 0 "$HM_STATUS" "switch succeeds"
-  assert_file_exists "$HM_DIR/current$SRC_DIR" "the directory was materialized"
-  assert_file_exists "$HM_DIR/current$SRC_DIR/sub" "the sub directory was materialized"
-  # The tree is rooted at the runtime directory, the absolute path of the
-  # entry is appended to it.
-  assert_contains "$HM_DIR/current$SRC_DIR/sub/a.txt" "$SRC_DIR" \
-    "the absolute path of the entry is mirrored below current/"
+  assert_file_exists "$CURRENT_DIR$SRC_DIR" "the directory was materialized"
+  assert_file_exists "$CURRENT_DIR$SRC_DIR/sub" "the sub directory was materialized"
+  # The absolute path of the entry is appended to the runtime directory.
+  assert_contains "$CURRENT_DIR$SRC_DIR/sub/a.txt" "$SRC_DIR" \
+    "the absolute path is mirrored below current/"
 }
 
 test_switch_replaces_the_previous_tree() {
@@ -61,14 +60,14 @@ test_switch_replaces_the_previous_tree() {
   run_hm switch 1
   assert_rc 0 "$HM_STATUS" "the first switch succeeds"
 
-  printf 'changed\n' > "$HM_DIR/current$SRC_DIR/sub/a.txt"
-  printf 'stale\n' > "$HM_DIR/current/stale.txt"
+  printf 'changed\n' > "$CURRENT_DIR$SRC_DIR/sub/a.txt"
+  printf 'stale\n' > "$CURRENT_DIR/stale.txt"
 
   run_hm switch 1
   assert_rc 0 "$HM_STATUS" "the second switch succeeds"
 
-  assert_file_absent "$HM_DIR/current/stale.txt" "the old tree was removed"
-  assert_file_content "$HM_DIR/current$SRC_DIR/sub/a.txt" "hello" "the tree was restored"
+  assert_file_absent "$CURRENT_DIR/stale.txt" "the old tree was removed"
+  assert_file_content "$CURRENT_DIR$SRC_DIR/sub/a.txt" "hello" "the tree was restored"
 }
 
 test_switch_records_the_selected_generation() {
@@ -94,7 +93,7 @@ test_switch_restores_the_recorded_mode() {
   run_hm switch 1
 
   assert_rc 0 "$HM_STATUS" "switch succeeds"
-  assert_eq "640" "$(stat -c '%a' -- "$HM_DIR/current$SRC_DIR/a.txt")" \
+  assert_eq "640" "$(stat -c '%a' -- "$CURRENT_DIR$SRC_DIR/a.txt")" \
     "the recorded mode was restored"
 }
 
@@ -122,7 +121,7 @@ test_switch_fails_when_an_object_is_missing() {
   run_hm switch 1
 
   assert_rc 6 "$HM_STATUS" "switch fails with the store status"
-  assert_file_absent "$HM_DIR/current$SRC_DIR/sub/a.txt" "nothing was materialized"
+  assert_file_absent "$CURRENT_DIR$SRC_DIR/sub/a.txt" "nothing was materialized"
 }
 
 test_switch_rejects_an_unknown_generation() {
@@ -151,8 +150,8 @@ test_discard_copies_the_current_tree() {
   run_hm discard
 
   assert_rc 0 "$HM_STATUS" "discard succeeds"
-  assert_file_exists "$HM_TESTING_DIR$SRC_DIR/sub/a.txt" "the tree was copied"
-  assert_file_content "$HM_TESTING_DIR$SRC_DIR/sub/a.txt" "hello" "the content is correct"
+  assert_file_exists "$TESTING_DIR$SRC_DIR/sub/a.txt" "the tree was copied"
+  assert_file_content "$TESTING_DIR$SRC_DIR/sub/a.txt" "hello" "the content is correct"
 }
 
 test_discard_replaces_the_testing_workspace() {
@@ -162,14 +161,14 @@ test_discard_replaces_the_testing_workspace() {
   run_hm discard
   assert_rc 0 "$HM_STATUS" "the first discard succeeds"
 
-  printf 'changed\n' > "$HM_TESTING_DIR$SRC_DIR/sub/a.txt"
-  printf 'stale\n' > "$HM_TESTING_DIR/stale.txt"
+  printf 'changed\n' > "$TESTING_DIR$SRC_DIR/sub/a.txt"
+  printf 'stale\n' > "$TESTING_DIR/stale.txt"
 
   run_hm discard
 
   assert_rc 0 "$HM_STATUS" "the second discard succeeds"
-  assert_file_absent "$HM_TESTING_DIR/stale.txt" "the old content was removed"
-  assert_file_content "$HM_TESTING_DIR$SRC_DIR/sub/a.txt" "hello" "the content was restored"
+  assert_file_absent "$TESTING_DIR/stale.txt" "the old content was removed"
+  assert_file_content "$TESTING_DIR$SRC_DIR/sub/a.txt" "hello" "the content was restored"
 }
 
 test_discard_requires_a_switched_generation() {

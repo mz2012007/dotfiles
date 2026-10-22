@@ -37,6 +37,10 @@ _test_setup() {
   export HM_DIR
   unset HM_CODE_DIR
 
+  # The test workspace lives outside of the home directory, the apply
+  # command therefore needs the explicit permission.
+  export HM_ALLOW_OUTSIDE_HOME=1
+
   if [[ "$mode" != "raw" ]]; then
     _test_init
   fi
@@ -72,7 +76,9 @@ _test_teardown() {
 run_hm() {
   local out status
 
-  out="$("$HM_BIN" "$@" 2>&1)"
+  # Standard input is closed, a command that asks for a confirmation must
+  # not block the test run.
+  out="$("$HM_BIN" "$@" 2>&1 </dev/null)"
   status=$?
 
   HM_OUTPUT="$out"
@@ -82,12 +88,13 @@ run_hm() {
 
 # run_hm_input INPUT ARGUMENTS...
 # Runs hm with INPUT on standard input, used for the confirmation prompts.
+# The input may use the escape "\n" instead of a real line break.
 run_hm_input() {
   local input="$1"
   shift
   local out status
 
-  out="$(printf '%s' "$input" | "$HM_BIN" "$@" 2>&1)"
+  out="$(printf '%b' "$input" | "$HM_BIN" "$@" 2>&1)"
   status=$?
 
   HM_OUTPUT="$out"

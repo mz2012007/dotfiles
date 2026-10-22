@@ -76,6 +76,78 @@ for case_file in "$HERE"/cases/*.sh; do
   done
 done
 
+# ---------------------------------------------------------------------------
+# Static analysis
+# ---------------------------------------------------------------------------
+
+# The shell files of the project.
+collect_shell_files() {
+  printf '%s\n' \
+    "$PROJECT_ROOT/hm" \
+    "$PROJECT_ROOT"/lib/*.sh \
+    "$PROJECT_ROOT"/core/*.sh \
+    "$PROJECT_ROOT"/tests/run.sh \
+    "$PROJECT_ROOT"/tests/lib/*.sh \
+    "$PROJECT_ROOT"/tests/cases/*.sh
+}
+
+# run_syntax_check - every shell file must parse.
+run_syntax_check() {
+  local file failures=0
+
+  while IFS= read -r file; do
+    [[ -f "$file" ]] || continue
+    if ! bash -n -- "$file"; then
+      printf '  SYNTAX ERROR %s\n' "$file" >&2
+      failures=$((failures + 1))
+    fi
+  done < <(collect_shell_files)
+
+  return "$failures"
+}
+
+# run_shellcheck - the static analysis, when the tool is available.
+run_shellcheck() {
+  local file failures=0
+
+  while IFS= read -r file; do
+    [[ -f "$file" ]] || continue
+    if ! shellcheck -x -S style -e SC1090,SC1091 -- "$file"; then
+      failures=$((failures + 1))
+    fi
+  done < <(collect_shell_files)
+
+  return "$failures"
+}
+
+printf '\n== static analysis\n'
+
+total=$((total + 1))
+
+if run_syntax_check; then
+  passed=$((passed + 1))
+  printf '  PASS every shell file parses\n'
+else
+  failed=$((failed + 1))
+  failed_names+=("static analysis: syntax")
+  printf '  FAIL a shell file does not parse\n'
+fi
+
+if command -v shellcheck > /dev/null 2>&1; then
+  total=$((total + 1))
+
+  if run_shellcheck; then
+    passed=$((passed + 1))
+    printf '  PASS shellcheck found no problem\n'
+  else
+    failed=$((failed + 1))
+    failed_names+=("static analysis: shellcheck")
+    printf '  FAIL shellcheck found a problem\n'
+  fi
+else
+  printf '  SKIP shellcheck is not installed, the static analysis was not run.\n'
+fi
+
 printf '\n---------------------------------------------\n'
 printf 'total: %d   passed: %d   failed: %d\n' "$total" "$passed" "$failed"
 

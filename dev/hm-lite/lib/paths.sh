@@ -78,36 +78,6 @@ hm_path_is_under() {
   [[ "$path" == "$root" || "$path" == "$root/"* ]]
 }
 
-# hm_path_join BASE RELATIVE
-# Join a normalized base directory with a relative component.
-hm_path_join() {
-  local base="$1" rest="$2"
-
-  if [[ "$base" == "/" ]]; then
-    printf '/%s\n' "${rest#/}"
-  else
-    printf '%s/%s\n' "${base%/}" "${rest#/}"
-  fi
-}
-
-# hm_path_basename PATH
-hm_path_basename() {
-  local path="$1"
-  printf '%s\n' "${path##*/}"
-}
-
-# hm_path_dirname PATH
-hm_path_dirname() {
-  local path="$1"
-  if [[ "$path" == */* && "$path" != /* ]]; then
-    printf '%s\n' "${path%/*}"
-  elif [[ "$path" == /* ]]; then
-    printf '/\n'
-  else
-    printf '.\n'
-  fi
-}
-
 # hm_path_display PATH
 # Render a path for a single line log message. Control characters are
 # escaped so that a log line is never broken by a hostile file name.

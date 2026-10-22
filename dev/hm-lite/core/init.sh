@@ -106,11 +106,19 @@ hm_init_database() {
 
 # init - initialize the HM-Lite project.
 init() {
-  local algorithm
+  local algorithm argument
 
-  if [[ $# -gt 0 ]]; then
-    hm_die "$HM_EX_USAGE" "Usage: hm init"
-  fi
+  for argument in "$@"; do
+    case "$argument" in
+      -h | --help)
+        printf 'Usage: hm init\n'
+        return 0
+        ;;
+      *)
+        hm_die "$HM_EX_USAGE" "Usage: hm init"
+        ;;
+    esac
+  done
 
   algorithm="$(hm_config_get HM_HASH_ALGORITHM sha256)"
   if [[ "$algorithm" != "sha256" ]]; then

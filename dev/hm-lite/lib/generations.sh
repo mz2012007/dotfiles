@@ -34,11 +34,6 @@ hm_gen_set_selected() {
               ON CONFLICT(key) DO UPDATE SET value = excluded.value;"
 }
 
-# hm_gen_clear_selected
-hm_gen_clear_selected() {
-  hm_db_exec "DELETE FROM state WHERE key = 'selected_generation';"
-}
-
 # hm_gen_exists GENERATION_ID
 hm_gen_exists() {
   local id count

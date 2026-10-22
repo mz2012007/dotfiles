@@ -41,13 +41,3 @@ hm_lock_acquire() {
   hm_log_debug "Acquired $mode project lock."
   return 0
 }
-
-# hm_lock_release - release the project lock.
-hm_lock_release() {
-  if [[ -n "${HM_LOCK_FD:-}" ]]; then
-    flock -u "$HM_LOCK_FD" 2>/dev/null || true
-    exec {HM_LOCK_FD}>&- 2>/dev/null || true
-    HM_LOCK_FD=""
-  fi
-  return 0
-}
