@@ -1,7 +1,7 @@
 # PROJECT_MAP — HM-Lite
 
 > External memory for the HM-Lite project. Source of truth for architecture context.
-> Last updated: 2026-10-22 (system date verified via `date`).
+> Last updated: 2026-10-23 (system date verified via `date`).
 
 ---
 
@@ -54,6 +54,15 @@ hm <command> [args]
         │                   ──► reuses hm_gen_entries + hm_gen_missing_objects
         │                   (missing store objects are reported, never repaired)
         │
+        ├── hm diff <gen...> ──► read-only (shared lock): consecutive pairs in the given order
+        │                   ──► type / content hash / mode / owner / gid / size
+        │                   ──► mtime ignored (apply ignores it too)
+        │                   ──► never opens the store; a difference is exit 0
+        │
+        ├── hm edit <gen> ──► LOCK ──► preview old -> new ──► confirm
+        │                   ──► one TX: UPDATE generations.name + comment
+        │                   (entries, parent and selection untouched)
+        │
         ├── hm switch <gen> ──► validate gen + objects ──► materialize staging
         │                   ──► atomic rename ──► current/  (live FS untouched)
         │
@@ -83,7 +92,7 @@ hm <command> [args]
 [Completion — outside the dispatcher]
 
 hm <TAB>, hm <cmd> <TAB>   ──► completions/hm.{bash,zsh,fish}  (sourced by the shell, never by hm)
-        │                      ├── static tables: 13 commands + help + -h/--help/--version,
+        │                      ├── static tables: 15 commands + help + -h/--help/--version,
         │                      │                   and the options of the current command only
         │                      └── paths: filesystem completion + tracked paths
         │                                (SELECT path FROM paths ORDER BY path)
@@ -124,6 +133,8 @@ Schema resolution order (single authoritative file, never duplicated in Bash):
 | `core/list.sh` | Read-only views: generations, entries, pending, store stats. |
 | `core/status.sh` | Read-only dashboard: project, store space (referenced / unreferenced / missing) and every generation with its distinct-object size. |
 | `core/show.sh` | Read-only detail view of one generation: metadata block plus the rich entry table (owner, group, mtime, full path). |
+| `core/diff.sh` | Read-only comparison of two or more generations: consecutive pairs in the given order, type/content hash/mode/owner/gid/size, mtime ignored; never opens the store; a difference exits 0. |
+| `core/edit.sh` | Metadata edit of one generation: exclusive lock, preview, one `UPDATE` (name + comment); entries, parent and selection untouched. |
 | `core/switch.sh` | Select generation + materialize into `current/` (atomic). Never touches live FS. |
 | `core/delete.sh` | Delete one generation and its entries in a single TX; refuses the selected generation; leaves the orphan objects to `hm clean`. |
 | `core/apply.sh` | Live-filesystem write path. Preview → backup → confirm → stage → verify → rollback. |
@@ -174,7 +185,9 @@ state(key PK, value)  ── 'selected_generation'
 Invariants:
 - `paths.path` UNIQUE; `files.hash` UNIQUE; `generation_entries` PK `(generation_id, path_id)`.
 - Foreign keys ON on every connection. `files` referenced by entries → `ON DELETE RESTRICT`.
-- Generations are immutable: entries are never rewritten, only inserted.
+- Generations are immutable snapshots: entries are never rewritten, only inserted.
+  The name and the comment are labels for the human reader and can be changed
+  with `hm edit` (decision T); the entries and the content objects stay untouched.
 - Deleting a generation is one TX (`generation_entries`, then `generations`): the
   selected generation is refused (exit 3), `parent_id ON DELETE SET NULL` keeps the
   children readable, and the released content objects are reclaimed only by `hm clean`.
@@ -249,6 +262,14 @@ runtime dependency and no second store walker: the command reuses
 content objects a generation references, so shared content is counted once
 and a generation never appears larger than the store.
 
+The colour/metadata/diff round coloured the standard output of every
+command with the stdout palette, added `hm edit` (decision T) and
+`hm diff` (decision U). It added no command to the store path, no schema
+change and no new runtime dependency: `edit` performs one `UPDATE`,
+`diff` reuses `hm_gen_entries` and never opens the content store. The only
+new test dependency remains optional (`script` for the pseudo terminal
+check).
+
 ### Closed decisions
 
 | ID | Decision | Status |
@@ -272,6 +293,8 @@ and a generation never appears larger than the store.
 | Q | Completion = three independent, self-contained files (`completions/hm.bash`, `hm.zsh`, `hm.fish`) with **no** shared library and **no** installer. The dynamic part is a direct read-only `sqlite3` query, not `hm list`: no lock, no write, no `PRAGMA integrity_check`, and every failure degenerates to "no suggestion" with exit 0. Commands and options are hard-coded from the real CLI surface (`backup` has no `--yes`), positional arguments are only completed while they are still valid. | DECIDED — implemented; covered by `tests/cases/09_completion.sh` (18 tests). Zsh is verified in a container because it is not installed on the host (documented limit) |
 | R | `hm show` = read-only detail view (shared lock, metadata + rich entry table, reuses `hm_gen_entries`); `hm delete` = one transaction (`generation_entries`, then `generations`), refuses the selected generation (exit 3), lets `ON DELETE SET NULL` clear the children and leaves the unreferenced objects to `hm clean`; colours: a non-empty `NO_COLOR` always disables, otherwise `HM_COLOR=always/never` wins over the `auto` detection, and each stream gets its own palette (stderr diagnostics, stdout output) | DECIDED — implemented in `core/show.sh`, `core/delete.sh`, `lib/logging.sh`; covered by `10_show.sh` (12), `11_delete.sh` (15), `12_color.sh` (8) |
 | S | `hm status` = read-only dashboard (shared lock, no argument except `-h/--help`). Store space is the on-disk byte sum, classified in one pass as referenced (used by ≥1 generation), unreferenced (garbage for `hm clean`) or missing (needed but absent). A generation's size is the sum of its **distinct** content objects (`files.size` once per hash), so shared content is never double counted. Sizes are human readable with the exact byte count next to the store totals (`hm_format_bytes`, binary units, locale-safe integer arithmetic). Colours reuse the stdout palette: bold headings, cyan selection, yellow unreferenced, red missing, green clean. | DECIDED — implemented in `core/status.sh` + `lib/common.sh`; covered by `13_status.sh` (15 tests) |
+| T | `hm edit` = metadata edit of an **existing** generation (the name and the comment already existed at creation time via `hm gen --name/--comment`). At least one of `--name`, `--comment`, `--clear-name`, `--clear-comment` is required; an empty value is refused and removal has an explicit flag; `--name`+`--clear-name` (and the comment pair) conflict. Exclusive lock, preview + confirmation, one `UPDATE` in one transaction. The selected generation may be edited: the entries, the parent, the selection and the store are untouched, because a generation is immutable as a snapshot and the labels are not part of the snapshot. Unknown generation = exit 4 (same as show/delete/switch), declined = 7, failing update = 5. | DECIDED — implemented in `core/edit.sh`; covered by `14_edit.sh` (20 tests) |
+| U | `hm diff` = compare two or more generations, every consecutive pair in the **given** order (`hm diff 1 2 3` = 1→2 and 2→3). An entry is compared by type, content hash, mode, owner, group and size; mtime is deliberately ignored because `hm apply` ignores it too and a copy updates it without changing the content. Markers `+`/`-`/`~`/`=` (`=` only with `--all`), with a per-pair summary. Read-only shared lock, never opens the store (recorded hashes), duplicate ids rejected, unknown generation = 4. A difference is a normal result: the command always exits 0; exit 1 stays reserved for generic runtime failures. | DECIDED — implemented in `core/diff.sh`; covered by `15_diff.sh` (19 tests) |
 
 ### Legacy artifacts
 
@@ -281,9 +304,13 @@ and a generation never appears larger than the store.
   **Not reused.** Nothing of it is referenced by HM-Lite, and it is not
   part of this project. The git history keeps the old code, the working
   tree of `dev/hm/` was left untouched by the HM-Lite work.
-- **Nothing is committed.** The whole HM-Lite project lives in the working
-  tree of `dev/hm-lite/`. The repository also holds unrelated unstaged
-  changes (`dev/hm/test/k1`) that were not touched.
+- **The implementation is committed.** The snapshot commit
+  `e9a6271` (`5th-paused hm-lite`) contains the code, the tests,
+  `docs/commands.md` and `docs/architecture.md`. The remaining
+  documentation sync (`PROJECT_MAP.md`, `README.md`, `docs/safety.md`,
+  `docs/testing.md`, `docs/completion.md`) is in the working tree. The
+  snapshot also captured pre-existing unrelated changes
+  (`.config/fish/...`, `dev/hm/test/k1`) that this work did not touch.
 
 ### Implementation status
 
@@ -301,10 +328,11 @@ and a generation never appears larger than the store.
 | 10 | Shell completion (Bash, Zsh, Fish) | DONE — `completions/`, `docs/completion.md`, `tests/cases/09_completion.sh` (18 tests); **123 checks green** on the host, 2 Zsh tests skipped there |
 | 11 | `show`, `delete`, automatic colours (`NO_COLOR`) + integration | DONE — `core/show.sh`, `core/delete.sh`, `lib/logging.sh`, `10_show.sh` (12), `11_delete.sh` (15), `12_color.sh` (8); **158 checks green** on the host |
 | 12 | `status` (store space + per-generation size, colourful dashboard) + integration | DONE — `core/status.sh`, `lib/common.sh`, `13_status.sh` (15), `09_completion.sh` (18); **173 checks green** on the host |
+| 13 | Colour the output of every command + `edit` (metadata of an existing generation) + `diff` (two or more generations) + integration | DONE — `core/edit.sh`, `core/diff.sh`, `14_edit.sh` (20), `15_diff.sh` (19), `12_color.sh` (10); **214 checks green** on the host |
 
-Test totals: **173 checks, 173 passing** (`./tests/run.sh`) = 171 test
+Test totals: **214 checks, 214 passing** (`./tests/run.sh`) = 212 test
 cases + `bash -n` syntax check + ShellCheck (0 findings). The runner
-reports 172 checks when ShellCheck is not on the `PATH`. On this host the
+reports 213 checks when ShellCheck is not on the `PATH`. On this host the
 two Zsh tests print an explicit `SKIP` line (Zsh is not installed) and
 count as passed without exercising the Zsh completion; the two pseudo
 terminal colour tests would print `SKIP` without `script` from util-linux.
@@ -338,6 +366,13 @@ A missing optional tool never fails the suite.
 - `hm status` reports a generation size from its **distinct** content objects, not from the
   entry sizes: content that several paths share inside one generation is counted once. The
   unformatted byte counts stay available in the database and in `hm list --store`.
+- `hm diff` deliberately ignores the modification time: `hm apply` ignores it too, and a copy
+  updates it without changing the content. A difference is a normal result, so `hm diff` always
+  exits `0`; exit `1` remains reserved for a generic runtime failure. The command compares the
+  recorded hashes and never opens the store, so a missing object does not change its output.
+- `hm edit` changes only the name and the comment of a generation. The entries, the parent, the
+  selection and the content objects are untouched: the snapshot stays immutable, the labels are
+  metadata for the human reader.
 - A non-empty `NO_COLOR` disables the colours even when `HM_COLOR=always` is set (decision R);
   an empty `NO_COLOR` counts as unset, following the convention.
 - The metadata of an entry is type, mode, uid, gid, mtime and size. ACLs, extended

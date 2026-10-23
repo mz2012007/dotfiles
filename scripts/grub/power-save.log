@@ -7091,4 +7091,172 @@ You can use emacsclient to connect to that Emacs process.
 Wrote /home/mz/.config/emacs/recentf.eld
 Error No target file specified; continue? (y or n) End of file during parsing: Error reading from stdin
 Wrote /home/mz/.config/emacs/recentf.eld
+Error No target file specified; continue? (y or n) Wrote /home/mz/.config/emacs/recentf.eld
+Wrote /home/mz/.config/emacs/recentf.eld
+Error No target file specified; continue? (y or n) End of file during parsing: Error reading from stdin
+Wrote /home/mz/.config/emacs/recentf.eld
+Error No target file specified; continue? (y or n) Back to top level
+...mz/.config/emacs/tramp locked by root@mz (pid 30486): (s, q, p, ?)? Error No target file specified; continue? (y or n) End of file during parsing: Error reading from stdin
+Wrote /home/mz/.config/emacs/recentf.eld
+Error No target file specified; continue? (y or n) Back to top level
+[2026-10-23 14:58:14] [INFO ] [1m[34m═══════════════════════════════════════════════════════════[0m
+[2026-10-23 14:58:14] [INFO ] power-save invoked: cmd=performance argv=(performance)
+[2026-10-23 14:58:14] [INFO ] config: /home/mz/scripts/grub/power-save.conf
+[2026-10-23 14:58:14] [INFO ] Loaded profile: performance
+[2026-10-23 14:58:14] [INFO ] profile: performance
+[2026-10-23 14:58:14] [INFO ] ── CPU ──
+[2026-10-23 14:58:14] [INFO ] OK      /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor = performance (unchanged)
+[2026-10-23 14:58:14] [INFO ] OK      /sys/devices/system/cpu/cpu10/cpufreq/scaling_governor = performance (unchanged)
+[2026-10-23 14:58:14] [INFO ] OK      /sys/devices/system/cpu/cpu11/cpufreq/scaling_governor = performance (unchanged)
+[2026-10-23 14:58:14] [INFO ] OK      /sys/devices/system/cpu/cpu12/cpufreq/scaling_governor = performance (unchanged)
+[2026-10-23 14:58:14] [INFO ] OK      /sys/devices/system/cpu/cpu13/cpufreq/scaling_governor = performance (unchanged)
+[2026-10-23 14:58:14] [INFO ] OK      /sys/devices/system/cpu/cpu14/cpufreq/scaling_governor = performance (unchanged)
+[2026-10-23 14:58:14] [INFO ] OK      /sys/devices/system/cpu/cpu15/cpufreq/scaling_governor = performance (unchanged)
+[2026-10-23 14:58:14] [INFO ] OK      /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor = performance (unchanged)
+[2026-10-23 14:58:14] [INFO ] OK      /sys/devices/system/cpu/cpu2/cpufreq/scaling_governor = performance (unchanged)
+[2026-10-23 14:58:14] [INFO ] OK      /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor = performance (unchanged)
+[2026-10-23 14:58:14] [INFO ] OK      /sys/devices/system/cpu/cpu4/cpufreq/scaling_governor = performance (unchanged)
+[2026-10-23 14:58:14] [INFO ] OK      /sys/devices/system/cpu/cpu5/cpufreq/scaling_governor = performance (unchanged)
+[2026-10-23 14:58:14] [INFO ] OK      /sys/devices/system/cpu/cpu6/cpufreq/scaling_governor = performance (unchanged)
+[2026-10-23 14:58:14] [INFO ] OK      /sys/devices/system/cpu/cpu7/cpufreq/scaling_governor = performance (unchanged)
+[2026-10-23 14:58:14] [INFO ] OK      /sys/devices/system/cpu/cpu8/cpufreq/scaling_governor = performance (unchanged)
+[2026-10-23 14:58:14] [INFO ] OK      /sys/devices/system/cpu/cpu9/cpufreq/scaling_governor = performance (unchanged)
+[2026-10-23 14:58:14] [INFO ] OK      /sys/devices/system/cpu/amd_pstate/status = active (unchanged)
+[2026-10-23 14:58:14] [INFO ] OK      /sys/devices/system/cpu/cpufreq/boost = 1 (unchanged)
+[2026-10-23 14:58:14] [INFO ] ── iGPU ──
+[2026-10-23 14:58:14] [INFO ] SET     /sys/class/drm/card1/device/power_dpm_force_performance_level = high (was: auto)
+[2026-10-23 14:58:14] [INFO ] OK      /sys/class/drm/card1-eDP-1/amdgpu/panel_power_savings = 0 (unchanged)
+[2026-10-23 14:58:14] [INFO ] ── Scheduler ──
+[2026-10-23 14:58:14] [INFO ] SCHED   no /etc/sv/scx_loader — using scxctl directly
+[2026-10-23 14:58:14] [INFO ] SCHED   scxctl get (rc=0): no scx scheduler running 
+[2026-10-23 14:58:14] [INFO ] SCHED   action=switch sched=scx_lavd mode=gaming
+switched to Lavd in Gaming mode
+[2026-10-23 14:58:14] [INFO ] SCHED   switch ok
+[2026-10-23 14:58:14] [INFO ] ── RyzenAdj ──
+detected compatible ryzen_smu kernel module
+Successfully set stapm_limit to 28000
+Successfully set fast_limit to 35000
+Successfully set slow_limit to 30000
+Successfully set tctl_temp to 95
+[2026-10-23 14:58:14] [INFO ] RYZEN   applied: --stapm-limit=28000 --fast-limit=35000 --slow-limit=30000 --tctl-temp=95
+[2026-10-23 14:58:14] [INFO ] ── Fans ──
+[2026-10-23 14:58:14] [INFO ] FAN     set to gaming
+[2026-10-23 14:58:14] [INFO ] ── Apply commands ──
+[2026-10-23 14:58:14] [INFO ] APPLY   ok: /usr/bin/emacs --daemon& 2>/dev/null || true
+[2026-10-23 14:58:14] [INFO ] APPLY   ok: notify-send "power-save" "performance applied" 2>/dev/null || true
+[2026-10-23 14:58:14] [INFO ] ── Summary ──
+[2026-10-23 14:58:14] [INFO ] set=1 ok=19 skip=0 fail=0
+[2026-10-23 14:58:14] [INFO ] ✅ Profile 'performance' applied  ([32mset 1[0m, [2mok 19[0m, [33mskip 0[0m, [31mfail 0[0m)
+[2026-10-23 14:58:14] [INFO ] done: profile=performance
+[2026-10-23 14:58:14] [INFO ] [1m[34m═══════════════════════════════════════════════════════════[0m
+
+Warning: due to a long standing Gtk+ bug
+https://gitlab.gnome.org/GNOME/gtk/issues/221
+Emacs might crash when run in daemon mode and the X11 connection is unexpectedly lost.
+Using an Emacs configured with --with-x-toolkit=lucid does not have this problem.
+Loading /home/mz/.config/emacs/config.el (source)...
+Loading /home/mz/.config/emacs/config.el (source)...done
+Loaded /home/mz/.config/emacs/config.el
+Loading company (native-compiled elisp)...
+Loading company (native-compiled elisp)...done
+No doc string slot for compiled: handle-switch-frame
+No doc string slot for compiled: select-window
+No doc string slot for compiled: set-window-buffer
+No doc string slot for compiled: read-key-sequence
+No doc string slot for compiled: read-key-sequence-vector
+No doc string slot for compiled: use-global-map
+No doc string slot for compiled: use-local-map
+No doc string slot for compiled: rename-buffer
+No doc string slot for compiled: kill-buffer
+No doc string slot for compiled: all-completions
+No doc string slot for compiled: make-process
+Starting Emacs daemon.
+ ■  Warning (server): Unable to start the Emacs server.
+The existing Emacs server, called "server", could not be stopped.
+To start the server in this Emacs session, stop the existing server or call M-x server-force-delete to forcibly disconnect it.
+Unable to start the daemon.
+Another instance of Emacs is running the server, either as daemon or interactively.
+You can use emacsclient to connect to that Emacs process.
+Wrote /home/mz/.config/emacs/recentf.eld
+Error No target file specified; continue? (y or n) End of file during parsing: Error reading from stdin
+Wrote /home/mz/.config/emacs/recentf.eld
+Error No target file specified; continue? (y or n) [2026-10-23 14:58:20] [INFO ] [1m[34m═══════════════════════════════════════════════════════════[0m
+[2026-10-23 14:58:20] [INFO ] power-save invoked: cmd=performance argv=(performance)
+[2026-10-23 14:58:20] [INFO ] config: /home/mz/scripts/grub/power-save.conf
+[2026-10-23 14:58:20] [INFO ] Loaded profile: performance
+[2026-10-23 14:58:20] [INFO ] profile: performance
+[2026-10-23 14:58:20] [INFO ] ── CPU ──
+[2026-10-23 14:58:20] [INFO ] OK      /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor = performance (unchanged)
+[2026-10-23 14:58:20] [INFO ] OK      /sys/devices/system/cpu/cpu10/cpufreq/scaling_governor = performance (unchanged)
+[2026-10-23 14:58:20] [INFO ] OK      /sys/devices/system/cpu/cpu11/cpufreq/scaling_governor = performance (unchanged)
+[2026-10-23 14:58:20] [INFO ] OK      /sys/devices/system/cpu/cpu12/cpufreq/scaling_governor = performance (unchanged)
+[2026-10-23 14:58:20] [INFO ] OK      /sys/devices/system/cpu/cpu13/cpufreq/scaling_governor = performance (unchanged)
+[2026-10-23 14:58:20] [INFO ] OK      /sys/devices/system/cpu/cpu14/cpufreq/scaling_governor = performance (unchanged)
+[2026-10-23 14:58:20] [INFO ] OK      /sys/devices/system/cpu/cpu15/cpufreq/scaling_governor = performance (unchanged)
+[2026-10-23 14:58:20] [INFO ] OK      /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor = performance (unchanged)
+[2026-10-23 14:58:20] [INFO ] OK      /sys/devices/system/cpu/cpu2/cpufreq/scaling_governor = performance (unchanged)
+[2026-10-23 14:58:20] [INFO ] OK      /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor = performance (unchanged)
+[2026-10-23 14:58:20] [INFO ] OK      /sys/devices/system/cpu/cpu4/cpufreq/scaling_governor = performance (unchanged)
+[2026-10-23 14:58:20] [INFO ] OK      /sys/devices/system/cpu/cpu5/cpufreq/scaling_governor = performance (unchanged)
+[2026-10-23 14:58:20] [INFO ] OK      /sys/devices/system/cpu/cpu6/cpufreq/scaling_governor = performance (unchanged)
+[2026-10-23 14:58:20] [INFO ] OK      /sys/devices/system/cpu/cpu7/cpufreq/scaling_governor = performance (unchanged)
+[2026-10-23 14:58:20] [INFO ] OK      /sys/devices/system/cpu/cpu8/cpufreq/scaling_governor = performance (unchanged)
+[2026-10-23 14:58:20] [INFO ] OK      /sys/devices/system/cpu/cpu9/cpufreq/scaling_governor = performance (unchanged)
+[2026-10-23 14:58:20] [INFO ] OK      /sys/devices/system/cpu/amd_pstate/status = active (unchanged)
+[2026-10-23 14:58:20] [INFO ] OK      /sys/devices/system/cpu/cpufreq/boost = 1 (unchanged)
+[2026-10-23 14:58:20] [INFO ] ── iGPU ──
+[2026-10-23 14:58:20] [INFO ] OK      /sys/class/drm/card1/device/power_dpm_force_performance_level = high (unchanged)
+[2026-10-23 14:58:20] [INFO ] OK      /sys/class/drm/card1-eDP-1/amdgpu/panel_power_savings = 0 (unchanged)
+[2026-10-23 14:58:20] [INFO ] ── Scheduler ──
+[2026-10-23 14:58:20] [INFO ] SCHED   no /etc/sv/scx_loader — using scxctl directly
+[2026-10-23 14:58:20] [INFO ] SCHED   scxctl get (rc=0): running Lavd in Gaming mode 
+[2026-10-23 14:58:20] [INFO ] SCHED   already on scx_lavd/gaming
+[2026-10-23 14:58:20] [INFO ] ── RyzenAdj ──
+detected compatible ryzen_smu kernel module
+Successfully set stapm_limit to 28000
+Successfully set fast_limit to 35000
+Successfully set slow_limit to 30000
+Successfully set tctl_temp to 95
+[2026-10-23 14:58:20] [INFO ] RYZEN   applied: --stapm-limit=28000 --fast-limit=35000 --slow-limit=30000 --tctl-temp=95
+[2026-10-23 14:58:20] [INFO ] ── Fans ──
+[2026-10-23 14:58:20] [INFO ] FAN     set to gaming
+[2026-10-23 14:58:20] [INFO ] ── Apply commands ──
+[2026-10-23 14:58:20] [INFO ] APPLY   ok: /usr/bin/emacs --daemon& 2>/dev/null || true
+[2026-10-23 14:58:20] [INFO ] APPLY   ok: notify-send "power-save" "performance applied" 2>/dev/null || true
+[2026-10-23 14:58:20] [INFO ] ── Summary ──
+[2026-10-23 14:58:20] [INFO ] set=0 ok=20 skip=0 fail=0
+[2026-10-23 14:58:20] [INFO ] ✅ Profile 'performance' applied  ([32mset 0[0m, [2mok 20[0m, [33mskip 0[0m, [31mfail 0[0m)
+[2026-10-23 14:58:20] [INFO ] done: profile=performance
+[2026-10-23 14:58:20] [INFO ] [1m[34m═══════════════════════════════════════════════════════════[0m
+
+Warning: due to a long standing Gtk+ bug
+https://gitlab.gnome.org/GNOME/gtk/issues/221
+Emacs might crash when run in daemon mode and the X11 connection is unexpectedly lost.
+Using an Emacs configured with --with-x-toolkit=lucid does not have this problem.
+Loading /home/mz/.config/emacs/config.el (source)...
+Loading /home/mz/.config/emacs/config.el (source)...done
+Loaded /home/mz/.config/emacs/config.el
+Loading company (native-compiled elisp)...
+Loading company (native-compiled elisp)...done
+No doc string slot for compiled: handle-switch-frame
+No doc string slot for compiled: select-window
+No doc string slot for compiled: set-window-buffer
+No doc string slot for compiled: read-key-sequence
+No doc string slot for compiled: read-key-sequence-vector
+No doc string slot for compiled: use-global-map
+No doc string slot for compiled: use-local-map
+No doc string slot for compiled: rename-buffer
+No doc string slot for compiled: kill-buffer
+No doc string slot for compiled: all-completions
+No doc string slot for compiled: make-process
+Starting Emacs daemon.
+ ■  Warning (server): Unable to start the Emacs server.
+The existing Emacs server, called "server", could not be stopped.
+To start the server in this Emacs session, stop the existing server or call M-x server-force-delete to forcibly disconnect it.
+Unable to start the daemon.
+Another instance of Emacs is running the server, either as daemon or interactively.
+You can use emacsclient to connect to that Emacs process.
+Wrote /home/mz/.config/emacs/recentf.eld
+Error No target file specified; continue? (y or n) End of file during parsing: Error reading from stdin
+Wrote /home/mz/.config/emacs/recentf.eld
 Error No target file specified; continue? (y or n) 

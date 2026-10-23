@@ -20,6 +20,8 @@ userland.
 | Content store | Every file is stored once, addressed by the SHA-256 of its bytes (`store/objects/ab/abcdef…`). |
 | Generations | An immutable snapshot of all tracked paths: pending paths are captured fresh, the other tracked paths carry the content of the parent generation forward. |
 | Inspection | `hm show` prints the metadata and the complete entry list of one generation, read only and without taking the exclusive lock. |
+| Comparison | `hm diff` compares two or more generations, pair by pair, and reports added, removed and changed paths with the reason (content, mode, type, owner, size). Read only, and a difference is not an error. |
+| Metadata editing | `hm edit` changes the name and the comment of an existing generation after a preview and a confirmation. The entries and the content store are untouched. |
 | Status | `hm status` is a read-only dashboard: the project, the store space (referenced, unreferenced and missing objects) and the size of every generation. |
 | Deletion | `hm delete` removes a generation after a preview and a confirmation. The selected generation is never deleted, the content objects it releases are reclaimed by `hm clean`. |
 | Workspaces | `hm switch` materialises a generation into `current/`, `hm discard` resets `testing/` from it. The live filesystem is never touched. |
@@ -78,6 +80,8 @@ hm add ~/dotfiles                   # register a directory
 hm gen --name "dotfiles-2026-10"    # create a named generation
 hm list --generation 1              # show what it contains
 hm show 1                           # the same generation with the full metadata
+hm edit 1 --name "dotfiles-2026-10" # label an existing generation
+hm diff 1 2                         # compare two generations
 hm apply 1 --dry-run                # preview the live changes
 hm apply 1                          # write them, with a backup and a rollback
 hm backup                           # create a consistent archive
@@ -97,6 +101,8 @@ hm clean --dry-run                  # show the garbage of the content store
 | `hm list` | Show the generations, the tracked paths, the pending paths and the store. |
 | `hm status` | Show the project, the store space and the size of every generation. |
 | `hm show <generation>` | Show the metadata and the entries of one generation. |
+| `hm diff <generation…>` | Compare two or more generations, pair by pair. |
+| `hm edit <generation>` | Change the name and the comment of an existing generation. |
 | `hm switch <generation>` | Select a generation and materialise it into `current/`. |
 | `hm delete <generation>` | Delete a generation that is not selected. |
 | `hm apply [generation]` | Write a generation to the live filesystem. |
@@ -174,7 +180,9 @@ A non-empty `NO_COLOR` environment variable always disables the colours,
 even when `HM_COLOR=always` is set, and an empty `NO_COLOR` counts as unset.
 The diagnostics follow standard error while the human readable output
 follows standard output, so a redirected stream never receives an escape
-sequence.
+sequence. Every command colours its own output: bold headings, green
+success and additions, red removals and conflicts, yellow changes and
+warnings, cyan identifiers and paths.
 
 ---
 

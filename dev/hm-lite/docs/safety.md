@@ -125,12 +125,24 @@ support.
 | Command | Lock |
 |---|---|
 | `add`, `gen`, `apply`, `backup`, `restore`, `clean`, `delete` | exclusive |
-| `switch`, `discard` | exclusive |
-| `list`, `status`, `show` | shared |
+| `switch`, `discard`, `edit` | exclusive |
+| `list`, `status`, `show`, `diff` | shared |
 
 The lock is a `flock` on `<runtime>/hm.lock`. A command that cannot
 acquire it within `HM_LOCK_TIMEOUT` seconds (default `10`) fails with exit
 code `8` instead of waiting indefinitely.
+
+`hm edit` changes only `generations.name` and `generations.comment`, in a
+single `UPDATE` inside one transaction, after a preview and a
+confirmation. The entries, the content objects, the parent and the
+selection are untouched. An empty value is refused; removing a label has
+an explicit flag (`--clear-name`, `--clear-comment`).
+
+`hm diff` is read only. It compares the recorded entries of the given
+generations, never opens the content store and never writes anything. The
+modification time is not compared, for the same reason `hm apply` ignores
+it: a copy changes the timestamp without changing the content. A
+difference is a normal result, so the command always exits with `0`.
 
 ---
 

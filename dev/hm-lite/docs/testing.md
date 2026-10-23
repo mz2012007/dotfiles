@@ -84,11 +84,13 @@ the code under test to check its own work.
 | `tests/cases/09_completion.sh` | The three completion files: the commands, the options per command, the argument ranges, the generation ids, the paths with spaces, the fail-safe behaviour without a database, the absence of side effects. | 18 |
 | `tests/cases/10_show.sh` | `show`: the metadata block, the entry table, the selected marker, the missing objects, the usage and state errors, the read-only guarantee. | 12 |
 | `tests/cases/11_delete.sh` | `delete`: the preview, the confirmation, `--yes`/`-y`, the selected generation, the parent of the children, the orphan hand-off to `clean`, the rollback of a failing transaction. | 15 |
-| `tests/cases/12_color.sh` | The colours: the automatic detection on a terminal and on a pipe, `HM_COLOR`, `NO_COLOR`, the stream each palette follows, the unchanged plain output. | 8 |
+| `tests/cases/12_color.sh` | The colours: the automatic detection on a terminal and on a pipe, `HM_COLOR`, `NO_COLOR`, the stream each palette follows, the coloured output of every command, the unchanged plain output. | 10 |
 | `tests/cases/13_status.sh` | `status`: the project overview, the store space and its classification (referenced, unreferenced, missing), the size of every generation with the shared content counted once, the selected marker, the empty project, the read-only guarantee, the usage and state errors, the colours of the dashboard. | 15 |
+| `tests/cases/14_edit.sh` | `edit`: setting, replacing and clearing the name and the comment, the preview, the confirmation, the visible change in `show`, the untouched entries and selection, the empty and conflicting values, the unknown generation, the failing transaction, the colours. | 20 |
+| `tests/cases/15_diff.sh` | `diff`: added, removed and changed paths, content, mode and type changes, `--all`, the summary, equal generations, several generations in order, the reversed order, the duplicate, unknown and usage errors, the read-only guarantee, the failing query, the colours. | 19 |
 
-**171 test cases**, plus the static analysis. The runner reports 172 checks
-when ShellCheck is missing and 173 when it is installed.
+**212 test cases**, plus the static analysis. The runner reports 213 checks
+when ShellCheck is missing and 214 when it is installed.
 
 ---
 
@@ -153,6 +155,19 @@ have an explicit test:
   the escape sequences from a coloured run gives exactly the plain output.
 * `hm show` records no change: the generation and entry counts are
   identical before and after the calls.
+* `hm edit` changes only the name and the comment: the entries, the
+  content objects, the parent and the selection are identical before and
+  after the command, an empty value is refused, a conflict between
+  `--name` and `--clear-name` is refused, and the new labels are visible
+  in `hm show`.
+* `hm diff` reports the added, removed and changed paths, names the
+  reason (content, mode, type, owner, size), hides the unchanged paths
+  unless `--all` is given, compares several generations in the given
+  order, rejects duplicate and unknown generations, and changes nothing
+  in the project.
+* Every command colours its standard output when `HM_COLOR=always` is
+  set, the output palette follows the standard output stream (not the
+  diagnostic stream), and a pipe receives no escape sequence.
 
 The Fish and Zsh tests need an optional interpreter, the pseudo terminal
 tests need `script` from util-linux. When `fish`, `zsh` or `script` is not

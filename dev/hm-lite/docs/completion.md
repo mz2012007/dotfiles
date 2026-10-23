@@ -91,6 +91,8 @@ that supports it.
 | `hm list` | `--generation`, `--pending`, `--paths`, `--store`, `-h`, `--help` | — |
 | `hm status` | `-h`, `--help` | — |
 | `hm show` | `-h`, `--help` | exactly one generation id |
+| `hm diff` | `--all`, `-h`, `--help` | two or more generation ids |
+| `hm edit` | `--name`, `--comment`, `--clear-name`, `--clear-comment`, `--yes`, `-y`, `-h`, `--help` | exactly one generation id |
 | `hm switch` | `-h`, `--help` | exactly one generation id |
 | `hm delete` | `--yes`, `-y`, `-h`, `--help` | exactly one generation id |
 | `hm apply` | `--dry-run`, `--yes`, `-y`, `-h`, `--help` | one optional generation id |
@@ -99,7 +101,7 @@ that supports it.
 | `hm restore` | `--yes`, `-y`, `-h`, `--help` | exactly one backup archive |
 | `hm clean` | `--dry-run`, `--yes`, `-y`, `-h`, `--help` | — |
 
-At the command position the completion offers the thirteen commands, `help`,
+At the command position the completion offers the fifteen commands, `help`,
 `-h`, `--help` and `--version`.
 
 The argument is only completed while it is still valid:
@@ -108,12 +110,18 @@ The argument is only completed while it is still valid:
   nothing.
 * `hm show <TAB>` and `hm delete <TAB>` offer the generation ids,
   `hm show 1 <TAB>` and `hm delete 1 <TAB>` offer nothing.
+* `hm edit <TAB>` offers the generation ids, `hm edit 1 <TAB>` offers
+  nothing: the options can still be typed after the generation.
+* `hm diff <TAB>` offers the generation ids and keeps offering them after
+  the first one (`hm diff 1 <TAB>`), because the command needs at least
+  two.
 * `hm apply <TAB>` offers the generation ids, `hm apply 1 <TAB>` offers
   nothing.
 * `hm init <TAB>`, `hm gen <TAB>`, `hm status <TAB>`, `hm backup <TAB>` and
   the other commands without an argument offer nothing.
 * `hm gen --name <TAB>` offers nothing: `--name` and `--comment` are free
-  text.
+  text. The same holds for `hm edit --name <TAB>` and
+  `hm edit --comment <TAB>`.
 
 `hm add <TAB>` offers the paths of the filesystem **and** the paths that
 the project already tracks. `hm restore <TAB>` offers the archives of
