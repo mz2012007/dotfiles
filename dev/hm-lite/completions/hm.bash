@@ -111,13 +111,19 @@ _hm_backup_archives() {
 # _hm_command_names
 # Print the commands of the application, one per line.
 _hm_command_names() {
-  printf '%s\n' init add gen list status show diff edit switch delete apply discard backup restore clean help
+  printf '%s\n' init profile add gen list status show diff edit switch delete apply discard backup restore clean help
 }
 
 # _hm_global_options
 # Print the global options of the application, one per line.
 _hm_global_options() {
   printf '%s\n' --help -h --version
+}
+
+# _hm_profile_subcommands
+# Print the subcommands of "hm profile", one per line.
+_hm_profile_subcommands() {
+  printf '%s\n' add list show use rename delete help
 }
 
 # _hm_command_options COMMAND
@@ -131,6 +137,9 @@ _hm_command_options() {
     add)
       printf '%s\n' --profile= -h --help
       ;;
+    profile)
+      printf '%s\n' -h --help
+      ;;
     gen)
       printf '%s\n' --profile= --name= --comment= --yes -y -h --help
       ;;
@@ -141,19 +150,19 @@ _hm_command_options() {
       printf '%s\n' --profile= -h --help
       ;;
     show)
-      printf '%s\n' -h --help
+      printf '%s\n' --profile= -h --help
       ;;
     diff)
-      printf '%s\n' --all -h --help
+      printf '%s\n' --profile= --all -h --help
       ;;
     edit)
-      printf '%s\n' --name= --comment= --clear-name --clear-comment --yes -y -h --help
+      printf '%s\n' --profile= --name= --comment= --clear-name --clear-comment --yes -y -h --help
       ;;
     switch)
-      printf '%s\n' -h --help
+      printf '%s\n' --profile= -h --help
       ;;
     delete)
-      printf '%s\n' --yes -y -h --help
+      printf '%s\n' --profile= --yes -y -h --help
       ;;
     apply)
       printf '%s\n' --profile= --dry-run --yes -y -h --help
@@ -222,14 +231,27 @@ _hm_complete_command() {
   done
 }
 
-# _hm_complete_option COMMAND CURRENT
-# Complete the options of a command.
+# _hm_complete_option COMMAND CURRENT [POSITIONALS...]
+# Complete the options of a command. A leading profile subcommand narrows
+# the options of "hm profile" to the ones that the subcommand supports.
 _hm_complete_option() {
   local command="$1" current="$2"
+  shift 2
+  local profile_subcommand="${1:-}"
   local -a entries=()
   local entry
 
-  mapfile -t entries < <(_hm_command_options "$command")
+  case "$command:$profile_subcommand" in
+    profile:delete)
+      entries=(--force --yes -y -h --help)
+      ;;
+    profile:rename)
+      entries=(--yes -y -h --help)
+      ;;
+    *)
+      mapfile -t entries < <(_hm_command_options "$command")
+      ;;
+  esac
 
   for entry in "${entries[@]}"; do
     entry="${entry%=}"
@@ -323,15 +345,47 @@ _hm_complete_archive() {
   fi
 }
 
-# _hm_complete_argument COMMAND COUNT CURRENT
+# _hm_complete_argument COMMAND COUNT CURRENT [POSITIONALS...]
 # Complete the argument of a command. COUNT is the number of arguments that
-# the command already received.
+# the command already received, POSITIONALS carries their values.
 _hm_complete_argument() {
   local command="$1" count="$2" current="$3"
+  shift 3
+  local -a positionals=("$@")
+  local -a names=()
+  local name
 
   case "$command" in
     add)
       _hm_complete_path "$current"
+      ;;
+    profile)
+      if (( count == 0 )); then
+        mapfile -t names < <(_hm_profile_subcommands)
+        for name in "${names[@]}"; do
+          if [[ "$name" == "$current"* ]]; then
+            COMPREPLY+=("$name")
+          fi
+        done
+      else
+        case "${positionals[0]}" in
+          show | use | delete)
+            if (( count == 1 )); then
+              _hm_complete_profile "$current" ""
+            fi
+            ;;
+          rename)
+            if (( count == 1 || count == 2 )); then
+              _hm_complete_profile "$current" ""
+            fi
+            ;;
+          add)
+            if (( count >= 2 )); then
+              _hm_complete_path "$current"
+            fi
+            ;;
+        esac
+      fi
       ;;
     switch)
       if (( count == 0 )); then
@@ -468,12 +522,12 @@ _hm() {
 
   # The current word is an option.
   if [[ "$current" == -* ]]; then
-    _hm_complete_option "$command" "$current"
+    _hm_complete_option "$command" "$current" "${positionals[@]}"
     return 0
   fi
 
   # The current word is an argument of the command.
-  _hm_complete_argument "$command" "${#positionals[@]}" "$current"
+  _hm_complete_argument "$command" "${#positionals[@]}" "$current" "${positionals[@]}"
   return 0
 }
 

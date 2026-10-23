@@ -140,10 +140,11 @@ Usage: hm <command> [arguments...]
 
 Commands:
   init                     Initialize an HM-Lite project directory
+  profile <subcommand>     Manage profiles and the active context
   add <file|dir...>        Register paths for the next generation
   gen [options]            Create a generation from the pending paths
   list [options]           Show generations, entries and pending paths
-  status                   Show the project, the content store and every generation
+  status                   Show the project, the content store and its generations
   show <generation>        Show the metadata and the entries of a generation
   diff <generation...>     Compare the entries of two or more generations
   edit <generation>        Change the name and the comment of a generation
@@ -162,6 +163,7 @@ Options:
 Environment:
   HM_DIR                   Runtime project directory (default: ~/.config/hm-lite)
   HM_CODE_DIR              Directory holding the HM-Lite code
+  HM_PROFILE               Profile context for this process (wins over 'hm profile use')
 EOF
 }
 
@@ -169,7 +171,7 @@ EOF
 # Command table
 # ---------------------------------------------------------------------------
 
-HM_COMMANDS=(init add gen list status show diff edit switch delete apply discard backup restore clean)
+HM_COMMANDS=(init profile add gen list status show diff edit switch delete apply discard backup restore clean)
 
 hm_is_command() {
   local candidate="$1" known

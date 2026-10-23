@@ -27,7 +27,7 @@
 # _diff_usage
 _diff_usage() {
   cat <<'EOF'
-Usage: hm diff <generation> <generation> [<generation>...]
+Usage: hm diff [--profile NAME] <generation> <generation> [<generation>...]
 
 Compare the entries of two or more generations.
 
@@ -35,6 +35,7 @@ The generations are compared in the given order, every consecutive pair is
 one comparison.
 
 Options:
+  --profile NAME Require the generations to belong to the profile
   --all          Show the entries that did not change
   -h, --help     Show this help
 EOF
@@ -173,12 +174,22 @@ _diff_pair() {
 # diff GENERATION... - compare the entries of the given generations.
 diff() {
   local show_all=0
+  local profile_arg="" profile
   local -a generations=()
   local argument id index duplicate
 
   while [[ $# -gt 0 ]]; do
     argument="$1"
     case "$argument" in
+      --profile)
+        [[ $# -ge 2 ]] || hm_die "$HM_EX_USAGE" "--profile requires a value."
+        profile_arg="$2"
+        shift 2
+        ;;
+      --profile=*)
+        profile_arg="${argument#*=}"
+        shift
+        ;;
       --all)
         show_all=1
         shift
@@ -198,7 +209,7 @@ diff() {
   done
 
   if [[ ${#generations[@]} -eq 0 ]]; then
-    hm_die "$HM_EX_USAGE" "Usage: hm diff <generation> <generation> [<generation>...]"
+    hm_die "$HM_EX_USAGE" "Usage: hm diff [--profile NAME] <generation> <generation> [<generation>...]"
   fi
 
   if [[ ${#generations[@]} -lt 2 ]]; then
@@ -208,9 +219,17 @@ diff() {
   hm_require_initialized
   hm_lock_acquire shared
 
+  profile="$(hm_profile_scope "$profile_arg")"
+  if [[ -n "$profile" ]]; then
+    hm_profile_require "$profile" > /dev/null
+  fi
+
   for index in "${!generations[@]}"; do
     if ! hm_gen_exists "${generations[$index]}"; then
       hm_die "$HM_EX_STATE" "There is no generation with the id ${generations[$index]}."
+    fi
+    if [[ -n "$profile" && "$(hm_profile_of_generation "${generations[$index]}")" != "$profile" ]]; then
+      hm_die "$HM_EX_VALIDATION" "The generation ${generations[$index]} does not belong to the profile $profile."
     fi
     id="$(hm_sql_int "${generations[$index]}")"
     generations[index]="$((10#$id))"

@@ -115,7 +115,9 @@ CREATE TABLE IF NOT EXISTS generation_entries (
 --
 -- The global "selected_generation" key points to the generation that
 -- "hm apply" uses without an argument. Every profile also stores its own
--- selection under "selected_generation:<profile>".
+-- selection under "selected_generation:<profile>". The "active_profile"
+-- key holds the persisted context selected by "hm profile use"; it is not
+-- part of the schema version because it only uses this key/value table.
 CREATE TABLE IF NOT EXISTS state (
     key   TEXT PRIMARY KEY,
     value TEXT

@@ -11,6 +11,11 @@ The version 2 migration ([`db/migrations/0002_profiles.sql`](../db/migrations/00
 introduced the profiles. Every project has a profile named `default`, and
 the data of an earlier version 1 database is migrated into it.
 
+The active profile context and the profile management commands need no
+schema change: they use the existing `profiles` table and the
+`active_profile` key of the `state` table described below. There is no
+migration 0003 and the schema version stays **2**.
+
 ---
 
 ## The tables
@@ -36,11 +41,14 @@ The independent namespaces of the project.
 | `name` | TEXT | Unique. `[A-Za-z0-9][A-Za-z0-9._-]*`. |
 | `created_at` | INTEGER | Unix epoch seconds. |
 
-`hm init` creates `default`. `hm add --profile NAME` creates a missing
-profile, the other commands require an existing one. The tracked paths,
-the pending set, the generations and the selections are profile scoped;
-the content store (`files` and `store/objects/`) is shared by every
-profile.
+`hm init` creates `default`. `hm profile add NAME` and `hm add --profile
+NAME` create a missing profile; the other commands require an existing
+one. The tracked paths, the pending set, the generations and the
+selections are profile scoped; the content store (`files` and
+`store/objects/`) is shared by every profile. Renaming a profile updates
+its row and the state keys; deletion is refused for `default` and for the
+effective or persisted active context, and `--force` is required while
+generations exist.
 
 ### `paths`
 
@@ -161,13 +169,20 @@ Small key/value table for the pointers of the project.
 
 The keys in use:
 
+* `active_profile` — the persisted profile context selected by
+  `hm profile use NAME`. It is overwritten by a later `use`, followed by
+  `profile rename`, and protected by `profile delete`.
 * `selected_generation:<profile>` — the generation that `hm switch`
   selected in that profile.
 * `selected_generation` — the global selection, the last generation that
-  any `hm switch` selected. `hm apply` without `--profile` uses it;
+  any `hm switch` selected. `hm apply` without a context uses it;
   `hm apply --profile NAME` uses the selection of that profile.
 
-`hm delete` refuses a generation that appears in any of these keys.
+`hm delete` refuses a generation that appears in any of these selection
+keys. The `active_profile` key is not a generation pointer, but it is the
+reason `profile delete` refuses the stored active profile even when
+`HM_PROFILE` temporarily names another one: the persisted context must
+never become a dangling name.
 
 ---
 

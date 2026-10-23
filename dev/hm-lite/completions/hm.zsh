@@ -125,7 +125,10 @@ _hm_is_value_option() {
     add:--profile | status:--profile | apply:--profile)
       return 0
       ;;
-    edit:--name | edit:--comment)
+    show:--profile | diff:--profile | switch:--profile | delete:--profile)
+      return 0
+      ;;
+    edit:--name | edit:--comment | edit:--profile)
       return 0
       ;;
     *)
@@ -140,6 +143,7 @@ _hm_commands() {
   local -a commands global
   commands=(
     'init:Initialize the HM-Lite project directory'
+    'profile:Manage profiles and the active context'
     'add:Register paths for the next generation'
     'gen:Create a generation from the pending paths'
     'list:Show generations, entries and pending paths'
@@ -166,14 +170,50 @@ _hm_commands() {
   _describe -t options 'global option' global
 }
 
-# _hm_options SUBCOMMAND
-# Complete the options of a subcommand.
+# _hm_options SUBCOMMAND [POSITIONALS...]
+# Complete the options of a subcommand. A leading profile subcommand narrows
+# the options of "hm profile" to the ones that the subcommand supports.
 _hm_options() {
   local -a options
+  local profile_subcommand="${2:-}"
 
   case $1 in
-    init | show | switch | discard | backup)
+    init | discard | backup)
       options=(
+        '-h:Show the usage of the command'
+        '--help:Show the usage of the command'
+      )
+      ;;
+    profile)
+      case $profile_subcommand in
+        delete)
+          options=(
+            '--force:Delete the history as well'
+            '--yes:Do not ask for a confirmation'
+            '-y:Do not ask for a confirmation'
+            '-h:Show the usage of the command'
+            '--help:Show the usage of the command'
+          )
+          ;;
+        rename)
+          options=(
+            '--yes:Do not ask for a confirmation'
+            '-y:Do not ask for a confirmation'
+            '-h:Show the usage of the command'
+            '--help:Show the usage of the command'
+          )
+          ;;
+        *)
+          options=(
+            '-h:Show the usage of the command'
+            '--help:Show the usage of the command'
+          )
+          ;;
+      esac
+      ;;
+    show | switch)
+      options=(
+        '--profile:Profile to use'
         '-h:Show the usage of the command'
         '--help:Show the usage of the command'
       )
@@ -187,6 +227,7 @@ _hm_options() {
       ;;
     diff)
       options=(
+        '--profile:Profile to use'
         '--all:Show the entries that did not change'
         '-h:Show the usage of the command'
         '--help:Show the usage of the command'
@@ -194,6 +235,7 @@ _hm_options() {
       ;;
     edit)
       options=(
+        '--profile:Profile to use'
         '--name:Name of the generation'
         '--comment:Comment of the generation'
         '--clear-name:Remove the name of the generation'
@@ -245,8 +287,17 @@ _hm_options() {
         '--help:Show the usage of the command'
       )
       ;;
-    restore | delete)
+    restore)
       options=(
+        '--yes:Do not ask for a confirmation'
+        '-y:Do not ask for a confirmation'
+        '-h:Show the usage of the command'
+        '--help:Show the usage of the command'
+      )
+      ;;
+    delete)
+      options=(
+        '--profile:Profile to use'
         '--yes:Do not ask for a confirmation'
         '-y:Do not ask for a confirmation'
         '-h:Show the usage of the command'
@@ -283,13 +334,51 @@ _hm_value() {
   esac
 }
 
-# _hm_argument SUBCOMMAND COUNT
+# _hm_argument SUBCOMMAND COUNT [POSITIONALS...]
 # Complete the argument of a subcommand. COUNT is the number of arguments
-# that the subcommand already received.
+# that the subcommand already received, POSITIONALS carries their values.
 _hm_argument() {
   local -a candidates
+  local -a subcommands
 
   case $1 in
+    profile)
+      if (( $2 == 0 )); then
+        subcommands=(
+          'add:Create a profile and optionally register paths'
+          'list:List the profiles and their counts'
+          'show:Show the paths and generations of a profile'
+          'use:Select the active profile, or print it'
+          'rename:Rename a profile and its context'
+          'delete:Delete a profile after a confirmation'
+          'help:Show the usage of the profile command'
+        )
+        _describe -t profile-subcommands 'profile subcommand' subcommands
+        return 0
+      fi
+
+      case ${3:-} in
+        show | use | delete)
+          if (( $2 == 1 )); then
+            _hm_value --profile
+          fi
+          ;;
+        rename)
+          if (( $2 == 1 || $2 == 2 )); then
+            _hm_value --profile
+          fi
+          ;;
+        add)
+          if (( $2 >= 2 )); then
+            candidates=(${(f)"$(__hm_tracked_paths)"})
+            candidates=(${candidates:#})
+            (( ${#candidates} )) && compadd -- $candidates
+            _files
+          fi
+          ;;
+      esac
+      return 0
+      ;;
     add)
       candidates=(${(f)"$(__hm_tracked_paths)"})
       candidates=(${candidates:#})
@@ -397,12 +486,12 @@ _hm() {
 
   # The current word is an option.
   if [[ $PREFIX == -* ]]; then
-    _hm_options $subcommand
+    _hm_options $subcommand "${positionals[@]}"
     return 0
   fi
 
   # The current word is an argument of the subcommand.
-  _hm_argument $subcommand ${#positionals}
+  _hm_argument $subcommand ${#positionals} "${positionals[@]}"
   return 0
 }
 

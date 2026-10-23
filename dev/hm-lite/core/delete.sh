@@ -23,13 +23,14 @@
 # _delete_usage
 _delete_usage() {
   cat <<'EOF'
-Usage: hm delete <generation> [options]
+Usage: hm delete [--profile NAME] <generation> [options]
 
 Delete a generation and its entries.
 
 Options:
-  --yes, -y     Do not ask for a confirmation
-  -h, --help    Show this help
+  --profile NAME  Require the generation to belong to the profile
+  --yes, -y       Do not ask for a confirmation
+  -h, --help      Show this help
 EOF
 }
 
@@ -37,7 +38,7 @@ EOF
 
 # delete - remove a generation that is not selected.
 delete() {
-  local generation=""
+  local generation="" profile_arg="" profile
   local assume_yes=0
   local argument
   local id selected_count row name_hex name created entries objects orphans
@@ -45,6 +46,15 @@ delete() {
   while [[ $# -gt 0 ]]; do
     argument="$1"
     case "$argument" in
+      --profile)
+        [[ $# -ge 2 ]] || hm_die "$HM_EX_USAGE" "--profile requires a value."
+        profile_arg="$2"
+        shift 2
+        ;;
+      --profile=*)
+        profile_arg="${argument#*=}"
+        shift
+        ;;
       --yes | -y)
         assume_yes=1
         shift
@@ -57,20 +67,29 @@ delete() {
         hm_die "$HM_EX_USAGE" "Unknown option for 'hm delete': $argument"
         ;;
       *)
-        [[ -z "$generation" ]] || hm_die "$HM_EX_USAGE" "Usage: hm delete <generation> [options]"
+        [[ -z "$generation" ]] || hm_die "$HM_EX_USAGE" "Usage: hm delete [--profile NAME] <generation> [options]"
         generation="$argument"
         shift
         ;;
     esac
   done
 
-  [[ -n "$generation" ]] || hm_die "$HM_EX_USAGE" "Usage: hm delete <generation> [options]"
+  [[ -n "$generation" ]] || hm_die "$HM_EX_USAGE" "Usage: hm delete [--profile NAME] <generation> [options]"
 
   hm_require_initialized
   hm_lock_acquire exclusive
 
+  profile="$(hm_profile_scope "$profile_arg")"
+  if [[ -n "$profile" ]]; then
+    hm_profile_require "$profile" > /dev/null
+  fi
+
   if ! hm_gen_exists "$generation"; then
     hm_die "$HM_EX_STATE" "There is no generation with the id $generation."
+  fi
+
+  if [[ -n "$profile" && "$(hm_profile_of_generation "$generation")" != "$profile" ]]; then
+    hm_die "$HM_EX_VALIDATION" "The generation $generation does not belong to the profile $profile."
   fi
 
   id="$(hm_sql_int "$generation")"

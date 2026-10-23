@@ -19,6 +19,8 @@ TESTS=(
   test_completion_bash_does_not_offer_arguments_out_of_range
   test_completion_bash_offers_the_generation_ids
   test_completion_bash_offers_the_profile_names
+  test_completion_bash_offers_the_profile_subcommands
+  test_completion_bash_offers_profile_names_for_management
   test_completion_bash_completes_the_inline_generation_option
   test_completion_bash_offers_the_tracked_paths
   test_completion_bash_keeps_paths_with_spaces
@@ -27,6 +29,8 @@ TESTS=(
   test_completion_bash_does_not_modify_the_project
   test_completion_fish_offers_the_commands
   test_completion_fish_offers_the_options_of_each_command
+  test_completion_fish_offers_the_profile_subcommands
+  test_completion_fish_offers_the_profile_names
   test_completion_fish_offers_the_generation_ids
   test_completion_fish_does_not_offer_arguments_out_of_range
   test_completion_zsh_syntax
@@ -135,6 +139,7 @@ test_completion_bash_offers_the_commands() {
   candidates="$(_completion_bash hm '')"
 
   assert_contains "$candidates" "init" "the completion offers init"
+  assert_contains "$candidates" "profile" "the completion offers profile"
   assert_contains "$candidates" "add" "the completion offers add"
   assert_contains "$candidates" "gen" "the completion offers gen"
   assert_contains "$candidates" "list" "the completion offers list"
@@ -185,24 +190,40 @@ test_completion_bash_offers_the_options_of_each_command() {
     "restore offers its long options"
 
   candidates="$(_completion_bash hm delete '--' | tr '\n' ' ')"
-  assert_eq "--yes --help " "$candidates" \
+  assert_eq "--profile --yes --help " "$candidates" \
     "delete offers its long options"
 
   candidates="$(_completion_bash hm show '--' | tr '\n' ' ')"
-  assert_eq "--help " "$candidates" \
-    "show offers only the help option"
+  assert_eq "--profile --help " "$candidates" \
+    "show offers its long options"
 
   candidates="$(_completion_bash hm status '--' | tr '\n' ' ')"
   assert_eq "--profile --help " "$candidates" \
     "status offers its long options"
 
   candidates="$(_completion_bash hm edit '--' | tr '\n' ' ')"
-  assert_eq "--name --comment --clear-name --clear-comment --yes --help " "$candidates" \
+  assert_eq "--profile --name --comment --clear-name --clear-comment --yes --help " "$candidates" \
     "edit offers its long options"
 
   candidates="$(_completion_bash hm diff '--' | tr '\n' ' ')"
-  assert_eq "--all --help " "$candidates" \
+  assert_eq "--profile --all --help " "$candidates" \
     "diff offers its long options"
+
+  candidates="$(_completion_bash hm switch '--' | tr '\n' ' ')"
+  assert_eq "--profile --help " "$candidates" \
+    "switch offers its long options"
+
+  candidates="$(_completion_bash hm profile '--' | tr '\n' ' ')"
+  assert_eq "--help " "$candidates" \
+    "profile offers its long options"
+
+  candidates="$(_completion_bash hm profile delete '--' | tr '\n' ' ')"
+  assert_eq "--force --yes --help " "$candidates" \
+    "profile delete offers its long options"
+
+  candidates="$(_completion_bash hm profile rename '--' | tr '\n' ' ')"
+  assert_eq "--yes --help " "$candidates" \
+    "profile rename offers its long options"
 
   candidates="$(_completion_bash hm init '--' | tr '\n' ' ')"
   assert_eq "--help " "$candidates" \
@@ -282,6 +303,12 @@ test_completion_bash_does_not_offer_arguments_out_of_range() {
   candidates="$(_completion_bash hm status '')"
   assert_eq "" "$candidates" "status offers no argument"
 
+  candidates="$(_completion_bash hm profile list '')"
+  assert_eq "" "$candidates" "profile list offers no argument"
+
+  candidates="$(_completion_bash hm profile show default '')"
+  assert_eq "" "$candidates" "profile show offers nothing after its name"
+
   candidates="$(_completion_bash hm restore archive.tar.gz '')"
   assert_eq "" "$candidates" "restore offers nothing after its archive"
 
@@ -338,6 +365,53 @@ test_completion_bash_offers_the_profile_names() {
   candidates="$(_completion_bash hm add "--profile=n" | tr '\n' ' ')"
   assert_eq "--profile=nightly " "$candidates" \
     "the inline form filters the profile names"
+}
+
+test_completion_bash_offers_the_profile_subcommands() {
+  local candidates
+
+  _test_setup completion_profile_subcommands
+
+  candidates="$(_completion_bash hm profile '')"
+  assert_contains "$candidates" "add" "profile offers add"
+  assert_contains "$candidates" "list" "profile offers list"
+  assert_contains "$candidates" "show" "profile offers show"
+  assert_contains "$candidates" "use" "profile offers use"
+  assert_contains "$candidates" "rename" "profile offers rename"
+  assert_contains "$candidates" "delete" "profile offers delete"
+  assert_contains "$candidates" "help" "profile offers help"
+}
+
+test_completion_bash_offers_profile_names_for_management() {
+  local candidates
+
+  _completion_fixture
+  printf 'third\n' > "$SRC_DIR/third.txt"
+  run_hm_input 'y\n' add --profile nightly "$SRC_DIR/third.txt"
+
+  candidates="$(_completion_bash hm profile show '' | tr '\n' ' ')"
+  assert_eq "default nightly " "$candidates" \
+    "profile show offers the profile names"
+
+  candidates="$(_completion_bash hm profile use 'n' | tr '\n' ' ')"
+  assert_eq "nightly " "$candidates" \
+    "profile use filters the profile names"
+
+  candidates="$(_completion_bash hm profile rename '' | tr '\n' ' ')"
+  assert_eq "default nightly " "$candidates" \
+    "profile rename offers the old name"
+
+  candidates="$(_completion_bash hm profile delete '' | tr '\n' ' ')"
+  assert_eq "default nightly " "$candidates" \
+    "profile delete offers the profile names"
+
+  candidates="$(_completion_bash hm profile add '' | tr '\n' ' ')"
+  assert_eq "" "$candidates" \
+    "profile add does not suggest an existing name"
+
+  candidates="$(_completion_bash hm profile add nightly "$SRC_DIR/" | tr '\n' ' ')"
+  assert_contains "$candidates" "$SRC_DIR/a.txt" \
+    "profile add completes paths after the new name"
 }
 
 test_completion_bash_completes_the_inline_generation_option() {
@@ -440,6 +514,8 @@ test_completion_bash_does_not_modify_the_project() {
   _completion_bash hm add "$SRC_DIR/" > /dev/null
   _completion_bash hm restore '' > /dev/null
   _completion_bash hm list '--generation=' > /dev/null
+  _completion_bash hm profile list '' > /dev/null
+  _completion_bash hm profile show '' > /dev/null
 
   after="$(_completion_state)"
 
@@ -464,6 +540,7 @@ test_completion_fish_offers_the_commands() {
   candidates="$(_completion_fish 'hm ')"
 
   assert_contains "$candidates" "init" "the fish completion offers init"
+  assert_contains "$candidates" "profile" "the fish completion offers profile"
   assert_contains "$candidates" "add" "the fish completion offers add"
   assert_contains "$candidates" "gen" "the fish completion offers gen"
   assert_contains "$candidates" "list" "the fish completion offers list"
@@ -527,7 +604,85 @@ test_completion_fish_offers_the_options_of_each_command() {
 
   candidates="$(_completion_fish 'hm diff --')"
   assert_contains "$candidates" "--all" "the fish completion offers --all for diff"
+  assert_contains "$candidates" "--profile" "the fish completion offers --profile for diff"
   assert_not_contains "$candidates" "--yes" "the fish completion does not offer --yes for diff"
+
+  candidates="$(_completion_fish 'hm show --')"
+  assert_contains "$candidates" "--profile" "the fish completion offers --profile for show"
+
+  candidates="$(_completion_fish 'hm switch --')"
+  assert_contains "$candidates" "--profile" "the fish completion offers --profile for switch"
+
+  candidates="$(_completion_fish 'hm delete --')"
+  assert_contains "$candidates" "--profile" "the fish completion offers --profile for delete"
+
+  candidates="$(_completion_fish 'hm edit --')"
+  assert_contains "$candidates" "--profile" "the fish completion offers --profile for edit"
+
+  candidates="$(_completion_fish 'hm profile --')"
+  assert_contains "$candidates" "--help" "the fish completion offers the profile help option"
+
+  candidates="$(_completion_fish 'hm profile add --')"
+  assert_not_contains "$candidates" "--profile" "profile add does not inherit the add option"
+  assert_contains "$candidates" "--help" "profile add offers its help option"
+
+  candidates="$(_completion_fish 'hm profile delete --')"
+  assert_contains "$candidates" "--force" "profile delete offers --force"
+  assert_contains "$candidates" "--yes" "profile delete offers --yes"
+
+  candidates="$(_completion_fish 'hm profile rename --')"
+  assert_contains "$candidates" "--yes" "profile rename offers --yes"
+  assert_not_contains "$candidates" "--force" "profile rename does not offer --force"
+}
+
+test_completion_fish_offers_the_profile_subcommands() {
+  local candidates
+
+  if ! _completion_fish_available; then
+    printf '      SKIP fish is not installed, the fish completion was not executed.\n' >&2
+    return 0
+  fi
+
+  _test_setup completion_fish_profile_subcommands
+
+  candidates="$(_completion_fish 'hm profile ')"
+  assert_contains "$candidates" "add" "fish offers the profile add subcommand"
+  assert_contains "$candidates" "list" "fish offers the profile list subcommand"
+  assert_contains "$candidates" "show" "fish offers the profile show subcommand"
+  assert_contains "$candidates" "use" "fish offers the profile use subcommand"
+  assert_contains "$candidates" "rename" "fish offers the profile rename subcommand"
+  assert_contains "$candidates" "delete" "fish offers the profile delete subcommand"
+
+  candidates="$(_completion_fish 'hm profile sh')"
+  assert_contains "$candidates" "show" "fish filters the profile subcommands"
+  assert_not_contains "$candidates" "list" "fish filters out a non matching profile subcommand"
+}
+
+test_completion_fish_offers_the_profile_names() {
+  local candidates
+
+  if ! _completion_fish_available; then
+    printf '      SKIP fish is not installed, the fish completion was not executed.\n' >&2
+    return 0
+  fi
+
+  _completion_fixture
+  printf 'third\n' > "$SRC_DIR/third.txt"
+  run_hm_input 'y\n' add --profile nightly "$SRC_DIR/third.txt"
+
+  candidates="$(_completion_fish 'hm profile show ')"
+  assert_contains "$candidates" "default" "fish offers the default profile for show"
+  assert_contains "$candidates" "nightly" "fish offers the second profile for show"
+
+  candidates="$(_completion_fish 'hm profile use n')"
+  assert_contains "$candidates" "nightly" "fish filters the profile names for use"
+  assert_not_contains "$candidates" "default" "fish filters out a non matching profile name"
+
+  candidates="$(_completion_fish 'hm profile rename ')"
+  assert_contains "$candidates" "default" "fish offers the old name for rename"
+
+  candidates="$(_completion_fish "hm profile add nightly $SRC_DIR/")"
+  assert_contains "$candidates" "$SRC_DIR/a.txt" "fish offers paths after the new profile name"
 }
 
 test_completion_fish_offers_the_generation_ids() {
@@ -603,6 +758,12 @@ test_completion_fish_does_not_offer_arguments_out_of_range() {
 
   candidates="$(_completion_fish 'hm gen --name ')"
   assert_eq "" "$candidates" "fish offers no value for --name"
+
+  candidates="$(_completion_fish 'hm profile list ')"
+  assert_eq "" "$candidates" "fish offers no argument for profile list"
+
+  candidates="$(_completion_fish 'hm profile show default ')"
+  assert_eq "" "$candidates" "fish offers nothing after the profile name"
 }
 
 # --- The zsh completion ----------------------------------------------------

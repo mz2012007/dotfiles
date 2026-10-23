@@ -127,12 +127,17 @@ _add_load_state() {
   done <<< "$rows"
 }
 
-# add PATH...
-# Register the given files and directories for the next generation.
-add() {
-  local -a args=()
-  local argument path kind label
-  local profile="$HM_DEFAULT_PROFILE" profile_id
+# _add_register PROFILE PROFILE_ID PATH...
+# Register the given files and directories in an existing profile. The
+# caller has already initialized the project, acquired the exclusive lock
+# and resolved the profile; the function performs the discovery, preview,
+# confirmation and the single registration transaction.
+_add_register() {
+  local profile="$1" profile_id
+  profile_id="$(hm_sql_int "$2")"
+  shift 2
+  local -a args=("$@")
+  local path kind label
   local -A seen=()
   local -A known=()
   local -A pending=()
@@ -143,44 +148,9 @@ add() {
   local new_count=0 requeue_count=0 pending_count=0 removed_count=0
   local discovered=0 errors=0 now
 
-  if [[ $# -eq 0 ]]; then
+  [[ ${#args[@]} -gt 0 ]] ||
     hm_die "$HM_EX_USAGE" "Usage: hm add [--profile NAME] <file|directory...>"
-  fi
 
-  while [[ $# -gt 0 ]]; do
-    argument="$1"
-    case "$argument" in
-      -h | --help)
-        printf 'Usage: hm add [--profile NAME] <file|directory...>\n'
-        return 0
-        ;;
-      --profile)
-        [[ $# -ge 2 ]] || hm_die "$HM_EX_USAGE" "--profile requires a value."
-        profile="$2"
-        shift 2
-        ;;
-      --profile=*)
-        profile="${argument#*=}"
-        shift
-        ;;
-      -*)
-        hm_die "$HM_EX_USAGE" "Unknown option for 'hm add': $argument"
-        ;;
-      *)
-        args+=("$argument")
-        shift
-        ;;
-    esac
-  done
-
-  if [[ ${#args[@]} -eq 0 ]]; then
-    hm_die "$HM_EX_USAGE" "Usage: hm add [--profile NAME] <file|directory...>"
-  fi
-
-  hm_require_initialized
-  hm_lock_acquire exclusive
-
-  profile_id="$(hm_profile_ensure "$profile")"
   hm_log_debug "Registering paths in the profile $profile."
 
   _ADD_CANDIDATES=()
@@ -319,4 +289,61 @@ add() {
   hm_log_info "Run 'hm gen --profile $profile' to create a generation from the pending paths."
 
   return 0
+}
+
+# add PATH...
+# Register the given files and directories for the next generation.
+add() {
+  local -a args=()
+  local argument
+  local profile_arg="" profile profile_id
+
+  if [[ $# -eq 0 ]]; then
+    hm_die "$HM_EX_USAGE" "Usage: hm add [--profile NAME] <file|directory...>"
+  fi
+
+  while [[ $# -gt 0 ]]; do
+    argument="$1"
+    case "$argument" in
+      -h | --help)
+        printf 'Usage: hm add [--profile NAME] <file|directory...>\n'
+        return 0
+        ;;
+      --profile)
+        [[ $# -ge 2 ]] || hm_die "$HM_EX_USAGE" "--profile requires a value."
+        profile_arg="$2"
+        shift 2
+        ;;
+      --profile=*)
+        profile_arg="${argument#*=}"
+        shift
+        ;;
+      -*)
+        hm_die "$HM_EX_USAGE" "Unknown option for 'hm add': $argument"
+        ;;
+      *)
+        args+=("$argument")
+        shift
+        ;;
+    esac
+  done
+
+  if [[ ${#args[@]} -eq 0 ]]; then
+    hm_die "$HM_EX_USAGE" "Usage: hm add [--profile NAME] <file|directory...>"
+  fi
+
+  hm_require_initialized
+  hm_lock_acquire exclusive
+
+  profile="$(hm_profile_context_name "$profile_arg")"
+  if [[ -n "$profile_arg" ]]; then
+    # An explicit --profile keeps the historical "add creates the profile"
+    # behaviour. An environment or active context must already exist, so a
+    # typo can never create a new namespace by accident.
+    profile_id="$(hm_profile_ensure "$profile")"
+  else
+    profile_id="$(hm_profile_require "$profile")"
+  fi
+
+  _add_register "$profile" "$profile_id" "${args[@]}"
 }

@@ -86,23 +86,39 @@ that supports it.
 | Command | Options | Argument |
 |---|---|---|
 | `hm init` | `-h`, `--help` | — |
+| `hm profile` | `-h`, `--help` | `add`, `list`, `show`, `use`, `rename`, `delete`, `help` |
 | `hm add` | `--profile`, `-h`, `--help` | one or more paths |
 | `hm gen` | `--profile`, `--name`, `--comment`, `--yes`, `-y`, `-h`, `--help` | — |
 | `hm list` | `--profile`, `--generation`, `--pending`, `--paths`, `--store`, `-h`, `--help` | — |
 | `hm status` | `--profile`, `-h`, `--help` | — |
-| `hm show` | `-h`, `--help` | exactly one generation id |
-| `hm diff` | `--all`, `-h`, `--help` | two or more generation ids |
-| `hm edit` | `--name`, `--comment`, `--clear-name`, `--clear-comment`, `--yes`, `-y`, `-h`, `--help` | exactly one generation id |
-| `hm switch` | `-h`, `--help` | exactly one generation id |
-| `hm delete` | `--yes`, `-y`, `-h`, `--help` | exactly one generation id |
+| `hm show` | `--profile`, `-h`, `--help` | exactly one generation id |
+| `hm diff` | `--profile`, `--all`, `-h`, `--help` | two or more generation ids |
+| `hm edit` | `--profile`, `--name`, `--comment`, `--clear-name`, `--clear-comment`, `--yes`, `-y`, `-h`, `--help` | exactly one generation id |
+| `hm switch` | `--profile`, `-h`, `--help` | exactly one generation id |
+| `hm delete` | `--profile`, `--yes`, `-y`, `-h`, `--help` | exactly one generation id |
 | `hm apply` | `--profile`, `--dry-run`, `--yes`, `-y`, `-h`, `--help` | one optional generation id |
 | `hm discard` | `-h`, `--help` | — |
 | `hm backup` | `-h`, `--help` | — |
 | `hm restore` | `--yes`, `-y`, `-h`, `--help` | exactly one backup archive |
 | `hm clean` | `--dry-run`, `--yes`, `-y`, `-h`, `--help` | — |
 
-At the command position the completion offers the fifteen commands, `help`,
+At the command position the completion offers the sixteen commands, `help`,
 `-h`, `--help` and `--version`.
+
+The `profile` command completes its subcommands and their arguments:
+
+* `hm profile <TAB>` offers `add`, `list`, `show`, `use`, `rename`,
+  `delete` and `help`.
+* `hm profile show <TAB>`, `hm profile use <TAB>` and
+  `hm profile delete <TAB>` offer the profile names; after a name they
+  offer nothing.
+* `hm profile rename <TAB>` and `hm profile rename old <TAB>` offer the
+  profile names (the first is a free old name, the second is the new one).
+* `hm profile add <TAB>` offers nothing for the new name; after the name
+  it offers the tracked paths and the filesystem.
+* `hm profile delete --<TAB>` offers `--force`, `--yes` and the help
+  options; `hm profile rename --<TAB>` offers `--yes` and the help
+  options.
 
 The argument is only completed while it is still valid:
 
@@ -117,8 +133,9 @@ The argument is only completed while it is still valid:
   two.
 * `hm apply <TAB>` offers the generation ids, `hm apply 1 <TAB>` offers
   nothing.
-* `hm init <TAB>`, `hm gen <TAB>`, `hm status <TAB>`, `hm backup <TAB>` and
-  the other commands without an argument offer nothing.
+* `hm init <TAB>`, `hm gen <TAB>`, `hm status <TAB>`, `hm backup <TAB>`,
+  `hm profile list <TAB>` and the other commands without an argument offer
+  nothing.
 * `hm gen --name <TAB>` offers nothing: `--name` and `--comment` are free
   text. The same holds for `hm edit --name <TAB>` and
   `hm edit --comment <TAB>`.
@@ -197,7 +214,7 @@ suggestions (the commands, the options and the filesystem paths).
 |---|---|
 | Bash | `bash -n`, ShellCheck, the behavioural tests of `tests/cases/09_completion.sh`, and a real interactive pseudo terminal: completing `dir` inserts `dir\ with\ space`, completing `b` inside an escaped path inserts `b\'q.txt`, a quoted prefix is closed and reopened correctly. |
 | Fish | `fish -n` and `complete -C`, both in `tests/cases/09_completion.sh`. |
-| Zsh | `zsh -n`, registration under `compinit` (`_comps[hm]=_hm`), a behavioural harness with stubbed completion primitives, and a real interactive pseudo terminal. The manual test was run in a Debian container with Zsh 5.9 because Zsh is not installed on the development host. |
+| Zsh | `zsh -n`, registration under `compinit` (`_comps[hm]=_hm`), a behavioural harness with stubbed completion primitives, and a real interactive pseudo terminal. The manual test was run in a Debian container with Zsh 5.9 because Zsh is not installed on the development host. The profile additions were syntax-checked with `zsh -n` in an Alpine container; on the host the suite prints `SKIP` for its two Zsh tests. |
 
 The test suite runs the Bash tests directly and the Fish tests through
 `complete -C`. When `fish` or `zsh` is not on the `PATH`, the tests of that

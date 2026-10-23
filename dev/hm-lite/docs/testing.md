@@ -81,7 +81,7 @@ the code under test to check its own work.
 | `tests/cases/06_apply.sh` | The live write path: the classification, the backup, the manifest, the conflicts, the rollback. | 16 |
 | `tests/cases/07_backup.sh` | `backup` and `restore`: the archive, the manifest, the validation, the activation. | 11 |
 | `tests/cases/08_clean.sh` | The garbage collection: the reference analysis, the removal, the missing objects. | 10 |
-| `tests/cases/09_completion.sh` | The three completion files: the commands, the options per command, the argument ranges, the generation ids, the profile names, the paths with spaces, the fail-safe behaviour without a database, the absence of side effects. | 19 |
+| `tests/cases/09_completion.sh` | The three completion files: the commands, the options per command (including `profile` and the new `--profile` options), the argument ranges, the profile subcommands and names, the generation ids, the paths with spaces, the fail-safe behaviour without a database, the absence of side effects. | 23 |
 | `tests/cases/10_show.sh` | `show`: the metadata block, the entry table, the selected marker, the missing objects, the usage and state errors, the read-only guarantee. | 12 |
 | `tests/cases/11_delete.sh` | `delete`: the preview, the confirmation, `--yes`/`-y`, the selected generation, the parent of the children, the orphan hand-off to `clean`, the rollback of a failing transaction. | 15 |
 | `tests/cases/12_color.sh` | The colours: the automatic detection on a terminal and on a pipe, `HM_COLOR`, `NO_COLOR`, the stream each palette follows, the coloured output of every command, the unchanged plain output. | 10 |
@@ -89,9 +89,10 @@ the code under test to check its own work.
 | `tests/cases/14_edit.sh` | `edit`: setting, replacing and clearing the name and the comment, the preview, the confirmation, the visible change in `show`, the untouched entries and selection, the empty and conflicting values, the unknown generation, the failing transaction, the colours. | 20 |
 | `tests/cases/15_diff.sh` | `diff`: added, removed and changed paths, content, mode and type changes, `--all`, the summary, equal generations, several generations in order, the reversed order, the duplicate, unknown and usage errors, the read-only guarantee, the failing query, the colours. | 19 |
 | `tests/cases/16_profiles.sh` | The profiles: the default profile, the creation through `add --profile`, the shared path in two profiles, the isolated pending set and generations, the selection per profile, the profile columns and filters of `list`, `status`, `show` and `apply`, the refused delete of a generation selected in any profile, the unknown and invalid names, and the migration of a version 1 database. | 19 |
+| `tests/cases/17_profile_commands.sh` | Profile management and the active context: `add`/`list`/`show`/`use`/`rename`/`delete`, context precedence (`--profile`, `HM_PROFILE`, active), scoping and ownership checks, environment-only contexts never creating profiles, the protected default/active profiles, `--force`, shared and orphan path cleanup, help, colours and the legacy no-context behaviour. | 23 |
 
-**234 test cases**, plus the static analysis. The runner reports 235 checks
-when ShellCheck is missing and 236 when it is installed.
+**261 test cases**, plus the static analysis. The runner reports 262 checks
+when ShellCheck is missing and 263 when it is installed.
 
 ---
 
@@ -157,6 +158,16 @@ have an explicit test:
   profile selects.
 * An existing version 1 database is migrated into the profile `default`
   and keeps its paths, its pending set, its generations and its selection.
+* The active context is a scope, never a creation mechanism: an explicit
+  `--profile` on `add` may create a profile, while `HM_PROFILE` and the
+  persisted active profile must name an existing one. A context scopes
+  `add`, `gen`, `list`, `status` and the generation commands; an explicit
+  `--profile` always wins.
+* Profile management is safe: `default` and the effective/persisted active
+  profile cannot be deleted, a profile with generations requires
+  `--force`, shared paths survive a profile delete, orphan paths are
+  removed only when no generation still references them, and content
+  objects stay until `hm clean`.
 * The colours are decided per stream: a pipe gets no escape sequence, a
   terminal does, `HM_COLOR=always` and `HM_COLOR=never` win over the
   detection, and a non-empty `NO_COLOR` wins over everything. Stripping

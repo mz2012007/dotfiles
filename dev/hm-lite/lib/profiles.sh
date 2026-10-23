@@ -10,8 +10,12 @@
 # The file only defines functions. Sourcing it has no side effects.
 #
 
-# The profile that a command uses when no --profile option is given.
+# The profile that a command uses when no --profile option and no active
+# context are present.
 HM_DEFAULT_PROFILE=default
+
+# The state key that stores the active profile of the project.
+HM_ACTIVE_PROFILE_KEY=active_profile
 
 # hm_profile_valid NAME
 # Return 0 when NAME is a valid profile name. A name starts with a letter
@@ -31,6 +35,75 @@ hm_profile_exists() {
     hm_die "$HM_EX_DB" "Cannot read the profiles from the database."
 
   [[ "$count" != "0" ]]
+}
+
+# hm_profile_active
+# Print the profile stored as the active context, or nothing when none is
+# set. A database failure aborts the command.
+hm_profile_active() {
+  local value
+
+  value="$(hm_db_scalar "SELECT value FROM state WHERE key = $(hm_sql_quote "$HM_ACTIVE_PROFILE_KEY");")" ||
+    hm_die "$HM_EX_DB" "Cannot read the active profile from the database."
+
+  printf '%s\n' "$value"
+}
+
+# hm_profile_scope [EXPLICIT]
+# Print the profile that scopes a command: the explicit --profile value,
+# otherwise HM_PROFILE, otherwise the active profile. A missing context
+# prints nothing. The caller validates and resolves the name.
+hm_profile_scope() {
+  local explicit="${1:-}" active
+
+  if [[ -n "$explicit" ]]; then
+    printf '%s\n' "$explicit"
+    return 0
+  fi
+
+  if [[ -n "${HM_PROFILE:-}" ]]; then
+    printf '%s\n' "$HM_PROFILE"
+    return 0
+  fi
+
+  active="$(hm_profile_active)" || return 1
+  printf '%s\n' "$active"
+}
+
+# hm_profile_context_name [EXPLICIT]
+# Print the profile for a command that needs one. The precedence is:
+# --profile, HM_PROFILE, the active profile, the default profile.
+hm_profile_context_name() {
+  local explicit="${1:-}" profile
+
+  profile="$(hm_profile_scope "$explicit")" || return 1
+  printf '%s\n' "${profile:-$HM_DEFAULT_PROFILE}"
+}
+
+# hm_profile_is_active NAME
+# Return 0 when NAME is the persisted active profile, regardless of the
+# process environment. Destructive commands use it together with
+# hm_profile_is_context so that the stored context can never dangle.
+hm_profile_is_active() {
+  local name="$1" active
+
+  active="$(hm_profile_active)" || return 1
+  [[ -n "$active" && "$active" == "$name" ]]
+}
+
+# hm_profile_is_context NAME
+# Return 0 when NAME is the effective context: HM_PROFILE when it is set,
+# otherwise the active profile. The persisted context is deliberately
+# ignored while HM_PROFILE is set, because the environment wins.
+hm_profile_is_context() {
+  local name="$1"
+
+  if [[ -n "${HM_PROFILE:-}" ]]; then
+    [[ "$HM_PROFILE" == "$name" ]]
+    return
+  fi
+
+  hm_profile_is_active "$name"
 }
 
 # hm_profile_id NAME
@@ -56,7 +129,7 @@ hm_profile_require() {
     hm_die "$HM_EX_USAGE" "Invalid profile name: $name"
 
   id="$(hm_profile_id "$name")" ||
-    hm_die "$HM_EX_VALIDATION" "There is no profile named $name. Run 'hm add --profile $name <path>' to create it."
+    hm_die "$HM_EX_VALIDATION" "There is no profile named $name. Run 'hm profile add $name' to create it."
 
   printf '%s\n' "$id"
 }

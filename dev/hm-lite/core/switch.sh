@@ -29,23 +29,33 @@ _switch_cleanup_stage() {
 # _switch_usage
 _switch_usage() {
   cat <<'EOF'
-Usage: hm switch <generation>
+Usage: hm switch [--profile NAME] <generation>
 
 Select a generation and materialize it into <runtime>/current.
 
 Options:
-  -h, --help    Show this help
+  --profile NAME  Require the generation to belong to the profile
+  -h, --help      Show this help
 EOF
 }
 
 # switch GENERATION - select a generation and materialize it.
 switch() {
-  local generation=""
+  local generation="" profile_arg="" profile
   local argument
 
   while [[ $# -gt 0 ]]; do
     argument="$1"
     case "$argument" in
+      --profile)
+        [[ $# -ge 2 ]] || hm_die "$HM_EX_USAGE" "--profile requires a value."
+        profile_arg="$2"
+        shift 2
+        ;;
+      --profile=*)
+        profile_arg="${argument#*=}"
+        shift
+        ;;
       -h | --help)
         _switch_usage
         return 0
@@ -55,7 +65,7 @@ switch() {
         ;;
       *)
         if [[ -n "$generation" ]]; then
-          hm_die "$HM_EX_USAGE" "Usage: hm switch <generation>"
+          hm_die "$HM_EX_USAGE" "Usage: hm switch [--profile NAME] <generation>"
         fi
         generation="$argument"
         shift
@@ -64,14 +74,23 @@ switch() {
   done
 
   if [[ -z "$generation" ]]; then
-    hm_die "$HM_EX_USAGE" "Usage: hm switch <generation>"
+    hm_die "$HM_EX_USAGE" "Usage: hm switch [--profile NAME] <generation>"
   fi
 
   hm_require_initialized
   hm_lock_acquire exclusive
 
+  profile="$(hm_profile_scope "$profile_arg")"
+  if [[ -n "$profile" ]]; then
+    hm_profile_require "$profile" > /dev/null
+  fi
+
   if ! hm_gen_exists "$generation"; then
     hm_die "$HM_EX_STATE" "There is no generation with the id $generation."
+  fi
+
+  if [[ -n "$profile" && "$(hm_profile_of_generation "$generation")" != "$profile" ]]; then
+    hm_die "$HM_EX_VALIDATION" "The generation $generation does not belong to the profile $profile."
   fi
 
   # Every object of the generation must be present, a half materialized tree

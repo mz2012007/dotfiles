@@ -69,7 +69,8 @@ stays testable.
 | `hm` | Dispatcher only. Bootstrap aware: `hm init` works with no configuration and no database present. It also owns the exit code constants, so that the dispatcher reports its own bootstrap failures with the same contract as the commands. |
 | `config` | Default `KEY=VALUE` configuration template. Parsed as data, never executed. |
 | `core/init.sh` | Create the directories, write the configuration, apply `db/schema.sql`, validate the result. Idempotent. |
-| `core/add.sh` | Registration only: discovery → dedupe → preview → confirm → one transaction. |
+| `core/profile.sh` | Profile management: `add`, `list`, `show`, `use`, `rename`, `delete`; reuses the `add` registration pipeline and the read-only list helpers. |
+| `core/add.sh` | Registration only: discovery → dedupe → preview → confirm → one transaction. The shared `_add_register` entry point is also used by `profile add`. |
 | `core/gen.sh` | Content capture: lock, stage, hash, store, one transaction, clear the pending set. |
 | `core/list.sh` | Read only views: generations, entries, tracked paths, pending paths, store statistics; optional profile filter. |
 | `core/status.sh` | Read only dashboard: the project, the profile, the store space (referenced, unreferenced, missing) and the profile, size and comment of every generation. |
@@ -89,7 +90,7 @@ stays testable.
 | `lib/database.sh` | The `sqlite3` invocation, the SQL quoting, the transaction helper, the schema version, the hex codec. |
 | `lib/hashing.sh` | The SHA-256 of a file and of staged bytes. |
 | `lib/storage.sh` | The content store: put, get, verify, the prefix layout, the removal. |
-| `lib/profiles.sh` | The profile helpers: name validation, lookup, creation, the profile of a generation, the state key of a selection. |
+| `lib/profiles.sh` | The profile helpers: name validation, lookup, creation, the active context (`--profile`/`HM_PROFILE`/state), the profile of a generation, the state key of a selection and the selection guard. |
 | `lib/generations.sh` | The creation of a generation, the materialisation, the listing of the entries, the profile aware selection and parent lookup. |
 | `lib/validation.sh` | The validation of the runtime directory, the database, the schema version and the store. |
 | `lib/locking.sh` | The `flock` wrapper for `<runtime>/hm.lock`. |
@@ -149,8 +150,10 @@ failure themselves instead of returning an empty value.
 ## 3. The data flow of a generation
 
 ```
-hm add --profile NAME <paths>
+hm profile use NAME  ──►  active_profile (persisted context)
+hm add [--profile NAME] <paths>
    │
+   │  explicit > HM_PROFILE > active > default
    │  find -print0 → normalise → deduplicate
    ▼
 profiles ─< path_profiles >─ paths (the location)   pending_paths (the selection)
@@ -181,19 +184,30 @@ The four concepts are four different tables:
 Because the content object is shared, the metadata can never be shared:
 the mode of a file belongs to the generation entry, not to the object.
 
-### Profiles
+### Profiles and the active context
 
 A profile is an independent namespace above the same content store:
 
 * the tracked paths (`path_profiles`), the pending set, the generations and
   the selection belong to a profile,
 * every project has the profile `default`, created by `hm init`,
-* `hm add --profile NAME` creates a missing profile on the spot; the other
-  commands require an existing one,
-* without `--profile`, `add` and `gen` use `default`, while `list` and
-  `status` show every profile,
+* `hm profile add NAME` and `hm add --profile NAME` create a missing
+  profile; the other commands require an existing one,
+* the effective context is resolved as `--profile`, then `HM_PROFILE`, then
+  the persisted `active_profile` state key,
+* `hm profile use NAME` writes the persisted context; `HM_PROFILE` is the
+  per-process override and is never read from the configuration file,
+* without a context, `add` and `gen` fall back to `default`, `list` and
+  `status` cover every profile, and the generation commands keep their
+  legacy unscoped behaviour,
 * `current/` and `testing/` stay global: they hold the materialised
   selection of the last `hm switch`.
+
+The context is deliberately a **scope**, not a creation mechanism. An
+explicit `--profile` on `add` may create a missing profile; the environment
+and the persisted context never do, so a typo cannot silently start writing
+into a new namespace. The generation commands use the context as an
+ownership check and reject a generation that belongs to another profile.
 
 This lets two independent trees (for example the dotfiles and a
 system-update set) share one project, one store and one history while each

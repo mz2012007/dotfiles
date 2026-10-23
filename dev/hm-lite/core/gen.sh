@@ -62,7 +62,7 @@ Usage: hm gen [options]
 Create a new generation from the pending paths of a profile.
 
 Options:
-  --profile NAME     Use the profile (default: default)
+  --profile NAME     Use the profile (default: the active profile, then default)
   --name NAME        Give the generation a name
   --comment TEXT     Attach a comment to the generation
   --yes, -y          Do not ask for a confirmation
@@ -75,7 +75,7 @@ EOF
 # gen - capture the pending paths into a new generation.
 gen() {
   local name="" comment=""
-  local profile="$HM_DEFAULT_PROFILE" profile_id
+  local profile_arg="" profile profile_id
   local assume_yes=0
   local argument
 
@@ -84,11 +84,11 @@ gen() {
     case "$argument" in
       --profile)
         [[ $# -ge 2 ]] || hm_die "$HM_EX_USAGE" "--profile requires a value."
-        profile="$2"
+        profile_arg="$2"
         shift 2
         ;;
       --profile=*)
-        profile="${argument#*=}"
+        profile_arg="${argument#*=}"
         shift
         ;;
       --name)
@@ -127,6 +127,7 @@ gen() {
   hm_require_initialized
   hm_lock_acquire exclusive
 
+  profile="$(hm_profile_context_name "$profile_arg")"
   profile_id="$(hm_profile_require "$profile")"
   hm_log_debug "Creating a generation in the profile $profile."
 

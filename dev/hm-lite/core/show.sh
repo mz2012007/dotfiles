@@ -20,12 +20,13 @@
 # _show_usage
 _show_usage() {
   cat <<'EOF'
-Usage: hm show <generation>
+Usage: hm show [--profile NAME] <generation>
 
 Show the metadata and the entries of a generation.
 
 Options:
-  -h, --help     Show this help
+  --profile NAME  Require the generation to belong to the profile
+  -h, --help      Show this help
 EOF
 }
 
@@ -125,12 +126,21 @@ _show_generation() {
 
 # show - print a generation and its entries.
 show() {
-  local generation=""
+  local generation="" profile_arg="" profile
   local argument
 
   while [[ $# -gt 0 ]]; do
     argument="$1"
     case "$argument" in
+      --profile)
+        [[ $# -ge 2 ]] || hm_die "$HM_EX_USAGE" "--profile requires a value."
+        profile_arg="$2"
+        shift 2
+        ;;
+      --profile=*)
+        profile_arg="${argument#*=}"
+        shift
+        ;;
       -h | --help)
         _show_usage
         return 0
@@ -139,20 +149,29 @@ show() {
         hm_die "$HM_EX_USAGE" "Unknown option for 'hm show': $argument"
         ;;
       *)
-        [[ -z "$generation" ]] || hm_die "$HM_EX_USAGE" "Usage: hm show <generation>"
+        [[ -z "$generation" ]] || hm_die "$HM_EX_USAGE" "Usage: hm show [--profile NAME] <generation>"
         generation="$argument"
         shift
         ;;
     esac
   done
 
-  [[ -n "$generation" ]] || hm_die "$HM_EX_USAGE" "Usage: hm show <generation>"
+  [[ -n "$generation" ]] || hm_die "$HM_EX_USAGE" "Usage: hm show [--profile NAME] <generation>"
 
   hm_require_initialized
   hm_lock_acquire shared
 
+  profile="$(hm_profile_scope "$profile_arg")"
+  if [[ -n "$profile" ]]; then
+    hm_profile_require "$profile" > /dev/null
+  fi
+
   if ! hm_gen_exists "$generation"; then
     hm_die "$HM_EX_STATE" "There is no generation with the id $generation."
+  fi
+
+  if [[ -n "$profile" && "$(hm_profile_of_generation "$generation")" != "$profile" ]]; then
+    hm_die "$HM_EX_VALIDATION" "The generation $generation does not belong to the profile $profile."
   fi
 
   hm_log_debug "Showing the generation $generation."

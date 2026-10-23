@@ -17,7 +17,7 @@ Usage: hm list [options]
 Show the state of the project.
 
 Options:
-  --profile NAME    Show a single profile (default: every profile)
+  --profile NAME    Show a single profile (default: the active profile, then every profile)
   --generation ID   Show the entries of a single generation
   --pending         Show the paths that are queued for the next generation
   --paths           Show the tracked paths
@@ -264,6 +264,7 @@ list() {
   hm_require_initialized
   hm_lock_acquire shared
 
+  profile="$(hm_profile_scope "$profile")"
   if [[ -n "$profile" ]]; then
     hm_profile_require "$profile" > /dev/null
   fi

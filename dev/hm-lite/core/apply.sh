@@ -29,8 +29,9 @@ Usage: hm apply [generation] [options]
 
 Write a generation to the live filesystem.
 
-Without an argument the selected generation is applied. With --profile and
-without an argument the selection of the profile is applied.
+Without an argument the selected generation is applied. In an active
+context, or with --profile and without an argument, the selection of the
+profile is applied.
 
 Options:
   --profile NAME Use the selection of the profile
@@ -138,7 +139,7 @@ _apply_rollback() {
 # apply [GENERATION] - write a generation to the live filesystem.
 apply() {
   local generation=""
-  local profile=""
+  local profile_arg="" profile
   local assume_yes=0
   local dry_run=0
   local argument
@@ -148,11 +149,11 @@ apply() {
     case "$argument" in
       --profile)
         [[ $# -ge 2 ]] || hm_die "$HM_EX_USAGE" "--profile requires a value."
-        profile="$2"
+        profile_arg="$2"
         shift 2
         ;;
       --profile=*)
-        profile="${argument#*=}"
+        profile_arg="${argument#*=}"
         shift
         ;;
       --dry-run)
@@ -185,6 +186,7 @@ apply() {
   hm_lock_acquire exclusive
 
   # --- Resolve the profile and the generation ------------------------------
+  profile="$(hm_profile_scope "$profile_arg")"
   if [[ -n "$profile" ]]; then
     hm_profile_require "$profile" > /dev/null
   fi
@@ -192,6 +194,9 @@ apply() {
   if [[ -z "$generation" ]]; then
     generation="$(hm_gen_selected "$profile")"
     if [[ -z "$generation" ]]; then
+      if [[ -n "$profile" ]]; then
+        hm_die "$HM_EX_STATE" "No generation is selected in the profile $profile. Run 'hm switch --profile $profile <generation>' or name a generation."
+      fi
       hm_die "$HM_EX_STATE" "No generation is selected. Run 'hm switch <generation>' or name a generation."
     fi
   fi

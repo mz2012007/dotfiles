@@ -98,6 +98,23 @@ refused, because `current/` and an argument-less `hm apply` must always
 resolve to a generation that exists. The content objects themselves are
 only removed by `hm clean`, after its exact reference analysis.
 
+The profile context adds one rule: **a context is a scope, never a silent
+creation**. An explicit `--profile` on `add` may create the named profile;
+`HM_PROFILE` and the persisted active profile must already exist. A typo in
+a script therefore fails with exit `3` instead of writing into a new
+namespace. The precedence is explicit `--profile`, then `HM_PROFILE`, then
+the persisted `active_profile`, then the command's default. The generation
+commands use the context as an ownership check and refuse a generation of
+another profile.
+
+`hm profile delete` protects the `default` profile and both the effective
+context and the persisted active profile, even when `HM_PROFILE`
+temporarily names another profile. A profile with generations requires
+`--force`; shared paths survive, orphan path rows are removed only when no
+generation still references them, and the content objects stay in the
+store until `hm clean`. Renaming updates the context and selection keys in
+the same transaction, so no state key is left pointing to the old name.
+
 ---
 
 ## 4. The backup is a real backup
@@ -126,7 +143,8 @@ support.
 |---|---|
 | `add`, `gen`, `apply`, `backup`, `restore`, `clean`, `delete` | exclusive |
 | `switch`, `discard`, `edit` | exclusive |
-| `list`, `status`, `show`, `diff` | shared |
+| `profile add`, `profile rename`, `profile delete`, `profile use <name>` | exclusive |
+| `list`, `status`, `show`, `diff`, `profile list`, `profile show`, `profile use` | shared |
 
 The lock is a `flock` on `<runtime>/hm.lock`. A command that cannot
 acquire it within `HM_LOCK_TIMEOUT` seconds (default `10`) fails with exit
@@ -168,6 +186,10 @@ These are deliberate limits, not bugs:
 * **The generation history is linear per profile.** The parent of a new
   generation is always the newest existing generation of the same profile.
   The content store, `current/` and `testing/` are shared by every profile.
+* **The active context is project-global.** It is stored in the project
+  database, so every terminal sees the same persisted value. Use the
+  environment-only `HM_PROFILE` in an unattended script; an explicit
+  `--profile` remains the strongest override.
 * **A symbolic link at a destination is a conflict, never a silent
   replacement.** Remove the link by hand and run `hm apply` again.
 * **The root of the filesystem is never a destination.** A recorded path

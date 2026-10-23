@@ -23,7 +23,7 @@ userland.
 | Comparison | `hm diff` compares two or more generations, pair by pair, and reports added, removed and changed paths with the reason (content, mode, type, owner, size). Read only, and a difference is not an error. |
 | Metadata editing | `hm edit` changes the name and the comment of an existing generation after a preview and a confirmation. The entries and the content store are untouched. |
 | Status | `hm status` is a read-only dashboard: the project, the store space (referenced, unreferenced and missing objects) and the profile, size and comment of every generation. |
-| Profiles | `hm add --profile NAME` puts a path into an independent namespace. Each profile owns its tracked paths, pending set, generations and selection; the content store is shared. `list` and `status` show every profile unless `--profile` narrows them. |
+| Profiles | A profile is an independent namespace for paths, pending paths, generations and selections; the content store is shared. `hm profile add NAME [PATH…]` creates one, `hm profile use NAME` makes it the active context, and the other commands then work inside it without repeating `--profile`. An explicit `--profile` always wins. |
 | Deletion | `hm delete` removes a generation after a preview and a confirmation. A generation selected in any profile is never deleted, the content objects it releases are reclaimed by `hm clean`. |
 | Workspaces | `hm switch` materialises a generation into `current/`, `hm discard` resets `testing/` from it. The live filesystem is never touched. |
 | Live writes | `hm apply` writes a generation to the real paths with a preview, a per file backup, a manifest, a verification and an automatic rollback. |
@@ -91,15 +91,29 @@ hm clean --dry-run                  # show the garbage of the content store
 ```
 
 A second, independent profile (for example a system update set) shares the
-same project and content store without interfering with the dotfiles:
+same project and content store without interfering with the dotfiles. The
+profile becomes the active context, so the commands no longer repeat
+`--profile`:
 
 ```sh
-hm add --profile update-system /etc/hosts   # creates the profile
-hm gen --profile update-system              # its own pending set and history
-hm list --profile update-system             # only that profile
-hm status --profile update-system           # its dashboard, including comments
-hm apply --profile update-system 2          # write its generation 2
+hm profile add update-system /etc/hosts  # create it and register a path
+hm profile use update-system             # make it the active context
+hm gen                                   # its own pending set and history
+hm list                                  # only this profile
+hm status                                # its dashboard, including comments
+hm switch 2                              # select its generation 2
+hm apply                                 # write that selection
+
+hm list --profile default                # explicit profile wins over the context
+HM_PROFILE=default hm list               # per-process context for scripts
 ```
+
+`hm profile add NAME` creates an empty profile, `hm profile list` shows every
+profile with its counts, `hm profile show NAME` prints its paths and
+generations, `hm profile rename OLD NEW` follows the context, and `hm
+profile delete NAME` has a defined deletion policy. The active context is
+stored in the project database; `HM_PROFILE` overrides it for one process,
+which is the safe choice in scripts.
 
 ---
 
@@ -108,15 +122,21 @@ hm apply --profile update-system 2          # write its generation 2
 | Command | Purpose |
 |---|---|
 | `hm init` | Create the project directory, the configuration and the database. |
+| `hm profile add <name> [path…]` | Create a profile and optionally register paths in it. |
+| `hm profile list` | List every profile with its path, pending and generation counts. |
+| `hm profile show [name]` | Show the paths and generations of a profile. |
+| `hm profile use [name]` | Select the active profile, or print the current context. |
+| `hm profile rename <old> <new>` | Rename a profile and update the context and selection keys. |
+| `hm profile delete <name>` | Delete a profile after a confirmation; history needs `--force`. |
 | `hm add [--profile NAME] <path…>` | Register paths for the next generation of a profile. |
 | `hm gen [--profile NAME]` | Capture the pending paths of a profile into a new generation. |
 | `hm list [--profile NAME]` | Show the generations, the tracked paths, the pending paths and the store. |
 | `hm status [--profile NAME]` | Show the project, the store space and the profile, size and comment of every generation. |
-| `hm show <generation>` | Show the metadata and the entries of one generation. |
-| `hm diff <generation…>` | Compare two or more generations, pair by pair. |
-| `hm edit <generation>` | Change the name and the comment of an existing generation. |
-| `hm switch <generation>` | Select a generation and materialise it into `current/`. |
-| `hm delete <generation>` | Delete a generation that is selected in no profile. |
+| `hm show [--profile NAME] <generation>` | Show the metadata and the entries of one generation. |
+| `hm diff [--profile NAME] <generation…>` | Compare two or more generations, pair by pair. |
+| `hm edit [--profile NAME] <generation>` | Change the name and the comment of an existing generation. |
+| `hm switch [--profile NAME] <generation>` | Select a generation and materialise it into `current/`. |
+| `hm delete [--profile NAME] <generation>` | Delete a generation that is selected in no profile. |
 | `hm apply [generation] [--profile NAME]` | Write a generation (or the selection of a profile) to the live filesystem. |
 | `hm discard` | Reset the `testing/` workspace from `current/`. |
 | `hm backup` | Create a consistent backup of the project state. |
@@ -130,7 +150,31 @@ it does anything. A declined confirmation ends the command with exit code
 `7`, so a script can tell "the user said no" apart from "the command did
 its work". `hm backup` is the exception: it only writes a new archive and
 never changes the project state, so it never asks and can be run from a
-cron job. `hm show` only reads the project and never asks either.
+cron job. `hm show`, `hm list`, `hm status` and `hm profile list/show` only
+read the project and never ask. `hm profile use` is a reversible context
+switch and does not prompt either.
+
+### Profile context
+
+The precedence is:
+
+1. an explicit `--profile NAME` on a command that accepts it,
+2. `HM_PROFILE` in the process environment,
+3. the persisted active profile set by `hm profile use NAME`,
+4. the default profile for `add`/`gen`, or every profile for `list`/`status`.
+
+`HM_PROFILE` is an environment variable, never a configuration key: it must
+name an existing profile, an invalid name exits `2` and an unknown name
+exits `3`. An explicit `--profile` still wins, even when the environment is
+set. The commands that address an existing generation (`show`, `diff`,
+`edit`, `switch`, `delete`, `apply`) use the context as an ownership check;
+without an explicit value, `HM_PROFILE` or an active profile they keep the
+legacy unscoped behaviour.
+
+`hm add --profile NAME` still creates a missing profile. `HM_PROFILE` and
+the active context never create one by accident: a typo cannot silently
+start writing into a new namespace. `hm profile add NAME` is the explicit
+creation command; `hm profile use` never creates either.
 
 ---
 
@@ -180,6 +224,15 @@ An environment variable always wins over the configuration file:
 
 ```sh
 HM_LOG_LEVEL=DEBUG HM_ALLOW_OUTSIDE_HOME=1 hm apply 1
+```
+
+`HM_PROFILE` is special: it is an environment-only profile context, not a
+configuration key. It never appears in the configuration file and it
+overrides the active profile for one process (an explicit `--profile` still
+wins). Use it in scripts and cron jobs:
+
+```sh
+HM_PROFILE=dotfiles hm gen --name nightly
 ```
 
 ### Colours
@@ -264,8 +317,22 @@ See [docs/testing.md](docs/testing.md).
   empty, the remaining history stays readable.
 * The tracked paths, the pending set, the generations and the selection
   belong to a profile; the content store and `current/`/`testing/` are
-  shared by every profile. `hm init` creates the profile `default`, and a
-  missing profile is only created by `hm add --profile NAME`.
+  shared by every profile. `hm init` creates the profile `default`.
+  `hm profile add NAME` and `hm add --profile NAME` create a missing
+  profile; the environment context and the active context never do.
+* The active context is project-global (stored in the `state` table), so it
+  is shared by every terminal. Use `HM_PROFILE` in a script when the
+  persisted context would be unsafe. The presence of a context can never
+  redirect an operation into a different profile silently: `--profile`
+  wins, and the generation commands reject a generation owned by another
+  profile.
+* The `default` profile cannot be renamed or deleted. The effective
+  context and the persisted active profile cannot be deleted either, even
+  when `HM_PROFILE` currently points at another profile. A profile with
+  generations requires `--force`. The content objects of a deleted profile
+  stay in the store until `hm clean`; a path shared with another profile is
+  retained, and an orphan path row is removed only when no generation entry
+  still references it.
 * `hm apply` refuses a destination that is a symbolic link, whose type
   does not match the generation, that is not absolute or that is the root
   of the filesystem. It never writes through a link.

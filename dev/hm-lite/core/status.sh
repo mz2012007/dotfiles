@@ -28,7 +28,7 @@ Usage: hm status [options]
 Show the project, the content store and the generations.
 
 Options:
-  --profile NAME  Show a single profile (default: every profile)
+  --profile NAME  Show a single profile (default: the active profile, then every profile)
   -h, --help      Show this help
 EOF
 }
@@ -287,6 +287,7 @@ status() {
   hm_require_initialized
   hm_lock_acquire shared
 
+  profile="$(hm_profile_scope "$profile")"
   if [[ -n "$profile" ]]; then
     hm_profile_require "$profile" > /dev/null
   fi

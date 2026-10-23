@@ -19,11 +19,12 @@
 # _edit_usage
 _edit_usage() {
   cat <<'EOF'
-Usage: hm edit <generation> [options]
+Usage: hm edit [--profile NAME] <generation> [options]
 
 Change the name and the comment of an existing generation.
 
 Options:
+  --profile NAME     Require the generation to belong to the profile
   --name NAME        Set the name of the generation
   --comment TEXT     Set the comment of the generation
   --clear-name       Remove the name of the generation
@@ -37,7 +38,7 @@ EOF
 
 # edit GENERATION [OPTIONS] - change the metadata of a generation.
 edit() {
-  local generation=""
+  local generation="" profile_arg="" profile
   local name="" comment=""
   local have_name=0 have_comment=0
   local clear_name=0 clear_comment=0
@@ -47,6 +48,15 @@ edit() {
   while [[ $# -gt 0 ]]; do
     argument="$1"
     case "$argument" in
+      --profile)
+        [[ $# -ge 2 ]] || hm_die "$HM_EX_USAGE" "--profile requires a value."
+        profile_arg="$2"
+        shift 2
+        ;;
+      --profile=*)
+        profile_arg="${argument#*=}"
+        shift
+        ;;
       --name)
         [[ $# -ge 2 ]] || hm_die "$HM_EX_USAGE" "--name requires a value."
         name="$2"
@@ -90,7 +100,7 @@ edit() {
         ;;
       *)
         if [[ -n "$generation" ]]; then
-          hm_die "$HM_EX_USAGE" "Usage: hm edit <generation> [options]"
+          hm_die "$HM_EX_USAGE" "Usage: hm edit [--profile NAME] <generation> [options]"
         fi
         generation="$argument"
         shift
@@ -99,7 +109,7 @@ edit() {
   done
 
   if [[ -z "$generation" ]]; then
-    hm_die "$HM_EX_USAGE" "Usage: hm edit <generation> [options]"
+    hm_die "$HM_EX_USAGE" "Usage: hm edit [--profile NAME] <generation> [options]"
   fi
 
   if (( have_name + have_comment + clear_name + clear_comment == 0 )); then
@@ -125,8 +135,17 @@ edit() {
   hm_require_initialized
   hm_lock_acquire exclusive
 
+  profile="$(hm_profile_scope "$profile_arg")"
+  if [[ -n "$profile" ]]; then
+    hm_profile_require "$profile" > /dev/null
+  fi
+
   if ! hm_gen_exists "$generation"; then
     hm_die "$HM_EX_STATE" "There is no generation with the id $generation."
+  fi
+
+  if [[ -n "$profile" && "$(hm_profile_of_generation "$generation")" != "$profile" ]]; then
+    hm_die "$HM_EX_VALIDATION" "The generation $generation does not belong to the profile $profile."
   fi
 
   local id

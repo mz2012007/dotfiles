@@ -22,10 +22,20 @@ Every command is `hm <command> [options]`.
   itself.
 * A **profile** is an independent namespace: the tracked paths, the pending
   set, the generations and the selection belong to a profile, the content
-  store is shared. `hm init` creates the profile `default`. `hm add
-  --profile NAME` creates a missing profile, the other commands require an
-  existing one. Without `--profile`, `add` and `gen` use `default`, while
-  `list` and `status` show every profile.
+  store is shared. `hm init` creates the profile `default`.
+  `hm profile add NAME` and `hm add --profile NAME` create a missing
+  profile; every other profile operation requires an existing one.
+* The **profile context** is resolved in this order: an explicit
+  `--profile NAME`, then `HM_PROFILE`, then the persisted active profile
+  set by `hm profile use NAME`, then the default profile for `add`/`gen`.
+  `list` and `status` show every profile when no context is present, and
+  only the context profile when one is. `show`, `diff`, `edit`, `switch`,
+  `delete` and an argument-less `apply` use the context as an ownership
+  check; without a context they keep the legacy unscoped behaviour.
+* `HM_PROFILE` is a process environment variable, not a configuration key.
+  It must name an existing profile. An invalid name is a usage error (`2`)
+  and an unknown name is a validation error (`3`); an explicit `--profile`
+  still wins over an invalid environment value.
 * A profile name starts with a letter or a digit and continues with
   letters, digits, dots, underscores or hyphens
   (`[A-Za-z0-9][A-Za-z0-9._-]*`). An invalid name is a usage error (`2`),
@@ -50,7 +60,75 @@ Usage: hm init
 
 ---
 
-## `hm add <file|directory…>`
+## `hm profile <subcommand>`
+
+Manage the profiles and the active context. The command is a namespace for
+the management subcommands; the operations on generations keep their own
+commands and accept `--profile`.
+
+```
+Usage: hm profile <subcommand> [arguments...]
+
+Subcommands:
+  profile add <name> [path...]  Create a profile and optionally register paths
+  profile list                  List the profiles and their counts
+  profile show [name]           Show the paths and generations of a profile
+  profile use [name]            Select the active profile, or print it
+  profile rename <old> <new>    Rename a profile and its context
+  profile delete <name>         Delete a profile after a confirmation
+```
+
+`profile add` validates the name, takes the exclusive lock and creates the
+row. With paths it reuses the `hm add` registration pipeline, registers
+them in the usual single transaction and prints the same preview. A failed
+or declined registration removes the still empty profile again. `profile
+add` without paths asks for a confirmation; `hm add --profile NAME` is the
+shortcut that creates and registers in one command.
+
+`profile list` is read only. It prints every profile with its path, pending
+and generation counts and the marker of the effective context. `profile
+show` is read only too: without a name it shows the effective context
+(`HM_PROFILE`, then the persisted active profile, then `default`), with a
+name it shows that profile regardless of the environment. Neither command
+prompts.
+
+`profile use NAME` stores the active profile in the `state` table under
+`active_profile` and takes the exclusive lock. It does not create a
+missing profile, and it does not prompt: switching the context is
+reversible. Without a name it prints the persisted active profile and, when
+`HM_PROFILE` is set, the effective environment context. The context is
+project-global, so every terminal sees the same persisted value; use
+`HM_PROFILE` for a script that needs a private context.
+
+`profile rename OLD NEW` updates the profile row, the
+`selected_generation:OLD` state key and the persisted `active_profile` in
+one transaction. The profile id, the paths, the generations and the
+selection therefore follow the new name. The default profile cannot be
+renamed. `--yes`/`-y` skips the confirmation.
+
+`profile delete NAME` has a deliberately conservative policy:
+
+* the `default` profile cannot be deleted;
+* the effective context and the persisted active profile are protected,
+  even when `HM_PROFILE` currently points at another profile; select
+  another profile first;
+* a profile with generations requires `--force`; without it the command
+  stops with exit code `3`;
+* the deletion removes the profile's selections (including a global
+  selection that points into it), pending rows, generation rows and path
+  memberships in one transaction;
+* a path that another profile still tracks is retained, and an orphan path
+  row is removed only when no generation entry still references it;
+* content objects stay in the shared store until `hm clean` reclaims them.
+
+`--yes`/`-y` skips the confirmation and a declined prompt exits `7`.
+Unknown or invalid names follow the common profile errors (`3`/`2`).
+`profile list`, `profile show` and `profile use` without a name never
+prompt; they are read-only or a reversible context switch.
+
+---
+
+## `hm add [--profile NAME] <file|directory…>`
 
 Register paths for the next generation.
 
@@ -60,9 +138,12 @@ Usage: hm add [--profile NAME] <file|directory...>
 
 `add` is a **registration only** command. It does not hash a file, does not
 write to the content store, does not create a generation and never changes
-the file that was registered. The paths are registered in the profile
-`default` unless `--profile` names another one; a missing profile is
-created on the spot.
+the file that was registered. The target profile is the effective context
+(`--profile`, `HM_PROFILE` or the persisted active profile) and falls back
+to `default`. An explicit `--profile` creates a missing profile on the
+spot; an environment or active context must already exist, so a typo cannot
+create a namespace by accident. A missing context therefore never writes
+into another profile.
 
 What it does:
 
@@ -98,13 +179,13 @@ filesystem is removed from the tracked set.
 
 ## `hm gen [options]`
 
-Capture the pending paths into a new generation.
+Capture the pending paths of a profile into a new generation.
 
 ```
 Usage: hm gen [options]
 
 Options:
-  --profile NAME     Profile of the generation (default: default)
+  --profile NAME     Profile of the generation (default: the context)
   --name NAME        Give the generation a name
   --comment TEXT     Attach a comment to the generation
   --yes, -y          Do not ask for a confirmation
@@ -113,8 +194,10 @@ Options:
 What it does:
 
 1. Take the **exclusive** project lock.
-2. Read the pending set of the profile. The generation is attached to that
-   profile; the other profiles are not touched.
+2. Read the pending set of the effective profile (`--profile`, then
+   `HM_PROFILE`, then the active profile, then `default`). The generation is
+   attached to that profile; the other profiles are not touched. The
+   profile must already exist: only `add`/`profile add` create one.
 3. For every pending path that no longer exists the command **fails hard**
    with exit code `4`. The remedy is to run `hm add` again, which prunes
    the paths that vanished.
@@ -152,15 +235,18 @@ Show the state of the project. The command is read only.
 Usage: hm list [options]
 
 Options:
-  --profile NAME    Show a single profile (default: every profile)
+  --profile NAME    Show a single profile (default: the context, else every profile)
   --generation ID   Show the entries of a single generation
   --pending         Show the paths that are queued for the next generation
   --paths           Show the tracked paths
   --store           Show the statistics of the content store
 ```
 
-Without an option the overview of all generations is shown, with the
-profile of every generation:
+Without an option and without a profile context the overview of all
+generations is shown, with the profile of every generation. With
+`HM_PROFILE` or a persisted active profile, `list` narrows itself to that
+profile, exactly as if `--profile` had been given; an explicit `--profile`
+always wins.
 
 ```
 ID     PROFILE          CREATED                ENTRIES  OBJECTS  NAME
@@ -189,9 +275,13 @@ command only takes the shared lock and changes nothing.
 Usage: hm status [options]
 
 Options:
-  --profile NAME  Show a single profile (default: every profile)
+  --profile NAME  Show a single profile (default: the context, else every profile)
   -h, --help      Show this help
 ```
+
+Without `--profile`, an `HM_PROFILE` or persisted active context narrows
+the dashboard to that profile. With no context at all, every profile is
+shown and the project-wide selection is used for the `SEL` marker.
 
 ```
 HM-Lite status
@@ -224,13 +314,14 @@ ID     SEL PROFILE          CREATED                ENTRIES  OBJECTS       SIZE  
   the comment set with `hm gen --comment` or `hm edit --comment` (empty
   when the generation has none).
 * `SEL` marks the selection of the shown scope: the global selection (the
-  last `hm switch`) when every profile is shown, and the selection of that
-  profile with `--profile NAME`.
+  last `hm switch`) when every profile is shown, and the selection of the
+  context profile (`--profile`, `HM_PROFILE` or the active profile).
 * `Selected:` follows the same scope: the global selection, or the
   selection of the named profile.
-* With `--profile NAME` the dashboard is restricted to that profile: only
-  its generations, tracked paths and pending paths are counted and listed,
-  and `Profile:` names the profile instead of `all`.
+* With a profile context (`--profile NAME`, `HM_PROFILE` or the active
+  profile) the dashboard is restricted to that profile: only its
+  generations, tracked paths and pending paths are counted and listed, and
+  `Profile:` names the profile instead of `all`.
 * The size of a generation is the summed size of the **distinct** content
   objects it references. Content that several paths or several generations
   share is counted once, therefore the generation sizes never add up to
@@ -255,15 +346,16 @@ ID     SEL PROFILE          CREATED                ENTRIES  OBJECTS       SIZE  
 
 ---
 
-## `hm show <generation>`
+## `hm show [--profile NAME] <generation>`
 
 Show the metadata and the complete entry list of one generation. The
 command is read only and only takes the shared lock.
 
 ```
-Usage: hm show <generation>
+Usage: hm show [--profile NAME] <generation>
 
 Options:
+  --profile NAME Profile owning the generation
   -h, --help     Show this help
 ```
 
@@ -296,19 +388,24 @@ PATH                                     TYPE  MODE  OWNER           SIZE  MODIF
   hides a damaged store behind a repair, and it never modifies anything.
 * An unknown generation is a state error (`4`), a missing or extra
   argument is a usage error (`2`).
+* With `--profile`, `HM_PROFILE` or an active profile, the generation must
+  belong to that profile; a generation owned by another profile is refused
+  with exit code `3` before anything is printed. Without any context the
+  command keeps the legacy unscoped behaviour.
 
 ---
 
-## `hm diff <generation> <generation> [<generation>…]`
+## `hm diff [--profile NAME] <generation> <generation> [<generation>…]`
 
 Compare the entries of two or more generations. The generations are
 compared in the order in which they are given, every consecutive pair is
 one comparison. The command is read only and only takes the shared lock.
 
 ```
-Usage: hm diff <generation> <generation> [<generation>...]
+Usage: hm diff [--profile NAME] <generation> <generation> [<generation>...]
 
 Options:
+  --profile NAME Profile owning the generations
   --all          Show the entries that did not change
   -h, --help     Show this help
 ```
@@ -342,20 +439,24 @@ Generation 1 -> 2
 * The generations must be distinct. A duplicate, an unknown generation
   and a generation that is not a positive integer are rejected before
   anything is printed.
+* With `--profile`, `HM_PROFILE` or an active profile, every generation
+  must belong to that profile; otherwise the command exits `3`. Without a
+  context it keeps the legacy unscoped behaviour.
 * A difference is a normal result: the command always ends with exit code
   `0`. A database failure stops it with exit code `5`, an unknown
   generation is a state error (`4`), and a usage error is `2`.
 
 ---
 
-## `hm edit <generation> [options]`
+## `hm edit [--profile NAME] <generation> [options]`
 
 Change the name and the comment of an existing generation.
 
 ```
-Usage: hm edit <generation> [options]
+Usage: hm edit [--profile NAME] <generation> [options]
 
 Options:
+  --profile NAME     Profile owning the generation
   --name NAME        Set the name of the generation
   --comment TEXT     Set the comment of the generation
   --clear-name       Remove the name of the generation
@@ -389,15 +490,22 @@ Apply the change? [y/N]
 * An unknown generation is a state error (`4`), a declined confirmation
   ends the command with exit code `7`, and a database failure stops it
   with exit code `5` without changing anything.
+* With `--profile`, `HM_PROFILE` or an active profile, the generation must
+  belong to that profile; otherwise the command exits `3`. Without a
+  context it keeps the legacy unscoped behaviour.
 
 ---
 
-## `hm switch <generation>`
+## `hm switch [--profile NAME] <generation>`
 
 Select a generation and materialise it into `<runtime>/current`.
 
 ```
-Usage: hm switch <generation>
+Usage: hm switch [--profile NAME] <generation>
+
+Options:
+  --profile NAME Profile owning the generation
+  -h, --help     Show this help
 ```
 
 * The generation and every content object it needs are validated first.
@@ -408,20 +516,24 @@ Usage: hm switch <generation>
 * The selected generation is recorded in the `state` table twice: under
   `selected_generation:<profile>` for the profile that owns the generation
   and under the global `selected_generation` (the last selection of any
-  profile). `hm apply` uses the global one or, with `--profile`, the
-  selection of that profile. Two profiles can therefore keep two different
-  selections.
+  profile). `hm apply` uses the active context, the global selection or,
+  with `--profile`, the selection of that profile. Two profiles can
+  therefore keep two different selections.
+* With `--profile`, `HM_PROFILE` or an active profile, the generation must
+  belong to that profile (`3` on a mismatch). Without a context the
+  command keeps the legacy unscoped behaviour.
 
 ---
 
-## `hm delete <generation>`
+## `hm delete [--profile NAME] <generation>`
 
 Delete a generation and its entries.
 
 ```
-Usage: hm delete <generation> [options]
+Usage: hm delete [--profile NAME] <generation> [options]
 
 Options:
+  --profile NAME Profile owning the generation
   --yes, -y      Do not ask for a confirmation
   -h, --help     Show this help
 ```
@@ -462,10 +574,14 @@ Delete the generation? [y/N]
   preview and the success message name how many objects are affected.
 * A declined confirmation ends the command with exit code `7` and a
   message on standard error.
+* With `--profile`, `HM_PROFILE` or an active profile, the generation must
+  belong to that profile (`3` on a mismatch). Without a context the
+  command keeps the legacy unscoped behaviour. The selected-generation
+  guard is independent of the context and always checks every profile.
 
 ---
 
-## `hm apply [generation]`
+## `hm apply [generation] [--profile NAME]`
 
 Write a generation to the live filesystem.
 
@@ -478,10 +594,12 @@ Options:
   --yes, -y      Do not ask for a confirmation
 ```
 
-Without an argument the selected generation (the one `hm switch`
-selected) is applied. With `--profile NAME` and without an argument the
-selection of that profile is applied; a named generation must belong to
-the profile, otherwise the command refuses it with exit code `3`.
+Without an argument the selected generation of the effective context is
+applied (`--profile`, then `HM_PROFILE`, then the active profile, then the
+global selection when no context is set). With `--profile NAME` and
+without an argument the selection of that profile is applied; a named
+generation must belong to the profile, otherwise the command refuses it
+with exit code `3`. A `--profile` name must already exist.
 
 Every entry of the generation is classified:
 
@@ -642,4 +760,7 @@ hm <command> --help
 ```
 
 The environment variables `HM_DIR` and `HM_CODE_DIR` select the runtime
-and the code directory.
+and the code directory. `HM_PROFILE` selects the profile context for the
+current process (after an explicit `--profile`, before the persisted
+active profile); it must name an existing profile and is never read from
+the configuration file.
