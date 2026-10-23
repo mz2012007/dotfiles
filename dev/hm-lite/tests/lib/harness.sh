@@ -31,8 +31,8 @@ _test_setup() {
   HM_DIR="$TEST_DIR/project"
   SRC_DIR="$TEST_DIR/source"
   DEST_DIR="$TEST_DIR/destination"
-  CURRENT_DIR="$HM_DIR/current"
-  TESTING_DIR="$HM_DIR/testing"
+  CURRENT_DIR="$HM_DIR/profiles/default/current"
+  TESTING_DIR="$HM_DIR/profiles/default/testing"
   STORE_DIR="$HM_DIR/store/objects"
 
   rm -rf -- "$TEST_DIR"

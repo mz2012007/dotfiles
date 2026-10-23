@@ -25,6 +25,7 @@ hm_runtime_init() {
   HM_TMP_DIR="$HM_DIR/tmp"
   HM_LOG_DIR="$HM_DIR/logs"
   HM_BACKUP_DIR="$HM_DIR/backup"
+  HM_PROFILES_DIR="$HM_DIR/profiles"
   HM_CURRENT_DIR="$HM_DIR/current"
   HM_TESTING_DIR="$HM_DIR/testing"
   HM_LOCK_FILE="$HM_DIR/hm.lock"
@@ -67,8 +68,7 @@ hm_runtime_directories() {
     "$HM_TMP_DIR" \
     "$HM_LOG_DIR" \
     "$HM_BACKUP_DIR" \
-    "$HM_CURRENT_DIR" \
-    "$HM_TESTING_DIR"
+    "$HM_PROFILES_DIR"
 }
 
 # hm_validate_schema_file - make sure the authoritative schema is available.

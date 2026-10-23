@@ -115,8 +115,6 @@ _status_render() {
   local row objects store_bytes referenced referenced_bytes
   local unreferenced unreferenced_bytes missing missing_bytes
   local generations paths_count pending_count selected selected_label store_root
-  local rows id name_hex name comment_hex comment profile_name marker number
-  local created entries entry_objects size
 
   if [[ -n "$profile" ]]; then
     where="WHERE pr.name = $(hm_sql_quote "$profile")"
@@ -207,54 +205,7 @@ _status_render() {
 
   printf '%sGenerations%s\n' "$HM_C_OUT_HEADING" "$HM_C_OUT_RESET"
   printf '\n'
-  printf '%s%-6s %-3s %-16s %-21s %8s %8s %10s  %-20s %s%s\n' "$HM_C_OUT_HEADING" \
-    "NUMBER" "SEL" "PROFILE" "CREATED" "ENTRIES" "OBJECTS" "SIZE" "NAME" "COMMENT" "$HM_C_OUT_RESET"
-
-  if ! hm_db_rows "
-    SELECT g.id,
-           g.number,
-           hex(COALESCE(g.name, '')),
-           hex(COALESCE(g.comment, '')),
-           pr.name,
-           g.created_at,
-           (SELECT COUNT(*) FROM generation_entries ge WHERE ge.generation_id = g.id),
-           (SELECT COUNT(DISTINCT ge.file_id) FROM generation_entries ge WHERE ge.generation_id = g.id AND ge.file_id IS NOT NULL),
-           (SELECT COALESCE(SUM(f.size), 0)
-              FROM files f
-             WHERE f.id IN (SELECT ge.file_id
-                              FROM generation_entries ge
-                             WHERE ge.generation_id = g.id
-                               AND ge.file_id IS NOT NULL))
-      FROM generations g
-      JOIN profiles pr ON pr.id = g.profile_id
-      $generation_where
-     ORDER BY g.created_at DESC, g.id DESC;" rows; then
-    hm_die "$HM_EX_DB" "Cannot read the generations from the database."
-  fi
-
-  if [[ -z "$rows" ]]; then
-    printf '  No generations yet.\n'
-  fi
-
-  while IFS= read -r row; do
-    [[ -n "$row" ]] || continue
-    IFS="$HM_FIELD_SEP" read -r id number name_hex comment_hex profile_name created entries \
-      entry_objects size <<< "$row"
-
-    hm_hex_decode name "$name_hex"
-    hm_hex_decode comment "$comment_hex"
-
-    marker=""
-    if [[ -n "$selected" && "$id" -eq "$selected" ]]; then
-      marker="*"
-    fi
-
-    printf '%-6s %-3s %-16s %-21s %8s %8s %10s  %-20s %s\n' \
-      "$number" "$marker" "$profile_name" \
-      "$(hm_format_epoch "$created" || printf '%s' "$created")" \
-      "$entries" "$entry_objects" "$(hm_format_bytes "$size")" \
-      "${name:-(unnamed)}" "${comment:-}"
-  done <<< "$rows"
+  hm_profile_tree "$profile" "status"
 
   if (( missing > 0 )); then
     hm_log_warn "$missing content object(s) are missing from the store."

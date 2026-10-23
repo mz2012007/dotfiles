@@ -26,25 +26,40 @@ _discard_cleanup_stage() {
 # _discard_usage
 _discard_usage() {
   cat <<'EOF'
-Usage: hm discard
+Usage: hm discard [--profile NAME]
 
 Reset the testing workspace from the current tree.
 
 Options:
-  -h, --help    Show this help
+  --profile NAME  Use the profile of the current tree
+  -h, --help      Show this help
 EOF
 }
 
 # discard - reset the testing workspace.
 discard() {
   local argument
+  local profile_arg="" profile
+  local current_dir testing_dir
 
   while [[ $# -gt 0 ]]; do
     argument="$1"
     case "$argument" in
+      --profile)
+        [[ $# -ge 2 ]] || hm_die "$HM_EX_USAGE" "--profile requires a value."
+        profile_arg="$2"
+        shift 2
+        ;;
+      --profile=*)
+        profile_arg="${argument#*=}"
+        shift
+        ;;
       -h | --help)
         _discard_usage
         return 0
+        ;;
+      -*)
+        hm_die "$HM_EX_USAGE" "Unknown option for 'hm discard': $argument"
         ;;
       *)
         hm_die "$HM_EX_USAGE" "Unknown argument for 'hm discard': $argument"
@@ -55,16 +70,23 @@ discard() {
   hm_require_initialized
   hm_lock_acquire exclusive
 
-  if [[ ! -d "$HM_CURRENT_DIR" ]]; then
+  profile="$(hm_profile_context_name "$profile_arg")" || exit $?
+  hm_profile_require "$profile" > /dev/null
+  hm_profile_workspace_prepare "$profile"
+
+  current_dir="$(hm_profile_current_dir "$profile")"
+  testing_dir="$(hm_profile_testing_dir "$profile")"
+
+  if [[ ! -d "$current_dir" ]]; then
     hm_die "$HM_EX_STATE" "There is no current tree. Run 'hm switch <generation>' first."
   fi
 
-  if [[ -z "$(find "$HM_CURRENT_DIR" -mindepth 1 -maxdepth 1 -print -quit 2>/dev/null)" ]]; then
+  if [[ -z "$(find "$current_dir" -mindepth 1 -maxdepth 1 -print -quit 2>/dev/null)" ]]; then
     hm_die "$HM_EX_STATE" "The current tree is empty. Run 'hm switch <generation>' first."
   fi
 
   local selected selected_label
-  selected="$(hm_gen_selected)"
+  selected="$(hm_gen_selected "$profile")"
   if [[ -z "$selected" ]]; then
     hm_die "$HM_EX_STATE" "No generation is selected. Run 'hm switch <generation>' first."
   fi
@@ -81,24 +103,24 @@ discard() {
   _DISCARD_STAGE="$stage"
   trap '_discard_cleanup_stage' EXIT
 
-  if ! cp -a -- "$HM_CURRENT_DIR/." "$stage/"; then
+  if ! cp -a -- "$current_dir/." "$stage/"; then
     hm_die "$HM_EX_IO" "Cannot copy the current tree, the testing workspace was not changed."
   fi
 
   # --- Replace the testing workspace --------------------------------------
   local previous=""
 
-  if [[ -e "$HM_TESTING_DIR" ]]; then
+  if [[ -e "$testing_dir" ]]; then
     previous="$HM_TMP_DIR/testing.previous.$$"
     rm -rf -- "$previous"
-    if ! mv -- "$HM_TESTING_DIR" "$previous"; then
+    if ! mv -- "$testing_dir" "$previous"; then
       hm_die "$HM_EX_IO" "Cannot move the testing workspace aside."
     fi
   fi
 
-  if ! mv -- "$stage" "$HM_TESTING_DIR"; then
+  if ! mv -- "$stage" "$testing_dir"; then
     if [[ -n "$previous" && -d "$previous" ]]; then
-      mv -- "$previous" "$HM_TESTING_DIR" 2>/dev/null || true
+      mv -- "$previous" "$testing_dir" 2>/dev/null || true
     fi
     hm_die "$HM_EX_IO" "Cannot install the new testing workspace, the project was left unchanged."
   fi

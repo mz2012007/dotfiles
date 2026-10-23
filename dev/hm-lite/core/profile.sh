@@ -314,6 +314,7 @@ _profile_add() {
   fi
 
   hm_profile_ensure "$name" > /dev/null
+  hm_profile_workspace_prepare "$name" 2>/dev/null || true
   hm_log_success "Created the profile $name."
   _profile_print_created "$name" "/"
 
@@ -615,6 +616,16 @@ _profile_rename() {
       "$(hm_sql_quote "$old")"
   } | hm_db_tx || hm_die "$HM_EX_DB" "The rename failed, nothing was changed."
 
+  local old_workspace new_workspace
+  old_workspace="$(hm_profile_workspace_dir "$old")"
+  new_workspace="$(hm_profile_workspace_dir "$new")"
+  if [[ -e "$old_workspace" ]]; then
+    mkdir -p -- "$(dirname -- "$new_workspace")" 2>/dev/null || true
+    mv -- "$old_workspace" "$new_workspace" 2>/dev/null || hm_log_warn "Could not move the workspace for $old to $new."
+  else
+    hm_profile_workspace_prepare "$new" 2>/dev/null || true
+  fi
+
   hm_log_success "Renamed the profile $old to $new."
   printf '%s%s -> %s%s\n' "$HM_C_OUT_GREEN" "$old" "$new" "$HM_C_OUT_RESET"
 
@@ -744,6 +755,8 @@ _profile_delete() {
     printf 'DELETE FROM path_profiles WHERE profile_id = %s;\n' "$id"
     printf 'DELETE FROM profiles WHERE id = %s;\n' "$id"
   } | hm_db_tx || hm_die "$HM_EX_DB" "The deletion failed, nothing was changed."
+
+  hm_profile_workspace_remove "$name"
 
   hm_log_success "Deleted the profile $name."
   if [[ "$generations" -gt 0 ]]; then

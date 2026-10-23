@@ -128,12 +128,15 @@ init() {
   hm_log_info "Initializing HM-Lite in: $(hm_path_display "$HM_DIR")"
 
   hm_init_create_dirs
+  mkdir -p -- "$HM_PROFILES_DIR" 2>/dev/null || hm_die "$HM_EX_IO" "Cannot create the profiles directory."
+  chmod 700 -- "$HM_PROFILES_DIR" 2>/dev/null || true
   hm_init_write_config
   hm_init_database
 
   # The default profile is the namespace of the commands that do not name a
   # profile. It is created once and never rewritten.
   hm_profile_ensure "$HM_DEFAULT_PROFILE" > /dev/null
+  hm_profile_workspace_prepare "$HM_DEFAULT_PROFILE" 2>/dev/null || true
 
   # Internal state records.
   hm_db_exec "INSERT INTO schema_meta (key, value) VALUES ('created_at', $(hm_sql_quote "$(hm_now_utc)"))

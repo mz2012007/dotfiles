@@ -28,37 +28,11 @@ EOF
 
 # _list_generations [PROFILE] - print the overview of the generations.
 _list_generations() {
-  local profile="${1:-}" where="" rows row number profile_name created entries objects name
+  local profile="${1:-}"
 
-  if [[ -n "$profile" ]]; then
-    where="WHERE pr.name = $(hm_sql_quote "$profile")"
-  fi
-
-  printf '%s%-6s %-16s %-21s %8s %8s  %s%s\n' "$HM_C_OUT_HEADING" \
-    "NUMBER" "PROFILE" "CREATED" "ENTRIES" "OBJECTS" "NAME" "$HM_C_OUT_RESET"
-
-  if ! hm_db_rows "
-    SELECT g.number,
-           pr.name,
-           g.created_at,
-           (SELECT COUNT(*) FROM generation_entries ge WHERE ge.generation_id = g.id),
-           (SELECT COUNT(DISTINCT ge.file_id) FROM generation_entries ge WHERE ge.generation_id = g.id AND ge.file_id IS NOT NULL),
-           COALESCE(g.name, '')
-      FROM generations g
-      JOIN profiles pr ON pr.id = g.profile_id
-      $where
-     ORDER BY g.created_at DESC, g.id DESC;" rows; then
-    hm_die "$HM_EX_DB" "Cannot read the generations from the database."
-  fi
-
-  while IFS= read -r row; do
-    [[ -n "$row" ]] || continue
-    IFS="$HM_FIELD_SEP" read -r number profile_name created entries objects name <<< "$row"
-
-    printf '%-6s %-16s %-21s %8s %8s  %s\n' \
-      "$number" "$profile_name" "$(hm_format_epoch "$created" || printf '%s' "$created")" \
-      "$entries" "$objects" "${name:-(unnamed)}"
-  done <<< "$rows"
+  printf '%sGenerations%s\n' "$HM_C_OUT_HEADING" "$HM_C_OUT_RESET"
+  printf '\n'
+  hm_profile_tree "$profile" "list"
 }
 
 # _list_generation ID - print the entries of a single generation.

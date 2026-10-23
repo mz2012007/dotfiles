@@ -16,10 +16,12 @@ TESTS=(
   test_switch_fails_when_an_object_is_missing
   test_switch_rejects_an_unknown_generation
   test_switch_requires_a_generation_argument
+  test_switch_keeps_an_independent_current_tree_per_profile
   test_discard_copies_the_current_tree
   test_discard_replaces_the_testing_workspace
   test_discard_requires_a_switched_generation
   test_discard_does_not_touch_the_live_filesystem
+  test_discard_uses_the_profile_current_tree
 )
 
 # _switch_fixture - one generation with one file and one directory.
@@ -144,6 +146,32 @@ test_switch_requires_a_generation_argument() {
   assert_rc 2 "$HM_STATUS" "a missing argument is a usage error"
 }
 
+test_switch_keeps_an_independent_current_tree_per_profile() {
+  _test_setup switch_profile_current
+  printf 'default\n' > "$SRC_DIR/default.txt"
+  printf 'profile\n' > "$SRC_DIR/profile.txt"
+
+  run_hm_input 'y\n' add "$SRC_DIR/default.txt"
+  run_hm_input 'y\n' gen
+  run_hm_input 'y\n' add --profile test "$SRC_DIR/profile.txt"
+  run_hm_input 'y\n' gen --profile test
+
+  run_hm switch 1
+  assert_rc 0 "$HM_STATUS" "switch succeeds for the default profile"
+
+  run_hm switch --profile test 1
+  assert_rc 0 "$HM_STATUS" "switch succeeds for the second profile"
+
+  assert_file_content "$CURRENT_DIR$SRC_DIR/default.txt" "default" \
+    "the default profile keeps its current tree"
+  assert_file_content "$HM_DIR/profiles/test/current$SRC_DIR/profile.txt" "profile" \
+    "the second profile has its own current tree"
+  assert_file_absent "$CURRENT_DIR$SRC_DIR/profile.txt" \
+    "the second profile does not leak into the default tree"
+  assert_file_absent "$HM_DIR/profiles/test/current$SRC_DIR/default.txt" \
+    "the default profile does not leak into the second tree"
+}
+
 test_discard_copies_the_current_tree() {
   _switch_fixture
 
@@ -195,4 +223,26 @@ test_discard_does_not_touch_the_live_filesystem() {
   after="$(stat -c '%s %Y %a' -- "$SRC_DIR/sub/a.txt")"
 
   assert_eq "$before" "$after" "the source file was not modified"
+}
+
+test_discard_uses_the_profile_current_tree() {
+  _test_setup discard_profile_current
+  printf 'default\n' > "$SRC_DIR/default.txt"
+  printf 'profile\n' > "$SRC_DIR/profile.txt"
+
+  run_hm_input 'y\n' add "$SRC_DIR/default.txt"
+  run_hm_input 'y\n' gen
+  run_hm_input 'y\n' add --profile test "$SRC_DIR/profile.txt"
+  run_hm_input 'y\n' gen --profile test
+
+  run_hm switch --profile test 1
+  assert_rc 0 "$HM_STATUS" "switch succeeds for the profile"
+
+  run_hm discard --profile test
+  assert_rc 0 "$HM_STATUS" "discard succeeds for the profile"
+
+  assert_file_content "$HM_DIR/profiles/test/testing$SRC_DIR/profile.txt" "profile" \
+    "the profile testing tree comes from the profile current tree"
+  assert_file_absent "$HM_DIR/profiles/default/testing" \
+    "the default testing tree is not created"
 }

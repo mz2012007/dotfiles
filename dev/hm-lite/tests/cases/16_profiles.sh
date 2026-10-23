@@ -319,6 +319,17 @@ test_switch_records_the_selection_per_profile() {
     "the selection of the second profile was recorded"
   assert_sql "1" "SELECT value FROM state WHERE key = 'selected_generation:update-system';" \
     "the selection of the first profile was kept"
+
+  assert_file_exists "$HM_DIR/profiles/update-system/current$SRC_DIR/system.txt" \
+    "the first profile has its own current tree"
+  assert_file_exists "$HM_DIR/profiles/dev-env/current$SRC_DIR/dev.txt" \
+    "the second profile has its own current tree"
+  assert_file_exists "$HM_DIR/profiles/update-system/current$SRC_DIR/system.txt" \
+    "the second switch did not replace the first current tree"
+  assert_file_absent "$HM_DIR/profiles/update-system/current$SRC_DIR/dev.txt" \
+    "the first tree only contains the first profile"
+  assert_file_absent "$HM_DIR/profiles/dev-env/current$SRC_DIR/system.txt" \
+    "the second tree only contains the second profile"
 }
 
 test_show_prints_the_profile() {

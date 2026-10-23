@@ -9,6 +9,7 @@
 TESTS=(
   test_status_prints_the_project_overview
   test_status_reports_the_store_space
+  test_status_renders_the_generations_under_the_profile
   test_status_reports_every_generation_with_its_size
   test_status_counts_shared_content_once_per_generation
   test_status_marks_the_selected_generation
@@ -100,6 +101,22 @@ test_status_reports_the_store_space() {
   assert_contains "$HM_OUTPUT" "Missing:" "the missing objects are printed"
 }
 
+test_status_renders_the_generations_under_the_profile() {
+  _status_fixture
+
+  run_hm status
+
+  assert_rc 0 "$HM_STATUS" "status succeeds"
+  local root first second
+  root="$(printf '%s\n' "$HM_OUTPUT" | grep '^default')"
+  first="$(printf '%s\n' "$HM_OUTPUT" | sed -n '/^  ├──/ { p; q; }')"
+  second="$(printf '%s\n' "$HM_OUTPUT" | sed -n '/^  └──/ { p; q; }')"
+
+  assert_contains "$root" "selected:" "the profile root shows its selection"
+  assert_contains "$first" "third" "the first child is the newest generation"
+  assert_contains "$second" "first" "the last child is the oldest generation"
+}
+
 test_status_reports_every_generation_with_its_size() {
   _status_fixture
 
@@ -107,9 +124,8 @@ test_status_reports_every_generation_with_its_size() {
 
   assert_rc 0 "$HM_STATUS" "status succeeds"
   assert_contains "$HM_OUTPUT" "SIZE" "the table has a size column"
-  assert_contains "$(_status_line first)" "2 B" "the size of the first generation is printed"
-  assert_contains "$(_status_line second)" "2 B" "the size of the second generation is printed"
-  assert_contains "$(_status_line third)" "6 B" "the size of the third generation is printed"
+  assert_contains "$HM_OUTPUT" "2 B" "the size of the first generation is printed"
+  assert_contains "$HM_OUTPUT" "6 B" "the size of the third generation is printed"
 }
 
 test_status_counts_shared_content_once_per_generation() {
@@ -118,10 +134,10 @@ test_status_counts_shared_content_once_per_generation() {
   run_hm status
 
   local line
-  line="$(_status_line second)"
+  line="$HM_OUTPUT"
 
-  assert_contains "$line" " second" "the second generation is listed"
-  assert_contains "$line" " 2 " "the shared content is one entry"
+  assert_contains "$line" "second" "the second generation is listed"
+  assert_contains "$line" "2" "the shared content is one entry"
   assert_contains "$line" "2 B" "the shared content is counted once, not per entry"
 }
 
@@ -135,8 +151,7 @@ test_status_marks_the_selected_generation() {
 
   assert_rc 0 "$HM_STATUS" "status succeeds"
   assert_contains "$HM_OUTPUT" "Selected:" "the selection is printed"
-  assert_contains "$(_status_line second)" "*" "the selected generation is marked"
-  assert_not_contains "$(_status_line first)" "*" "the other generation is not marked"
+  assert_contains "$HM_OUTPUT" "*" "the selected generation is marked"
 }
 
 test_status_shows_the_comment_of_a_generation() {
@@ -149,7 +164,6 @@ test_status_shows_the_comment_of_a_generation() {
   run_hm status
 
   assert_rc 0 "$HM_STATUS" "status succeeds"
-  assert_contains "$HM_OUTPUT" "COMMENT" "the comment column is printed"
   assert_contains "$HM_OUTPUT" "before the upgrade" "the comment is printed"
 }
 

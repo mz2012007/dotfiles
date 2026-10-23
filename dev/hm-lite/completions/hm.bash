@@ -198,7 +198,7 @@ _hm_command_options() {
       printf '%s\n' --profile= --dry-run --yes -y -h --help
       ;;
     discard)
-      printf '%s\n' -h --help
+      printf '%s\n' --profile= -h --help
       ;;
     backup)
       printf '%s\n' -h --help

@@ -82,6 +82,7 @@ switch() {
 
   profile="$(hm_profile_context_name "$profile_arg")" || exit $?
   hm_profile_require "$profile" > /dev/null
+  hm_profile_workspace_prepare "$profile"
   id="$(hm_gen_require "$profile" "$generation")" || exit $?
 
   # Every object of the generation must be present, a half materialized tree
@@ -100,15 +101,16 @@ switch() {
     hm_die "$HM_EX_STORE" "The generation cannot be materialized."
   fi
 
-  local entries objects
+  local entries objects current_dir
   entries="$(hm_gen_entry_count "$id")" ||
     hm_die "$HM_EX_DB" "Cannot read the generation $generation from the database."
   objects="$(hm_gen_object_count "$id")" ||
     hm_die "$HM_EX_DB" "Cannot read the generation $generation from the database."
+  current_dir="$(hm_profile_current_dir "$profile")"
 
   printf 'Generation %s%s%s: %s entries, %s content objects.\n' \
     "$HM_C_OUT_CYAN" "$generation" "$HM_C_OUT_RESET" "$entries" "$objects"
-  printf 'The tree is written to: %s\n' "$(hm_path_display "$HM_CURRENT_DIR")"
+  printf 'The tree is written to: %s\n' "$(hm_path_display "$current_dir")"
   printf '\n'
 
   # --- Materialize into a staging directory -------------------------------
@@ -124,8 +126,11 @@ switch() {
   # --- Replace the current tree -------------------------------------------
   # The new tree is renamed into place, the old tree is moved aside first.
   # A failure restores the old tree.
-  local current="$HM_CURRENT_DIR"
-  local previous=""
+  local current current_dir previous
+
+  current_dir="$(hm_profile_current_dir "$profile")"
+  current="$current_dir"
+  previous=""
 
   if [[ -e "$current" ]]; then
     previous="$HM_TMP_DIR/current.previous.$$"

@@ -194,10 +194,15 @@ restore() {
   hm_rm_rf_under "$HM_TMP_DIR" "$previous" 2>/dev/null || true
 
   # The materialized workspaces belong to the state that was replaced.
+  hm_rm_rf_under "$HM_DIR" "$HM_PROFILES_DIR" 2>/dev/null || true
   hm_rm_rf_under "$HM_DIR" "$HM_CURRENT_DIR" 2>/dev/null || true
   hm_rm_rf_under "$HM_DIR" "$HM_TESTING_DIR" 2>/dev/null || true
-  mkdir -p -- "$HM_CURRENT_DIR" "$HM_TESTING_DIR" 2>/dev/null || true
-  chmod 700 -- "$HM_CURRENT_DIR" "$HM_TESTING_DIR" 2>/dev/null || true
+  mkdir -p -- "$HM_PROFILES_DIR" 2>/dev/null || true
+  chmod 700 -- "$HM_PROFILES_DIR" 2>/dev/null || true
+  while IFS= read -r profile_name; do
+    [[ -n "$profile_name" ]] || continue
+    hm_profile_workspace_prepare "$profile_name" 2>/dev/null || true
+  done < <(hm_db_rows "SELECT name FROM profiles;" rows 2>/dev/null || printf '\n' | while IFS= read -r _; do :; done; printf 'default\n') 2>/dev/null || true
 
   hm_log_success "The backup was restored."
 

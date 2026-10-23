@@ -236,3 +236,45 @@ hm_profile_selection_count() {
 
   printf '%s\n' "$count"
 }
+
+# hm_profile_workspace_dir NAME - print the workspace directory of a profile.
+hm_profile_workspace_dir() {
+  local name="$1"
+
+  printf '%s/profiles/%s\n' "$HM_DIR" "$name"
+}
+
+# hm_profile_current_dir NAME - print the current tree directory of a profile.
+hm_profile_current_dir() {
+  local name="$1"
+
+  printf '%s/profiles/%s/current\n' "$HM_DIR" "$name"
+}
+
+# hm_profile_testing_dir NAME - print the testing tree directory of a profile.
+hm_profile_testing_dir() {
+  local name="$1"
+
+  printf '%s/profiles/%s/testing\n' "$HM_DIR" "$name"
+}
+
+# hm_profile_workspace_prepare NAME - create the profile workspace.
+hm_profile_workspace_prepare() {
+  local name="$1"
+  local workspace
+
+  workspace="$(hm_profile_workspace_dir "$name")"
+  mkdir -p -- "$workspace" || hm_die "$HM_EX_IO" "Cannot create the workspace for the profile $name."
+  chmod 700 -- "$workspace" 2>/dev/null || true
+  return 0
+}
+
+# hm_profile_workspace_remove NAME - remove the profile workspace.
+hm_profile_workspace_remove() {
+  local name="$1"
+  local workspace
+
+  workspace="$(hm_profile_workspace_dir "$name")"
+  hm_rm_rf_under "$HM_DIR" "$workspace" 2>/dev/null || true
+  return 0
+}

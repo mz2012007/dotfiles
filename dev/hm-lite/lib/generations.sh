@@ -246,6 +246,118 @@ hm_gen_missing_objects() {
   return 0
 }
 
+# hm_profile_tree [PROFILE] [STYLE]
+# Print a tree of profiles and generations.
+# STYLE: list | status
+hm_profile_tree() {
+  local profile="${1:-}" style="${2:-list}"
+  local profiles="" p_name p_root selected current_dir grows gen_count i grow gid gnum gname gcreated gentries gobjects gsize gcomment is_sel branch
+
+  if [[ -n "$profile" ]]; then
+    profiles="$profile"
+  else
+    local rows
+    if ! hm_db_rows "SELECT name FROM profiles ORDER BY name;" rows; then
+      hm_die "$HM_EX_DB" "Cannot read the profiles from the database."
+    fi
+    while IFS="$HM_FIELD_SEP" read -r _r; do
+      [[ -n "$_r" ]] || continue
+      profiles="${profiles}${profiles:+$'\n'}$_r"
+    done <<< "$rows"
+    if [[ -z "$profiles" ]]; then
+      profiles="${HM_DEFAULT_PROFILE:-default}"
+    fi
+  fi
+
+  if [[ "$style" == "status" ]]; then
+    printf '%s%-16s %-6s %-3s %-21s %8s %8s %10s  %-20s %s%s\n' "$HM_C_OUT_HEADING" \
+      "PROFILE" "NUMBER" "SEL" "CREATED" "ENTRIES" "OBJECTS" "SIZE" "NAME" "COMMENT" "$HM_C_OUT_RESET"
+  else
+    printf '%s%-16s %-6s %-21s %8s %8s  %s%s\n' "$HM_C_OUT_HEADING" \
+      "PROFILE" "NUMBER" "CREATED" "ENTRIES" "OBJECTS" "NAME" "$HM_C_OUT_RESET"
+  fi
+
+  while IFS= read -r p_name; do
+    [[ -n "$p_name" ]] || continue
+    p_root="$(hm_profile_root "$p_name" 2>/dev/null || printf '/')"
+    selected="$(hm_gen_selected "$p_name" 2>/dev/null || true)"
+    current_dir="$(hm_profile_current_dir "$p_name" 2>/dev/null || printf '')"
+    printf '%s%s%s  %s%s%s  %sselected:%s %s%s%s' \
+      "$HM_C_OUT_CYAN" "$p_name" "$HM_C_OUT_RESET" \
+      "$HM_C_OUT_DIM" "$p_root" "$HM_C_OUT_RESET" \
+      "$HM_C_OUT_LABEL" "$HM_C_OUT_RESET" \
+      "$HM_C_OUT_CYAN" "${selected:--}" "$HM_C_OUT_RESET"
+    if [[ -n "$current_dir" && -d "$current_dir" ]]; then
+      printf '  %s[current]%s' "$HM_C_OUT_GREEN" "$HM_C_OUT_RESET"
+    fi
+    printf '\n'
+
+    if ! hm_db_rows "
+      SELECT g.id,
+             g.number,
+             COALESCE(g.name, ''),
+             g.created_at,
+             (SELECT COUNT(*) FROM generation_entries ge WHERE ge.generation_id = g.id),
+             (SELECT COUNT(DISTINCT ge.file_id) FROM generation_entries ge WHERE ge.generation_id = g.id AND ge.file_id IS NOT NULL),
+             (SELECT COALESCE(SUM(f.size), 0)
+                FROM files f
+               WHERE f.id IN (SELECT ge.file_id
+                                FROM generation_entries ge
+                               WHERE ge.generation_id = g.id
+                                 AND ge.file_id IS NOT NULL)),
+             COALESCE(g.comment, '')
+        FROM generations g
+        JOIN profiles pr ON pr.id = g.profile_id
+       WHERE pr.name = $(hm_sql_quote "$p_name")
+       ORDER BY g.created_at DESC, g.id DESC;" grows; then
+      hm_die "$HM_EX_DB" "Cannot read the generations from the database."
+    fi
+
+    gen_count=0
+    while IFS= read -r grow; do
+      [[ -n "$grow" ]] || continue
+      gen_count=$((gen_count + 1))
+    done <<< "$grows"
+
+    if (( gen_count == 0 )); then
+      printf '  %s└──%s %sNo generations yet.%s\n' "$HM_C_OUT_DIM" "$HM_C_OUT_RESET" "$HM_C_OUT_DIM" "$HM_C_OUT_RESET"
+      continue
+    fi
+
+    i=0
+    while IFS= read -r grow; do
+      [[ -n "$grow" ]] || continue
+      i=$((i + 1))
+      IFS="$HM_FIELD_SEP" read -r gid gnum gname gcreated gentries gobjects gsize gcomment <<< "$grow"
+      is_sel=""
+      if [[ -n "$selected" && "$gid" == "$selected" ]]; then
+        is_sel="*"
+      fi
+      if (( i == gen_count )); then
+        branch="└──"
+      else
+        branch="├──"
+      fi
+      if [[ "$style" == "status" ]]; then
+        printf '  %s%s%s %s%s%s %s%-6s%s %-21s %8s %8s %10s  %-20s %s\n' \
+          "$HM_C_OUT_DIM" "$branch" "$HM_C_OUT_RESET" \
+          "$HM_C_OUT_GREEN" "$is_sel" "$HM_C_OUT_RESET" \
+          "$HM_C_OUT_CYAN" "$gnum" "$HM_C_OUT_RESET" \
+          "$(hm_format_epoch "$gcreated" || printf '%s' "$gcreated")" \
+          "$gentries" "$gobjects" "$(hm_format_bytes "$gsize")" \
+          "${gname:-(unnamed)}" "${gcomment:-}"
+      else
+        printf '  %s%s%s %s%s%s %s%-6s%s %-21s %8s %8s  %s\n' \
+          "$HM_C_OUT_DIM" "$branch" "$HM_C_OUT_RESET" \
+          "$HM_C_OUT_GREEN" "$is_sel" "$HM_C_OUT_RESET" \
+          "$HM_C_OUT_CYAN" "$gnum" "$HM_C_OUT_RESET" \
+          "$(hm_format_epoch "$gcreated" || printf '%s' "$gcreated")" \
+          "$gentries" "$gobjects" "${gname:-(unnamed)}"
+      fi
+    done <<< "$grows"
+  done <<< "$profiles"
+}
+
 # hm_gen_materialize GENERATION_ID TARGET_DIR
 # Write the content of a generation into TARGET_DIR. The directory must be
 # empty, the caller creates it.

@@ -9,6 +9,7 @@
 TESTS=(
   test_list_shows_the_generations
   test_list_shows_the_profile_of_each_generation
+  test_list_renders_the_generations_under_the_profile
   test_list_orders_the_generations_by_creation
   test_list_shows_a_single_generation
   test_list_shows_the_pending_paths
@@ -59,6 +60,22 @@ test_list_shows_the_profile_of_each_generation() {
   assert_contains "$HM_OUTPUT" "default" "the profile of the generation is printed"
 }
 
+test_list_renders_the_generations_under_the_profile() {
+  _list_fixture
+
+  run_hm list
+
+  assert_rc 0 "$HM_STATUS" "list succeeds"
+  local root first second
+  root="$(printf '%s\n' "$HM_OUTPUT" | grep '^default')"
+  first="$(printf '%s\n' "$HM_OUTPUT" | sed -n '/^  ├──/ { p; q; }')"
+  second="$(printf '%s\n' "$HM_OUTPUT" | sed -n '/^  └──/ { p; q; }')"
+
+  assert_contains "$root" "selected:" "the profile root shows its selection"
+  assert_contains "$first" "2" "the first child is the newest generation"
+  assert_contains "$second" "1" "the last child is the oldest generation"
+}
+
 test_list_orders_the_generations_by_creation() {
   _list_fixture
 
@@ -66,8 +83,8 @@ test_list_orders_the_generations_by_creation() {
 
   assert_rc 0 "$HM_STATUS" "list succeeds"
   local first second
-  first="$(printf '%s\n' "$HM_OUTPUT" | awk '/^[0-9]+[[:space:]]/ { print $1; exit }')"
-  second="$(printf '%s\n' "$HM_OUTPUT" | awk '/^[0-9]+[[:space:]]/ { print $1 }' | sed -n '2p')"
+  first="$(printf '%s\n' "$HM_OUTPUT" | awk '/[├└]──/ { for (i = 1; i <= NF; i++) if ($i ~ /^[0-9]+$/) { print $i; exit } }')"
+  second="$(printf '%s\n' "$HM_OUTPUT" | awk '/[├└]──/ { for (i = 1; i <= NF; i++) if ($i ~ /^[0-9]+$/) { print $i; break } }' | sed -n '2p')"
 
   assert_eq "2" "$first" "the newest generation comes first"
   assert_eq "1" "$second" "the older generation comes second"
