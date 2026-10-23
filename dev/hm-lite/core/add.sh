@@ -137,7 +137,7 @@ _add_register() {
   profile_id="$(hm_sql_int "$2")"
   shift 2
   local -a args=("$@")
-  local path kind label
+  local path kind label profile_root
   local -A seen=()
   local -A known=()
   local -A pending=()
@@ -146,7 +146,7 @@ _add_register() {
   local -A candidate_kind=()
   local -a removed=()
   local new_count=0 requeue_count=0 pending_count=0 removed_count=0
-  local discovered=0 errors=0 now
+  local discovered=0 errors=0 outside=0 now
 
   [[ ${#args[@]} -gt 0 ]] ||
     hm_die "$HM_EX_USAGE" "Usage: hm add [--profile NAME] <file|directory...>"
@@ -178,6 +178,19 @@ _add_register() {
       candidate_kind["$path"]="$kind"
     fi
   done
+
+  # A profile only owns the paths below its root. The legacy profiles keep
+  # the unrestricted root "/", so their historical behaviour is unchanged.
+  profile_root="$(hm_profile_root "$profile")" || exit $?
+  for path in "${!candidates[@]}"; do
+    if ! hm_path_is_under "$profile_root" "$path"; then
+      hm_log_error "Path is outside of the profile root $profile_root: $(hm_path_display "$path")"
+      outside=$((outside + 1))
+    fi
+  done
+  if [[ $outside -gt 0 ]]; then
+    hm_die "$HM_EX_VALIDATION" "$outside path(s) are outside of the root of the profile $profile."
+  fi
 
   _add_load_state "$profile_id" known pending
 
@@ -335,14 +348,14 @@ add() {
   hm_require_initialized
   hm_lock_acquire exclusive
 
-  profile="$(hm_profile_context_name "$profile_arg")"
+  profile="$(hm_profile_context_name "$profile_arg")" || exit $?
   if [[ -n "$profile_arg" ]]; then
     # An explicit --profile keeps the historical "add creates the profile"
     # behaviour. An environment or active context must already exist, so a
     # typo can never create a new namespace by accident.
-    profile_id="$(hm_profile_ensure "$profile")"
+    profile_id="$(hm_profile_ensure "$profile")" || exit $?
   else
-    profile_id="$(hm_profile_require "$profile")"
+    profile_id="$(hm_profile_require "$profile")" || exit $?
   fi
 
   _add_register "$profile" "$profile_id" "${args[@]}"

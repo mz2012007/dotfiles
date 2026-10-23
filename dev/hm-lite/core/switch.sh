@@ -34,14 +34,14 @@ Usage: hm switch [--profile NAME] <generation>
 Select a generation and materialize it into <runtime>/current.
 
 Options:
-  --profile NAME  Require the generation to belong to the profile
+  --profile NAME  Resolve the local number in the profile
   -h, --help      Show this help
 EOF
 }
 
 # switch GENERATION - select a generation and materialize it.
 switch() {
-  local generation="" profile_arg="" profile
+  local generation="" profile_arg="" profile id
   local argument
 
   while [[ $# -gt 0 ]]; do
@@ -80,23 +80,14 @@ switch() {
   hm_require_initialized
   hm_lock_acquire exclusive
 
-  profile="$(hm_profile_scope "$profile_arg")"
-  if [[ -n "$profile" ]]; then
-    hm_profile_require "$profile" > /dev/null
-  fi
-
-  if ! hm_gen_exists "$generation"; then
-    hm_die "$HM_EX_STATE" "There is no generation with the id $generation."
-  fi
-
-  if [[ -n "$profile" && "$(hm_profile_of_generation "$generation")" != "$profile" ]]; then
-    hm_die "$HM_EX_VALIDATION" "The generation $generation does not belong to the profile $profile."
-  fi
+  profile="$(hm_profile_context_name "$profile_arg")" || exit $?
+  hm_profile_require "$profile" > /dev/null
+  id="$(hm_gen_require "$profile" "$generation")" || exit $?
 
   # Every object of the generation must be present, a half materialized tree
   # would be worse than no tree at all.
   local missing
-  if ! hm_gen_missing_objects "$generation" missing; then
+  if ! hm_gen_missing_objects "$id" missing; then
     hm_die "$HM_EX_DB" "Cannot read the generation $generation from the database."
   fi
   if [[ -n "$missing" ]]; then
@@ -110,9 +101,9 @@ switch() {
   fi
 
   local entries objects
-  entries="$(hm_gen_entry_count "$generation")" ||
+  entries="$(hm_gen_entry_count "$id")" ||
     hm_die "$HM_EX_DB" "Cannot read the generation $generation from the database."
-  objects="$(hm_gen_object_count "$generation")" ||
+  objects="$(hm_gen_object_count "$id")" ||
     hm_die "$HM_EX_DB" "Cannot read the generation $generation from the database."
 
   printf 'Generation %s%s%s: %s entries, %s content objects.\n' \
@@ -126,7 +117,7 @@ switch() {
   _SWITCH_STAGE="$stage"
   trap '_switch_cleanup_stage' EXIT
 
-  if ! hm_gen_materialize "$generation" "$stage"; then
+  if ! hm_gen_materialize "$id" "$stage"; then
     hm_die "$HM_EX_STORE" "The generation could not be materialized, nothing was changed."
   fi
 
@@ -158,9 +149,7 @@ switch() {
     hm_rm_rf_under "$HM_TMP_DIR" "$previous" 2>/dev/null || true
   fi
 
-  local profile
-  profile="$(hm_profile_of_generation "$generation")"
-  hm_gen_set_selected "$generation" "$profile"
+  hm_gen_set_selected "$id" "$profile"
 
   hm_log_success "Generation $generation is now materialized in current/."
   printf '%sProfile:%s             %s\n' "$HM_C_OUT_LABEL" "$HM_C_OUT_RESET" "$profile"

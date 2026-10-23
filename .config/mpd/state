@@ -1,8 +1,8 @@
 sw_volume: 100
 audio_device_state:1:Raspotify
-state: play
+state: pause
 current: 0
-time: 125.10000000000001
+time: 693.972
 random: 1
 repeat: 1
 single: 0

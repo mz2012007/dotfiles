@@ -8,7 +8,7 @@
 # Schema version implemented by this code base. The authoritative schema
 # file sets the same value with "PRAGMA user_version", the test suite
 # verifies that both stay in sync.
-HM_SCHEMA_VERSION=2
+HM_SCHEMA_VERSION=3
 
 # hm_runtime_init - derive every runtime path from the project directory.
 # It only computes values, it never touches the filesystem.

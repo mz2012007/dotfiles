@@ -63,10 +63,82 @@ hm_gen_latest() {
   printf '%s\n' "$value"
 }
 
+# hm_gen_number GENERATION_ID
+# Print the local number of the generation. An unknown id prints nothing
+# and returns 1, a database error aborts the command.
+hm_gen_number() {
+  local id number
+
+  id="$(hm_sql_int "$1")"
+  number="$(hm_db_scalar "SELECT number FROM generations WHERE id = $id;")" ||
+    hm_die "$HM_EX_DB" "Cannot read the number of the generation $id from the database."
+
+  [[ -n "$number" ]] || return 1
+  printf '%s\n' "$number"
+}
+
+# hm_gen_label GENERATION_ID
+# Print "profile:number" for the generation. The label is unambiguous when a
+# command works across profiles, for example "hm discard".
+hm_gen_label() {
+  local id label
+
+  id="$(hm_sql_int "$1")"
+  label="$(hm_db_scalar "
+    SELECT pr.name || ':' || g.number
+      FROM generations g
+      JOIN profiles pr ON pr.id = g.profile_id
+     WHERE g.id = $id;")" ||
+    hm_die "$HM_EX_DB" "Cannot read the generation $id from the database."
+
+  [[ -n "$label" ]] || return 1
+  printf '%s\n' "$label"
+}
+
+# hm_gen_resolve PROFILE GENERATION
+# Resolve a local generation number inside PROFILE and print the internal
+# identifier. An unknown number prints nothing and returns 1. A malformed
+# number is a usage error, a database error aborts the command.
+hm_gen_resolve() {
+  local profile="$1" generation="$2" id
+
+  [[ "$generation" =~ ^[0-9]+$ ]] ||
+    hm_die "$HM_EX_USAGE" "Generation numbers must be positive integers: $generation"
+
+  id="$(hm_db_scalar "
+    SELECT g.id
+      FROM generations g
+      JOIN profiles pr ON pr.id = g.profile_id
+     WHERE pr.name = $(hm_sql_quote "$profile")
+       AND g.number = $generation;")" ||
+    hm_die "$HM_EX_DB" "Cannot read the generation $generation from the database."
+
+  [[ -n "$id" ]] || return 1
+  printf '%s\n' "$id"
+}
+
+# hm_gen_require PROFILE GENERATION
+# Resolve a local number and abort with a state error when PROFILE does not
+# contain it. Print the internal identifier.
+hm_gen_require() {
+  local profile="$1" generation="$2" id status
+
+  status=0
+  id="$(hm_gen_resolve "$profile" "$generation")" || status=$?
+  if (( status != 0 && status != 1 )); then
+    return "$status"
+  fi
+
+  [[ -n "$id" ]] ||
+    hm_die "$HM_EX_STATE" "There is no generation $generation in the profile $profile."
+
+  printf '%s\n' "$id"
+}
+
 # hm_gen_set_selected GENERATION_ID [PROFILE]
 # Record the selection. With a profile the selection of the profile is
-# written and the global selection follows it, so that "hm apply" without
-# an argument still applies the generation that was switched to last.
+# written and the global selection follows it, so that "hm discard" can
+# always restore the generation that was switched to last.
 hm_gen_set_selected() {
   local id profile="${2:-}" sql
   id="$(hm_sql_int "$1")"

@@ -139,7 +139,7 @@ _apply_rollback() {
 # apply [GENERATION] - write a generation to the live filesystem.
 apply() {
   local generation=""
-  local profile_arg="" profile
+  local profile_arg="" profile id
   local assume_yes=0
   local dry_run=0
   local argument
@@ -186,31 +186,24 @@ apply() {
   hm_lock_acquire exclusive
 
   # --- Resolve the profile and the generation ------------------------------
-  profile="$(hm_profile_scope "$profile_arg")"
-  if [[ -n "$profile" ]]; then
-    hm_profile_require "$profile" > /dev/null
-  fi
+  profile="$(hm_profile_context_name "$profile_arg")" || exit $?
+  hm_profile_require "$profile" > /dev/null
 
   if [[ -z "$generation" ]]; then
-    generation="$(hm_gen_selected "$profile")"
-    if [[ -z "$generation" ]]; then
-      if [[ -n "$profile" ]]; then
-        hm_die "$HM_EX_STATE" "No generation is selected in the profile $profile. Run 'hm switch --profile $profile <generation>' or name a generation."
-      fi
-      hm_die "$HM_EX_STATE" "No generation is selected. Run 'hm switch <generation>' or name a generation."
+    id="$(hm_gen_selected "$profile")"
+    if [[ -z "$id" ]] ||
+       ! hm_gen_exists "$id" ||
+       [[ "$(hm_profile_of_generation "$id")" != "$profile" ]]; then
+      hm_die "$HM_EX_STATE" "No generation is selected in the profile $profile. Run 'hm switch --profile $profile <generation>' or name a generation."
     fi
-  fi
-
-  if ! hm_gen_exists "$generation"; then
-    hm_die "$HM_EX_STATE" "There is no generation with the id $generation."
-  fi
-
-  if [[ -n "$profile" && "$(hm_profile_of_generation "$generation")" != "$profile" ]]; then
-    hm_die "$HM_EX_VALIDATION" "The generation $generation does not belong to the profile $profile."
+    generation="$(hm_gen_number "$id")"
+  else
+    id="$(hm_gen_require "$profile" "$generation")" || exit $?
+    generation="$(hm_gen_number "$id")"
   fi
 
   local missing
-  if ! hm_gen_missing_objects "$generation" missing; then
+  if ! hm_gen_missing_objects "$id" missing; then
     hm_die "$HM_EX_DB" "Cannot read the generation $generation from the database."
   fi
   if [[ -n "$missing" ]]; then
@@ -227,14 +220,15 @@ apply() {
   local -A actions=() reasons=() hashes=() octals=()
   local -a order=()
   local create=0 update=0 mode_change=0 unchanged=0 conflict=0
-  local allow_outside
+  local allow_outside profile_root
   allow_outside="$(hm_config_get HM_ALLOW_OUTSIDE_HOME 0)"
+  profile_root="$(hm_profile_root "$profile")" || exit $?
 
   local row encoded entry_type hash_hex mode
   local path hash action reason current_hash current_mode ancestor
   local rows
 
-  if ! hm_gen_entries "$generation" rows; then
+  if ! hm_gen_entries "$id" rows; then
     hm_die "$HM_EX_DB" "Cannot read the entries of the generation $generation."
   fi
 
@@ -255,6 +249,9 @@ apply() {
     if ! hm_path_is_safe_target "$path"; then
       action="CONFLICT"
       reason="the path is not a safe destination"
+    elif ! hm_path_is_under "$profile_root" "$path"; then
+      action="CONFLICT"
+      reason="the path is outside of the profile root"
     elif [[ "$allow_outside" != "1" ]] && ! hm_path_in_home "$path"; then
       action="CONFLICT"
       reason="the path is outside of the home directory"

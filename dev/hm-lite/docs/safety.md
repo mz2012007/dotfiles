@@ -41,6 +41,7 @@ directory.
   | a type mismatch | A file where the generation holds a directory, or the other way round. |
   | a parent that is not a directory | The path cannot be created. |
   | an unsafe destination | The path is not absolute, or it is the root of the filesystem. |
+  | outside the profile root | A rooted profile can only apply paths below its own root. |
   | outside of `$HOME` | Unless `HM_ALLOW_OUTSIDE_HOME=1` is set. |
 
 * **The preview is shown** and the confirmation is requested. The prompt
@@ -99,13 +100,16 @@ resolve to a generation that exists. The content objects themselves are
 only removed by `hm clean`, after its exact reference analysis.
 
 The profile context adds one rule: **a context is a scope, never a silent
-creation**. An explicit `--profile` on `add` may create the named profile;
-`HM_PROFILE` and the persisted active profile must already exist. A typo in
-a script therefore fails with exit `3` instead of writing into a new
-namespace. The precedence is explicit `--profile`, then `HM_PROFILE`, then
-the persisted `active_profile`, then the command's default. The generation
-commands use the context as an ownership check and refuse a generation of
-another profile.
+creation**. `hm profile create NAME ROOT` is the explicit rooted creation
+command; `hm profile add NAME` and an explicit `--profile` on `add` remain
+legacy creation paths with root `/`. `HM_PROFILE` and the persisted active
+profile must already exist. A typo in a script therefore fails with exit
+`3` instead of writing into a new namespace. The precedence is explicit
+`--profile`, then `HM_PROFILE`, then the persisted `active_profile`, then
+`default`. Every generation number is resolved inside that effective
+profile, so a number owned by another profile is never reachable by
+accident. The profile root is a second containment boundary for `add`,
+`gen` and `apply`.
 
 `hm profile delete` protects the `default` profile and both the effective
 context and the persisted active profile, even when `HM_PROFILE`
@@ -143,7 +147,7 @@ support.
 |---|---|
 | `add`, `gen`, `apply`, `backup`, `restore`, `clean`, `delete` | exclusive |
 | `switch`, `discard`, `edit` | exclusive |
-| `profile add`, `profile rename`, `profile delete`, `profile use <name>` | exclusive |
+| `profile create`, `profile add`, `profile rename`, `profile delete`, `profile use <name>` | exclusive |
 | `list`, `status`, `show`, `diff`, `profile list`, `profile show`, `profile use` | shared |
 
 The lock is a `flock` on `<runtime>/hm.lock`. A command that cannot
@@ -185,7 +189,12 @@ These are deliberate limits, not bugs:
 * **Only regular files and directories are tracked.**
 * **The generation history is linear per profile.** The parent of a new
   generation is always the newest existing generation of the same profile.
-  The content store, `current/` and `testing/` are shared by every profile.
+  Generation numbers are local to the profile and monotonic; a deleted
+  number is never reused. The content store, `current/` and `testing/` are
+  shared by every profile.
+* **A profile root bounds the live write.** `hm apply` classifies an entry
+  outside `profiles.root` as a conflict. Legacy profiles have root `/`, so
+  their existing behaviour is unchanged.
 * **The active context is project-global.** It is stored in the project
   database, so every terminal sees the same persisted value. Use the
   environment-only `HM_PROFILE` in an unattended script; an explicit

@@ -42,7 +42,7 @@ test_init_creates_the_schema() {
   run_hm init
   assert_rc 0 "$HM_STATUS" "init succeeds"
 
-  assert_sql "2" "PRAGMA user_version;" "the schema version is 2"
+  assert_sql "3" "PRAGMA user_version;" "the schema version is 3"
   assert_sql "9" \
     "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table';" \
     "all nine tables were created"

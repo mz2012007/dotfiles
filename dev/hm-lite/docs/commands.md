@@ -21,17 +21,18 @@ Every command is `hm <command> [options]`.
 * All commands require an initialised project (`hm init`) except `init`
   itself.
 * A **profile** is an independent namespace: the tracked paths, the pending
-  set, the generations and the selection belong to a profile, the content
-  store is shared. `hm init` creates the profile `default`.
-  `hm profile add NAME` and `hm add --profile NAME` create a missing
-  profile; every other profile operation requires an existing one.
+  set, the generations, their local numbers and the selection belong to a
+  profile, the content store is shared. `hm init` creates the profile
+  `default` with root `/`. `hm profile create NAME ROOT` creates a rooted
+  profile and its local generation sequence. `hm profile add NAME` and
+  `hm add --profile NAME` remain legacy creation paths with root `/`;
+  every other profile operation requires an existing one.
 * The **profile context** is resolved in this order: an explicit
   `--profile NAME`, then `HM_PROFILE`, then the persisted active profile
-  set by `hm profile use NAME`, then the default profile for `add`/`gen`.
-  `list` and `status` show every profile when no context is present, and
-  only the context profile when one is. `show`, `diff`, `edit`, `switch`,
-  `delete` and an argument-less `apply` use the context as an ownership
-  check; without a context they keep the legacy unscoped behaviour.
+  set by `hm profile use NAME`, then the `default` profile. All commands
+  that address a generation resolve its local number inside the effective
+  profile. `list` and `status` show every profile when no context is
+  present, and only the context profile when one is.
 * `HM_PROFILE` is a process environment variable, not a configuration key.
   It must name an existing profile. An invalid name is a usage error (`2`)
   and an unknown name is a validation error (`3`); an explicit `--profile`
@@ -70,27 +71,38 @@ commands and accept `--profile`.
 Usage: hm profile <subcommand> [arguments...]
 
 Subcommands:
-  profile add <name> [path...]  Create a profile and optionally register paths
-  profile list                  List the profiles and their counts
-  profile show [name]           Show the paths and generations of a profile
+  profile create <name> <root> Create a rooted profile and its local sequence
+  profile add <name> [path...]  Create a legacy profile (root /) and optionally register paths
+  profile list                  List the profiles, roots and counts
+  profile show [name]           Show the root, paths and generations of a profile
   profile use [name]            Select the active profile, or print it
   profile rename <old> <new>    Rename a profile and its context
   profile delete <name>         Delete a profile after a confirmation
 ```
 
-`profile add` validates the name, takes the exclusive lock and creates the
-row. With paths it reuses the `hm add` registration pipeline, registers
-them in the usual single transaction and prints the same preview. A failed
-or declined registration removes the still empty profile again. `profile
-add` without paths asks for a confirmation; `hm add --profile NAME` is the
-shortcut that creates and registers in one command.
+`profile create NAME ROOT` validates the name, requires ROOT to be an
+existing directory, normalises it to an absolute path and stores it in one
+transaction. A relative ROOT is resolved against the current directory and
+a leading `~` is expanded. The profile starts with generation number `1`
+and its own local sequence. It does not register any path and does not
+prompt. A missing or non-directory ROOT is a validation error (`3`), and an
+existing profile name is rejected.
 
-`profile list` is read only. It prints every profile with its path, pending
-and generation counts and the marker of the effective context. `profile
-show` is read only too: without a name it shows the effective context
-(`HM_PROFILE`, then the persisted active profile, then `default`), with a
-name it shows that profile regardless of the environment. Neither command
-prompts.
+`profile add` is the legacy creation path. It validates the name, takes the
+exclusive lock and creates a profile whose root is `/`. With paths it
+reuses the `hm add` registration pipeline, registers them in the usual
+single transaction and prints the same preview. A failed or declined
+registration removes the still empty profile again. `profile add` without
+paths asks for a confirmation; `hm add --profile NAME` is the shortcut that
+creates and registers in one command.
+
+`profile list` is read only. It prints every profile with its root, path,
+pending and generation counts and the marker of the effective context.
+`profile show` is read only too: without a name it shows the effective
+context (`HM_PROFILE`, the persisted active profile, then `default`),
+with a name it shows that profile regardless of the environment. It prints
+the root, the paths, the local selected number and the generation table.
+Neither command prompts.
 
 `profile use NAME` stores the active profile in the `state` table under
 `active_profile` and takes the exclusive lock. It does not create a
@@ -140,10 +152,11 @@ Usage: hm add [--profile NAME] <file|directory...>
 write to the content store, does not create a generation and never changes
 the file that was registered. The target profile is the effective context
 (`--profile`, `HM_PROFILE` or the persisted active profile) and falls back
-to `default`. An explicit `--profile` creates a missing profile on the
-spot; an environment or active context must already exist, so a typo cannot
-create a namespace by accident. A missing context therefore never writes
-into another profile.
+to `default`. An explicit `--profile` creates a missing legacy profile
+(root `/`) on the spot; an environment or active context must already
+exist, so a typo cannot create a namespace by accident. Every registered
+path must lie inside the root of the profile; an outside path is rejected
+with exit code `3` before anything is changed.
 
 What it does:
 
@@ -151,7 +164,8 @@ What it does:
    and its subdirectories. Symbolic links and special files are **skipped
    with a warning** and are never followed.
 2. Normalise every path lexically (no `realpath`, so a symbolic link in
-   the path cannot change the identity of the path) and deduplicate it.
+   the path cannot change the identity of the path), deduplicate it and
+   reject a path outside the profile root.
 3. Show a preview that classifies every path:
    `NEW`, `TRACKED`, `PENDING` or `REMOVED`.
 4. Ask for a confirmation.
@@ -185,7 +199,7 @@ Capture the pending paths of a profile into a new generation.
 Usage: hm gen [options]
 
 Options:
-  --profile NAME     Profile of the generation (default: the context)
+  --profile NAME     Profile that receives the generation (default: the context)
   --name NAME        Give the generation a name
   --comment TEXT     Attach a comment to the generation
   --yes, -y          Do not ask for a confirmation
@@ -196,11 +210,13 @@ What it does:
 1. Take the **exclusive** project lock.
 2. Read the pending set of the effective profile (`--profile`, then
    `HM_PROFILE`, then the active profile, then `default`). The generation is
-   attached to that profile; the other profiles are not touched. The
-   profile must already exist: only `add`/`profile add` create one.
+   attached to that profile; the other profiles are not touched and their
+   local numbers are independent. The profile must already exist: only
+   `profile create`/`profile add`/`add --profile` create one.
 3. For every pending path that no longer exists the command **fails hard**
    with exit code `4`. The remedy is to run `hm add` again, which prunes
-   the paths that vanished.
+   the paths that vanished. A pending path outside the profile root is
+   rejected as a validation error (`3`).
 4. Stage a copy of every pending file in `tmp/`, hash it with SHA-256 and
    store the unique contents in the content store. A stored object is read
    back and verified.
@@ -208,7 +224,8 @@ What it does:
    generation and drop the ones that vanished.
 6. Insert the `files`, `generations` and `generation_entries` rows in one
    transaction and clear the pending set of the profile in the same
-   transaction.
+   transaction. The new generation receives the profile's next local
+   number; the number is printed in the success message.
 
 ```
 Generation preview (profile: default):
@@ -236,7 +253,7 @@ Usage: hm list [options]
 
 Options:
   --profile NAME    Show a single profile (default: the context, else every profile)
-  --generation ID   Show the entries of a single generation
+  --generation NUMBER Show the entries of a single local generation number
   --pending         Show the paths that are queued for the next generation
   --paths           Show the tracked paths
   --store           Show the statistics of the content store
@@ -249,16 +266,19 @@ profile, exactly as if `--profile` had been given; an explicit `--profile`
 always wins.
 
 ```
-ID     PROFILE          CREATED                ENTRIES  OBJECTS  NAME
+NUMBER PROFILE          CREATED                ENTRIES  OBJECTS  NAME
 1      default          2026-10-22T14:01:44Z         1        1  (unnamed)
 ```
 
 With `--profile NAME` only the generations, the pending paths and the
 tracked paths of that profile are shown, and the `PROFILE` column and the
-`Profile:` line are still printed for clarity. The generation ids stay
-global across the profiles: a generation belongs to exactly one profile.
+`Profile:` line are still printed for clarity. The `NUMBER` is local to the
+profile: `default:1` and another profile's `1` are different generations
+with the same displayed number. `hm list --generation NUMBER` resolves the
+number inside the effective profile (the context, or `default`).
 
-The generations are ordered by `created_at DESC, id DESC`.
+The generations are ordered by `created_at DESC, id DESC`; the internal
+global id remains the tie breaker, but it is never shown.
 
 `hm list --store` is the raw view of the content store. The richer
 dashboard is [`hm status`](#hm-status).
@@ -289,7 +309,7 @@ HM-Lite status
   Project:         /home/user/.config/hm-lite
   Profile:         all
   Generations:     3
-  Selected:        2
+  Selected:        default:2
   Tracked paths:   3
   Pending paths:   0
 
@@ -304,20 +324,22 @@ Store
 
 Generations
 
-ID     SEL PROFILE          CREATED                ENTRIES  OBJECTS       SIZE  NAME                  COMMENT
+NUMBER SEL PROFILE          CREATED                ENTRIES  OBJECTS       SIZE  NAME                  COMMENT
 3           default          2026-10-22T16:13:02Z         3        2        6 B  third
 2      *    default          2026-10-22T16:13:02Z         2        1        2 B  second                the working configuration
 1           default          2026-10-22T16:13:02Z         1        1        2 B  first
 ```
 
+* `NUMBER` is the local generation number of its profile; the internal
+  global id is never displayed.
 * `PROFILE` names the profile that owns the generation and `COMMENT` prints
   the comment set with `hm gen --comment` or `hm edit --comment` (empty
   when the generation has none).
 * `SEL` marks the selection of the shown scope: the global selection (the
   last `hm switch`) when every profile is shown, and the selection of the
   context profile (`--profile`, `HM_PROFILE` or the active profile).
-* `Selected:` follows the same scope: the global selection, or the
-  selection of the named profile.
+* `Selected:` follows the same scope: a `profile:number` label when every
+  profile is shown, or the local number of the named profile.
 * With a profile context (`--profile NAME`, `HM_PROFILE` or the active
   profile) the dashboard is restricted to that profile: only its
   generations, tracked paths and pending paths are counted and listed, and
@@ -355,13 +377,13 @@ command is read only and only takes the shared lock.
 Usage: hm show [--profile NAME] <generation>
 
 Options:
-  --profile NAME Profile owning the generation
+  --profile NAME Profile that resolves the local number
   -h, --help     Show this help
 ```
 
-The metadata block names the generation, its profile, whether that profile
-selected it, how many entries and content objects it holds and how many
-bytes the files occupy:
+The metadata block names the profile-local generation number, its profile,
+whether that profile selected it, how many entries and content objects it
+holds and how many bytes the files occupy:
 
 ```
 Generation 2
@@ -388,10 +410,10 @@ PATH                                     TYPE  MODE  OWNER           SIZE  MODIF
   hides a damaged store behind a repair, and it never modifies anything.
 * An unknown generation is a state error (`4`), a missing or extra
   argument is a usage error (`2`).
-* With `--profile`, `HM_PROFILE` or an active profile, the generation must
-  belong to that profile; a generation owned by another profile is refused
-  with exit code `3` before anything is printed. Without any context the
-  command keeps the legacy unscoped behaviour.
+* The generation number is resolved inside the effective profile:
+  `--profile`, then `HM_PROFILE`, then the active profile, then `default`.
+  `hm show 1` and `hm show --profile other 1` can therefore address two
+  different generations. There is no unscoped global lookup.
 
 ---
 
@@ -405,7 +427,7 @@ one comparison. The command is read only and only takes the shared lock.
 Usage: hm diff [--profile NAME] <generation> <generation> [<generation>...]
 
 Options:
-  --profile NAME Profile owning the generations
+  --profile NAME Profile that resolves the local numbers
   --all          Show the entries that did not change
   -h, --help     Show this help
 ```
@@ -439,9 +461,10 @@ Generation 1 -> 2
 * The generations must be distinct. A duplicate, an unknown generation
   and a generation that is not a positive integer are rejected before
   anything is printed.
-* With `--profile`, `HM_PROFILE` or an active profile, every generation
-  must belong to that profile; otherwise the command exits `3`. Without a
-  context it keeps the legacy unscoped behaviour.
+* Every number is resolved inside the effective profile (`--profile`,
+  `HM_PROFILE`, the active profile, then `default`). A number that the
+  profile does not have is a state error (`4`); there is no unscoped
+  global lookup. The header prints the local numbers.
 * A difference is a normal result: the command always ends with exit code
   `0`. A database failure stops it with exit code `5`, an unknown
   generation is a state error (`4`), and a usage error is `2`.
@@ -456,7 +479,7 @@ Change the name and the comment of an existing generation.
 Usage: hm edit [--profile NAME] <generation> [options]
 
 Options:
-  --profile NAME     Profile owning the generation
+  --profile NAME     Profile that resolves the local number
   --name NAME        Set the name of the generation
   --comment TEXT     Set the comment of the generation
   --clear-name       Remove the name of the generation
@@ -490,9 +513,9 @@ Apply the change? [y/N]
 * An unknown generation is a state error (`4`), a declined confirmation
   ends the command with exit code `7`, and a database failure stops it
   with exit code `5` without changing anything.
-* With `--profile`, `HM_PROFILE` or an active profile, the generation must
-  belong to that profile; otherwise the command exits `3`. Without a
-  context it keeps the legacy unscoped behaviour.
+* The number is resolved inside the effective profile (`--profile`,
+  `HM_PROFILE`, the active profile, then `default`); a number that the
+  profile does not have is a state error (`4`).
 
 ---
 
@@ -504,7 +527,7 @@ Select a generation and materialise it into `<runtime>/current`.
 Usage: hm switch [--profile NAME] <generation>
 
 Options:
-  --profile NAME Profile owning the generation
+  --profile NAME Profile that resolves the local number
   -h, --help     Show this help
 ```
 
@@ -516,12 +539,12 @@ Options:
 * The selected generation is recorded in the `state` table twice: under
   `selected_generation:<profile>` for the profile that owns the generation
   and under the global `selected_generation` (the last selection of any
-  profile). `hm apply` uses the active context, the global selection or,
-  with `--profile`, the selection of that profile. Two profiles can
+  profile, used by `hm discard`). `hm apply` always uses the selection of
+  the effective profile, or the selection of `--profile`. Two profiles can
   therefore keep two different selections.
-* With `--profile`, `HM_PROFILE` or an active profile, the generation must
-  belong to that profile (`3` on a mismatch). Without a context the
-  command keeps the legacy unscoped behaviour.
+* The number is resolved inside the effective profile (`--profile`,
+  `HM_PROFILE`, the active profile, then `default`); a number that the
+  profile does not have is a state error (`4`).
 
 ---
 
@@ -533,7 +556,7 @@ Delete a generation and its entries.
 Usage: hm delete [--profile NAME] <generation> [options]
 
 Options:
-  --profile NAME Profile owning the generation
+  --profile NAME Resolve the local number in the profile
   --yes, -y      Do not ask for a confirmation
   -h, --help     Show this help
 ```
@@ -559,25 +582,27 @@ Delete the generation? [y/N]
 
 * **A selected generation is never deleted.** The command refuses it
   with exit code `3` when **any** profile (or the global selection) points
-  to the generation, because `current/` and a later `hm apply` without an
-  argument would otherwise point to a generation that no longer exists.
-  `hm switch` must select another generation in that profile first.
+  to the generation, because `current/` would otherwise point to a
+  generation that no longer exists. `hm switch` must select another
+  generation in that profile first.
 * The removal runs in **one transaction**: the entries are deleted first,
   then the generation row. A failure rolls everything back and the project
   is unchanged. An unknown generation ends the command with exit code `4`
   before anything is written.
 * The parent of the child generations becomes empty: the schema uses
   `ON DELETE SET NULL`, so the remaining history stays readable. The
-  remaining generation is otherwise untouched.
+  remaining generation is otherwise untouched. The deleted number is not
+  reused: the profile's sequence always moves forward.
 * The content objects and the `files` rows that no generation uses any
   more are **not** deleted here. `hm clean` reclaims them, and both the
   preview and the success message name how many objects are affected.
 * A declined confirmation ends the command with exit code `7` and a
   message on standard error.
-* With `--profile`, `HM_PROFILE` or an active profile, the generation must
-  belong to that profile (`3` on a mismatch). Without a context the
-  command keeps the legacy unscoped behaviour. The selected-generation
-  guard is independent of the context and always checks every profile.
+* The number is resolved inside the effective profile (`--profile`,
+  `HM_PROFILE`, the active profile, then `default`); a number that the
+  profile does not have is a state error (`4`). The selected-generation
+  guard is independent of the context and always checks every profile and
+  the global selection.
 
 ---
 
@@ -594,12 +619,12 @@ Options:
   --yes, -y      Do not ask for a confirmation
 ```
 
-Without an argument the selected generation of the effective context is
-applied (`--profile`, then `HM_PROFILE`, then the active profile, then the
-global selection when no context is set). With `--profile NAME` and
-without an argument the selection of that profile is applied; a named
-generation must belong to the profile, otherwise the command refuses it
-with exit code `3`. A `--profile` name must already exist.
+Without an argument the selected generation of the effective profile is
+applied (`--profile`, then `HM_PROFILE`, then the active profile, then
+`default`). A named local generation number is resolved in the same
+profile; a number that the profile does not have is a state error (`4`).
+A missing selected generation is a state error too. A `--profile` name
+must already exist.
 
 Every entry of the generation is classified:
 
@@ -619,6 +644,7 @@ changed**. A conflict is:
   round,
 * the parent of the path is not a directory,
 * the path is not absolute or it is the root of the filesystem,
+* the path is outside of the profile root,
 * the path is outside of `$HOME` and `HM_ALLOW_OUTSIDE_HOME` is not `1`.
 
 The write itself:
@@ -647,7 +673,9 @@ Usage: hm discard
 ```
 
 The command only touches the HM owned workspace `<runtime>/testing/`. The
-live filesystem is never affected.
+live filesystem is never affected. The source is the global selection (the
+last generation that any profile switched to); the message prints its
+`profile:number` label.
 
 ---
 

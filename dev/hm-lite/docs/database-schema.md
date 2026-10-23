@@ -3,7 +3,7 @@
 The authoritative definition lives in [`db/schema.sql`](../db/schema.sql).
 This document explains the tables, the relations and the invariants.
 
-* Schema version: **2** (stored in `PRAGMA user_version`)
+* Schema version: **3** (stored in `PRAGMA user_version`)
 * Engine: SQLite, foreign keys enabled on every connection
 * File: `<runtime>/db.sqlite`
 
@@ -11,10 +11,11 @@ The version 2 migration ([`db/migrations/0002_profiles.sql`](../db/migrations/00
 introduced the profiles. Every project has a profile named `default`, and
 the data of an earlier version 1 database is migrated into it.
 
-The active profile context and the profile management commands need no
-schema change: they use the existing `profiles` table and the
-`active_profile` key of the `state` table described below. There is no
-migration 0003 and the schema version stays **2**.
+The version 3 migration ([`db/migrations/0003_profile_roots.sql`](../db/migrations/0003_profile_roots.sql))
+adds the per-profile root directory, the per-profile generation sequence
+and the local generation number. Existing profiles and generations are
+backfilled: a migrated profile gets root `/`, and its generations are
+numbered `1…n` in their historical order.
 
 ---
 
@@ -39,16 +40,19 @@ The independent namespaces of the project.
 |---|---|---|
 | `id` | INTEGER | Primary key. |
 | `name` | TEXT | Unique. `[A-Za-z0-9][A-Za-z0-9._-]*`. |
+| `root` | TEXT | Absolute normalised root directory. Not null, defaults to `/`. |
+| `next_generation_number` | INTEGER | The next local generation number, starts at `1`. |
 | `created_at` | INTEGER | Unix epoch seconds. |
 
-`hm init` creates `default`. `hm profile add NAME` and `hm add --profile
-NAME` create a missing profile; the other commands require an existing
-one. The tracked paths, the pending set, the generations and the
-selections are profile scoped; the content store (`files` and
-`store/objects/`) is shared by every profile. Renaming a profile updates
-its row and the state keys; deletion is refused for `default` and for the
-effective or persisted active context, and `--force` is required while
-generations exist.
+`hm init` creates `default` with root `/`. `hm profile create NAME ROOT`
+creates a rooted profile with its own sequence; `hm profile add NAME` and
+`hm add --profile NAME` are legacy creation paths whose root is `/`. The
+other commands require an existing profile. The tracked paths, the pending
+set, the generations, their local numbers and the selections are profile
+scoped; the content store (`files` and `store/objects/`) is shared by every
+profile. Renaming a profile updates its row and the state keys; deletion is
+refused for `default` and for the effective or persisted active context,
+and `--force` is required while generations exist.
 
 ### `paths`
 
@@ -116,12 +120,18 @@ The immutable snapshots.
 
 | Column | Type | Notes |
 |---|---|---|
-| `id` | INTEGER | Primary key. The identifier, **not** the order. |
+| `id` | INTEGER | Primary key. Internal global identifier, **not** the user-visible number and **not** the order. |
+| `number` | INTEGER | Local generation number of the profile, starts at `1`, unique per profile. |
 | `name` | TEXT | Optional name. |
 | `comment` | TEXT | Optional comment. |
 | `created_at` | INTEGER | Unix epoch seconds. |
 | `parent_id` | INTEGER | References `generations(id)` with `ON DELETE SET NULL`. |
 | `profile_id` | INTEGER | References `profiles(id)` with `ON DELETE CASCADE`. The owning profile. |
+
+The local `number` is what every command accepts and prints. It is
+allocated from `profiles.next_generation_number` and is monotonic: a
+deleted number is never reused. The internal `id` stays global and is
+never displayed.
 
 The order of the generations is always `ORDER BY created_at DESC, id DESC`.
 The identifier is never used as an ordering, because two generations can
@@ -172,11 +182,11 @@ The keys in use:
 * `active_profile` — the persisted profile context selected by
   `hm profile use NAME`. It is overwritten by a later `use`, followed by
   `profile rename`, and protected by `profile delete`.
-* `selected_generation:<profile>` — the generation that `hm switch`
-  selected in that profile.
+* `selected_generation:<profile>` — the internal id of the generation that
+  `hm switch` selected in that profile.
 * `selected_generation` — the global selection, the last generation that
-  any `hm switch` selected. `hm apply` without a context uses it;
-  `hm apply --profile NAME` uses the selection of that profile.
+  any `hm switch` selected. `hm discard` uses it. `hm apply` always uses
+  the effective profile's selection, or the selection of `--profile`.
 
 `hm delete` refuses a generation that appears in any of these selection
 keys. The `active_profile` key is not a generation pointer, but it is the
@@ -213,6 +223,7 @@ profiles ─┬─< path_profiles >─ paths ─┬─< pending_paths
 | `idx_entries_path` | `generation_entries` | `path_id` | The history of one path. |
 | `idx_generations_created` | `generations` | `created_at DESC, id DESC` | The default ordering of the generations. |
 | `idx_generations_profile` | `generations` | `profile_id, created_at DESC, id DESC` | The generations of a profile. |
+| `UNIQUE (profile_id, number)` | `generations` | `profile_id, number` | Local generation numbers are unique inside their profile. |
 
 ---
 
@@ -221,20 +232,24 @@ profiles ─┬─< path_profiles >─ paths ─┬─< pending_paths
 1. `paths.path` is unique. A path is registered once, in the `paths` table,
    however many profiles track it.
 2. `profiles.name` is unique. A profile name is validated by the shell code
-   before it reaches the database.
+   before it reaches the database. `profiles.root` is absolute and bounds
+   every path of the profile; `next_generation_number` is at least `1` and
+   never decreases.
 3. `files.hash` is unique. A content is stored once, shared by all profiles.
 4. The primary key of `path_profiles` is `(path_id, profile_id)` and the
    primary key of `pending_paths` is `(path_id, profile_id)`: a path
    belongs to a profile at most once and is pending in it at most once.
 5. The primary key of `generation_entries` is `(generation_id, path_id)`.
    A path appears at most once per generation.
-6. Foreign keys are enabled on every connection. The cascade rules keep the
+6. `(profile_id, number)` is unique and `number >= 1`: every profile has
+   its own `1…n` sequence. The internal generation `id` is unrelated to it.
+7. Foreign keys are enabled on every connection. The cascade rules keep the
    database consistent when a generation, a path or a profile is removed.
-7. A generation entry is never updated, only inserted.
-8. The order of the generations is `created_at DESC, id DESC`.
-9. `PRAGMA user_version` equals the version of the schema that created the
-   database. A newer version is refused, never migrated silently.
-10. The metadata of an entry is type, mode, uid, gid, mtime and size.
+8. A generation entry is never updated, only inserted.
+9. The order of the generations is `created_at DESC, id DESC`.
+10. `PRAGMA user_version` equals the version of the schema that created the
+    database. A newer version is refused, never migrated silently.
+11. The metadata of an entry is type, mode, uid, gid, mtime and size.
     ACLs, extended attributes, file capabilities and hard links are **not**
     part of the model.
 

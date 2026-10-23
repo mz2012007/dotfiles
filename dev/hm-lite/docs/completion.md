@@ -86,17 +86,17 @@ that supports it.
 | Command | Options | Argument |
 |---|---|---|
 | `hm init` | `-h`, `--help` | — |
-| `hm profile` | `-h`, `--help` | `add`, `list`, `show`, `use`, `rename`, `delete`, `help` |
+| `hm profile` | `-h`, `--help` | `create`, `add`, `list`, `show`, `use`, `rename`, `delete`, `help` |
 | `hm add` | `--profile`, `-h`, `--help` | one or more paths |
 | `hm gen` | `--profile`, `--name`, `--comment`, `--yes`, `-y`, `-h`, `--help` | — |
 | `hm list` | `--profile`, `--generation`, `--pending`, `--paths`, `--store`, `-h`, `--help` | — |
 | `hm status` | `--profile`, `-h`, `--help` | — |
-| `hm show` | `--profile`, `-h`, `--help` | exactly one generation id |
-| `hm diff` | `--profile`, `--all`, `-h`, `--help` | two or more generation ids |
-| `hm edit` | `--profile`, `--name`, `--comment`, `--clear-name`, `--clear-comment`, `--yes`, `-y`, `-h`, `--help` | exactly one generation id |
-| `hm switch` | `--profile`, `-h`, `--help` | exactly one generation id |
-| `hm delete` | `--profile`, `--yes`, `-y`, `-h`, `--help` | exactly one generation id |
-| `hm apply` | `--profile`, `--dry-run`, `--yes`, `-y`, `-h`, `--help` | one optional generation id |
+| `hm show` | `--profile`, `-h`, `--help` | exactly one local generation number |
+| `hm diff` | `--profile`, `--all`, `-h`, `--help` | two or more local generation numbers |
+| `hm edit` | `--profile`, `--name`, `--comment`, `--clear-name`, `--clear-comment`, `--yes`, `-y`, `-h`, `--help` | exactly one local generation number |
+| `hm switch` | `--profile`, `-h`, `--help` | exactly one local generation number |
+| `hm delete` | `--profile`, `--yes`, `-y`, `-h`, `--help` | exactly one local generation number |
+| `hm apply` | `--profile`, `--dry-run`, `--yes`, `-y`, `-h`, `--help` | one optional local generation number |
 | `hm discard` | `-h`, `--help` | — |
 | `hm backup` | `-h`, `--help` | — |
 | `hm restore` | `--yes`, `-y`, `-h`, `--help` | exactly one backup archive |
@@ -107,13 +107,15 @@ At the command position the completion offers the sixteen commands, `help`,
 
 The `profile` command completes its subcommands and their arguments:
 
-* `hm profile <TAB>` offers `add`, `list`, `show`, `use`, `rename`,
-  `delete` and `help`.
+* `hm profile <TAB>` offers `create`, `add`, `list`, `show`, `use`,
+  `rename`, `delete` and `help`.
 * `hm profile show <TAB>`, `hm profile use <TAB>` and
   `hm profile delete <TAB>` offer the profile names; after a name they
   offer nothing.
 * `hm profile rename <TAB>` and `hm profile rename old <TAB>` offer the
   profile names (the first is a free old name, the second is the new one).
+* `hm profile create <TAB>` offers nothing for the new name; after the
+  name it offers the directories of the filesystem for the root.
 * `hm profile add <TAB>` offers nothing for the new name; after the name
   it offers the tracked paths and the filesystem.
 * `hm profile delete --<TAB>` offers `--force`, `--yes` and the help
@@ -122,17 +124,17 @@ The `profile` command completes its subcommands and their arguments:
 
 The argument is only completed while it is still valid:
 
-* `hm switch <TAB>` offers the generation ids, `hm switch 1 <TAB>` offers
-  nothing.
-* `hm show <TAB>` and `hm delete <TAB>` offer the generation ids,
+* `hm switch <TAB>` offers the local generation numbers, `hm switch 1 <TAB>`
+  offers nothing.
+* `hm show <TAB>` and `hm delete <TAB>` offer the local generation numbers,
   `hm show 1 <TAB>` and `hm delete 1 <TAB>` offer nothing.
-* `hm edit <TAB>` offers the generation ids, `hm edit 1 <TAB>` offers
-  nothing: the options can still be typed after the generation.
-* `hm diff <TAB>` offers the generation ids and keeps offering them after
-  the first one (`hm diff 1 <TAB>`), because the command needs at least
-  two.
-* `hm apply <TAB>` offers the generation ids, `hm apply 1 <TAB>` offers
-  nothing.
+* `hm edit <TAB>` offers the local generation numbers, `hm edit 1 <TAB>`
+  offers nothing: the options can still be typed after the generation.
+* `hm diff <TAB>` offers the local generation numbers and keeps offering
+  them after the first one (`hm diff 1 <TAB>`), because the command needs
+  at least two.
+* `hm apply <TAB>` offers the local generation numbers, `hm apply 1 <TAB>`
+  offers nothing.
 * `hm init <TAB>`, `hm gen <TAB>`, `hm status <TAB>`, `hm backup <TAB>`,
   `hm profile list <TAB>` and the other commands without an argument offer
   nothing.
@@ -146,7 +148,7 @@ the project already tracks. `hm restore <TAB>` offers the archives of
 
 `--profile <TAB>` offers the existing profile names, and the inline form
 `--profile=<TAB>` offers `--profile=default`, … The names come from a
-read-only query just like the generation ids.
+read-only query just like the generation numbers.
 
 The inline form of the value options is completed as well:
 `hm list --generation=<TAB>` offers `--generation=1`, `--generation=2`, …
@@ -155,22 +157,31 @@ The inline form of the value options is completed as well:
 
 ## The dynamic part
 
-The generation ids come from the project database. The runtime directory is
-resolved exactly like the `hm` script does it:
+The generation numbers come from the project database. They are scoped to
+the effective profile: an explicit `--profile` on the current command line
+wins, then `HM_PROFILE`, then the active profile stored in the `state`
+table, then `default`. The runtime directory is resolved exactly like the
+`hm` script does it:
 
 ```
 ${HM_DB_FILE:-${HM_DIR:-$HOME/.config/hm-lite}}/db.sqlite
 ```
 
-The completion opens the database **read only** and runs a single query:
+The completion opens the database **read only** and runs a single joined
+query:
 
 ```sql
-SELECT id FROM generations ORDER BY created_at DESC, id DESC;
+SELECT pr.name || char(9) || g.number
+  FROM generations g
+  JOIN profiles pr ON pr.id = g.profile_id
+ ORDER BY g.created_at DESC, g.id DESC;
 ```
 
-The same order as `hm list`: newest generation first. The tracked paths are
-read with `SELECT path FROM paths ORDER BY path;` and the profile names
-with `SELECT name FROM profiles ORDER BY name;`.
+It keeps the rows of the effective profile, in the same order as
+`hm list`: newest generation first. The profile-local numbers are what the
+commands accept; the internal `generations.id` is never offered. The
+tracked paths are read with `SELECT path FROM paths ORDER BY path;` and the
+profile names with `SELECT name FROM profiles ORDER BY name;`.
 
 This has four consequences, and they are the design:
 
@@ -182,9 +193,9 @@ This has four consequences, and they are the design:
    so it never waits for `flock`. A `hm gen` that holds the lock cannot
    freeze an interactive shell.
 3. **The completion is cheap.** One read-only process per `<TAB>` at the
-   positions that need an id. `hm list` is deliberately *not* used: it runs
-   three queries, one of them `PRAGMA integrity_check`, and it takes the
-   shared lock.
+   positions that need a number. `hm list` is deliberately *not* used: it
+   runs three queries, one of them `PRAGMA integrity_check`, and it takes
+   the shared lock.
 4. **A failure is not an error.** A missing, unreadable or damaged database
    produces no suggestion and no message. The shell keeps working. Nothing
    is created as a side effect of a failed read.
@@ -233,11 +244,10 @@ of `./tests/run.sh`.
 * The dynamic suggestions are a snapshot taken at the moment of the
   `<TAB>`. A generation that is created in another terminal afterwards is
   not in the list of an already open menu.
-* The completion reads the database schema directly (`generations.id`,
-  `paths.path`, `profiles.name`). A future schema migration has to update
-  the three files.
-  The queries are one line each and they are the only schema knowledge
-  outside `db/schema.sql` and `lib/`.
+* The completion reads the database schema directly (profile-local
+  `generations.number`, `paths.path`, `profiles.name`). A future schema
+  migration has to update the three files. The queries are short and they
+  are the only schema knowledge outside `db/schema.sql` and `lib/`.
 * `hm add` suggests absolute tracked paths. That is how `hm add` stores
   them; a relative suggestion would be a different path for the same entry.
 * Directory candidates get the separator of the shell (a trailing `/`); the

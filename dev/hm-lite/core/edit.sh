@@ -24,7 +24,7 @@ Usage: hm edit [--profile NAME] <generation> [options]
 Change the name and the comment of an existing generation.
 
 Options:
-  --profile NAME     Require the generation to belong to the profile
+  --profile NAME     Resolve the local number in the profile
   --name NAME        Set the name of the generation
   --comment TEXT     Set the comment of the generation
   --clear-name       Remove the name of the generation
@@ -135,21 +135,12 @@ edit() {
   hm_require_initialized
   hm_lock_acquire exclusive
 
-  profile="$(hm_profile_scope "$profile_arg")"
-  if [[ -n "$profile" ]]; then
-    hm_profile_require "$profile" > /dev/null
-  fi
-
-  if ! hm_gen_exists "$generation"; then
-    hm_die "$HM_EX_STATE" "There is no generation with the id $generation."
-  fi
-
-  if [[ -n "$profile" && "$(hm_profile_of_generation "$generation")" != "$profile" ]]; then
-    hm_die "$HM_EX_VALIDATION" "The generation $generation does not belong to the profile $profile."
-  fi
+  profile="$(hm_profile_context_name "$profile_arg")" || exit $?
+  hm_profile_require "$profile" > /dev/null
 
   local id
-  id="$(hm_sql_int "$generation")"
+  id="$(hm_gen_require "$profile" "$generation")" || exit $?
+  generation="$(hm_gen_number "$id")"
 
   # --- Read the current metadata ------------------------------------------
   local rows
@@ -219,9 +210,9 @@ edit() {
 
   # --- Preview -------------------------------------------------------------
   printf '%sEdit preview for generation %s%s%s\n' \
-    "$HM_C_OUT_HEADING" "$HM_C_OUT_CYAN" "$id" "$HM_C_OUT_RESET"
+    "$HM_C_OUT_HEADING" "$HM_C_OUT_CYAN" "$generation" "$HM_C_OUT_RESET"
   printf '\n'
-  printf '  %s%-11s%s %s\n' "$HM_C_OUT_LABEL" "Generation:" "$HM_C_OUT_RESET" "$id"
+  printf '  %s%-11s%s %s\n' "$HM_C_OUT_LABEL" "Generation:" "$HM_C_OUT_RESET" "$generation"
 
   if [[ "$old_name" == "$new_name" ]]; then
     printf '  %s%-11s%s %s\n' "$HM_C_OUT_LABEL" "Name:" "$HM_C_OUT_RESET" "$new_name"
@@ -246,7 +237,7 @@ edit() {
   fi
 
   # --- Update the metadata -------------------------------------------------
-  hm_log_debug "Updating the metadata of the generation $id."
+  hm_log_debug "Updating the metadata of generation $generation."
 
   {
     printf 'UPDATE generations SET name = %s, comment = %s WHERE id = %s;\n' \

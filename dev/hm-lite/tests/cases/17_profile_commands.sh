@@ -59,6 +59,8 @@ test_profile_add_creates_an_empty_profile() {
     "the new profile has no paths"
   assert_sql "0" "SELECT COUNT(*) FROM state WHERE key = 'active_profile';" \
     "creating a profile does not select it"
+  assert_sql "/" "SELECT root FROM profiles WHERE name = 'staging';" \
+    "the legacy add command keeps an unrestricted root"
   assert_contains "$HM_OUTPUT" "staging" "the output names the created profile"
 }
 
@@ -122,6 +124,7 @@ test_profile_show_prints_paths_and_generations() {
 
   assert_rc 0 "$HM_STATUS" "profile show succeeds"
   assert_contains "$HM_OUTPUT" "Profile alpha" "the profile heading is printed"
+  assert_contains "$HM_OUTPUT" "Root:" "the root is printed"
   assert_contains "$HM_OUTPUT" "Paths:" "the path count is printed"
   assert_contains "$HM_OUTPUT" "Generations:" "the generation count is printed"
   assert_contains "$HM_OUTPUT" "$SRC_DIR/alpha/a.txt" "the tracked path is printed"
@@ -284,20 +287,20 @@ test_active_context_scopes_generation_commands() {
   assert_rc 0 "$HM_STATUS" "show reads a generation of the active profile"
 
   run_hm show 2
-  assert_rc 3 "$HM_STATUS" "show rejects a generation of another profile"
-  assert_contains "$HM_OUTPUT" "does not belong" "the error explains the scope"
+  assert_rc 4 "$HM_STATUS" "show rejects a number that the active profile does not have"
+  assert_contains "$HM_OUTPUT" "no generation" "the error explains the local number"
 
   run_hm diff 1 2
-  assert_rc 3 "$HM_STATUS" "diff rejects a generation of another profile"
+  assert_rc 4 "$HM_STATUS" "diff resolves its numbers inside the active profile"
 
   run_hm edit 2 --name "changed" --yes
-  assert_rc 3 "$HM_STATUS" "edit rejects a generation of another profile"
+  assert_rc 4 "$HM_STATUS" "edit resolves its number inside the active profile"
 
   run_hm delete 2 --yes
-  assert_rc 3 "$HM_STATUS" "delete rejects a generation of another profile"
+  assert_rc 4 "$HM_STATUS" "delete resolves its number inside the active profile"
 
   run_hm switch 2
-  assert_rc 3 "$HM_STATUS" "switch rejects a generation of another profile"
+  assert_rc 4 "$HM_STATUS" "switch resolves its number inside the active profile"
 
   assert_sql "2" "SELECT COUNT(*) FROM generations;" "no generation was removed"
   assert_sql "beta-1" "SELECT name FROM generations WHERE id = 2;" \
@@ -316,10 +319,10 @@ test_explicit_profile_scopes_generation_commands() {
   assert_rc 0 "$HM_STATUS" "show accepts an explicit profile"
   assert_contains "$HM_OUTPUT" "alpha-1" "the requested generation is shown"
 
-  run_hm diff --profile alpha 1 3
+  run_hm diff --profile alpha 1 2
   assert_rc 0 "$HM_STATUS" "diff accepts an explicit profile"
 
-  run_hm edit --profile alpha 3 --name "alpha-2b" --yes
+  run_hm edit --profile alpha 2 --name "alpha-2b" --yes
   assert_rc 0 "$HM_STATUS" "edit accepts an explicit profile"
   assert_sql "alpha-2b" "SELECT name FROM generations WHERE id = 3;" \
     "the generation was edited"
@@ -329,7 +332,7 @@ test_explicit_profile_scopes_generation_commands() {
   assert_sql "1" "SELECT value FROM state WHERE key = 'selected_generation:alpha';" \
     "the profile selection was recorded"
 
-  run_hm delete --profile alpha 3 --yes
+  run_hm delete --profile alpha 2 --yes
   assert_rc 0 "$HM_STATUS" "delete accepts an explicit profile"
   assert_sql "0" "SELECT COUNT(*) FROM generations WHERE id = 3;" \
     "the generation was deleted"
@@ -338,8 +341,8 @@ test_explicit_profile_scopes_generation_commands() {
 test_active_context_applies_the_profile_selection() {
   _profile_commands_fixture
 
-  run_hm switch 1
-  run_hm switch 2
+  run_hm switch --profile alpha 1
+  run_hm switch --profile beta 1
   run_hm profile use alpha
 
   run_hm apply --dry-run
@@ -497,6 +500,7 @@ test_profile_help_is_available() {
 
   run_hm profile --help
   assert_rc 0 "$HM_STATUS" "profile help succeeds"
+  assert_contains "$HM_OUTPUT" "profile create" "the help documents create"
   assert_contains "$HM_OUTPUT" "profile add" "the help documents add"
   assert_contains "$HM_OUTPUT" "profile list" "the help documents list"
   assert_contains "$HM_OUTPUT" "profile show" "the help documents show"

@@ -33,8 +33,8 @@ hm <command> [args]
         │
         ├── hm init  ──► dirs + config + db/schema.sql ──► db.sqlite  (idempotent)
         │
-        ├── hm profile add|list|show|use|rename|delete ──► profile rows + active_profile state
-        │                   (add reuses the add pipeline; use/rename/delete are TX or locked writes)
+        ├── hm profile create|add|list|show|use|rename|delete ──► profile rows + roots + active_profile state
+        │                   (create needs an existing root; add is the legacy root-/ path and reuses the add pipeline)
         │
         ├── hm add [--profile N] ──► context: --profile > HM_PROFILE > active > default
         │                   ──► discover (find -print0) ──► normalize ──► dedupe
@@ -43,7 +43,7 @@ hm <command> [args]
         │
         ├── hm gen [--profile N] ──► LOCK ──► read pending manifest of the profile ──► stat each path
         │                   ──► stage copy ──► sha256 ──► store object (verify)
-        │                   ──► TX: files + generations (profile_id) + generation_entries
+        │                   ──► TX: files + generations (profile_id, local number) + generation_entries
         │                   ──► clear the pending set of the profile (inside the same TX)
         │
         ├── hm list [--profile N] ──► read-only (shared lock): generations / entries / pending / paths
@@ -104,9 +104,13 @@ hm <TAB>, hm <cmd> <TAB>   ──► completions/hm.{bash,zsh,fish}  (sourced by
         │                                profiles: SELECT name FROM profiles ORDER BY name
         │
         └── dynamic ──► sqlite3 -readonly -noheader -list <runtime>/db.sqlite
-                           'SELECT id FROM generations ORDER BY created_at DESC, id DESC;'
-                        (newest first, like hm list; no hm invocation, no project lock,
-                         no write of any kind; any failure = no suggestion, exit 0)
+                           'SELECT pr.name || char(9) || g.number
+                              FROM generations g JOIN profiles pr ON pr.id = g.profile_id
+                             ORDER BY g.created_at DESC, g.id DESC;'
+                        (the rows of the effective profile, newest first;
+                         explicit --profile > HM_PROFILE > active > default;
+                         no hm invocation, no project lock, no write of any kind;
+                         any failure = no suggestion, exit 0)
 
 A declined confirmation ends every command that asks for one with exit
 code **7**. A script can therefore tell "the user said no" apart from "the
@@ -134,9 +138,9 @@ Schema resolution order (single authoritative file, never duplicated in Bash):
 | `hm` | Dispatcher only. Bootstrap-aware: `init` works with no config/db present. Owns the `HM_EX_*` exit code constants (single definition). |
 | `config` | Default `KEY=VALUE` config template (parsed as **data**, never sourced/executed). |
 | `core/init.sh` | Bootstrap dirs, write config, apply `db/schema.sql`, validate. Idempotent. |
-| `core/profile.sh` | Profile management (`add`, `list`, `show`, `use`, `rename`, `delete`). Reuses `_add_register` and the read-only list helpers; locks, TX, deletion policy and context updates live here. |
-| `core/add.sh` | Registration only. Context resolution (`--profile` > `HM_PROFILE` > active > default), discovery → preview → confirm → TX(insert paths + profile membership + pending). Only an explicit `--profile` creates a missing profile. |
-| `core/gen.sh` | Content capture of one profile. Lock, stage, hash, store, TX, clear the pending set of the profile, verify. |
+| `core/profile.sh` | Profile management (`create`, `add`, `list`, `show`, `use`, `rename`, `delete`). `create` requires an existing root and starts the local sequence; `add` is the legacy root-`/` path. Reuses `_add_register` and the read-only list helpers; locks, TX, deletion policy and context updates live here. |
+| `core/add.sh` | Registration only. Context resolution (`--profile` > `HM_PROFILE` > active > default), discovery → root containment → dedupe → preview → confirm → TX(insert paths + profile membership + pending). Only an explicit `--profile` creates a missing legacy profile. |
+| `core/gen.sh` | Content capture of one profile. Lock, root check, stage, hash, store, TX, monotonic local number, clear the pending set of the profile, verify. |
 | `core/list.sh` | Read-only views: generations, entries, pending, store stats; optional profile filter, PROFILE columns. |
 | `core/status.sh` | Read-only dashboard: project, profile, store space (referenced / unreferenced / missing) and every generation with its profile, distinct-object size and comment. |
 | `core/show.sh` | Read-only detail view of one generation: metadata block plus the rich entry table (owner, group, mtime, full path). |
@@ -155,8 +159,8 @@ Schema resolution order (single authoritative file, never duplicated in Bash):
 | `lib/database.sh` | sqlite3 invocation, `sql_quote` escaping, TX helper, migrations, `PRAGMA`s. |
 | `lib/hashing.sh` | `sha256` of a file / of staged bytes. |
 | `lib/storage.sh` | Content store: put / get / verify / prefix layout. |
-| `lib/profiles.sh` | Profile helpers: name validation, existence, lookup, ensure/require, active context (`hm_profile_active/scope/context_name`), context guards, profile of a generation, selection state key and selection count. |
-| `lib/generations.sh` | Generation creation, materialization, entry listing, profile-aware selection and parent lookup. |
+| `lib/profiles.sh` | Profile helpers: name validation, existence, lookup, ensure/require, root normalisation/containment, effective context (`hm_profile_active/scope/context_name`), context guards, profile of a generation, selection state key and selection count. |
+| `lib/generations.sh` | Generation creation, local number/label/resolve/require helpers, materialization, entry listing, profile-aware selection and parent lookup. |
 | `lib/validation.sh` | Validate runtime dir, db, schema version, store integrity. |
 | `lib/locking.sh` | `flock` wrapper (exclusive / shared) on `<runtime_dir>/hm.lock`. |
 | `completions/hm.bash` | Bash completion: `_hm` + `complete -o filenames -F _hm hm`. Builtins only, self-contained. |
@@ -165,20 +169,21 @@ Schema resolution order (single authoritative file, never duplicated in Bash):
 
 The `completions/` directory is a **consumer of the command surface**, not a
 layer of the application. It is never loaded by `hm`, never writes, never
-takes the project lock and never runs a command. The generation ids come
-from one read-only `sqlite3` query against `<runtime>/db.sqlite` (the same
-`ORDER BY created_at DESC, id DESC` as `hm list`); anything that fails —
+takes the project lock and never runs a command. Profile-local generation
+numbers come from one read-only `sqlite3` query against
+`<runtime>/db.sqlite` (the same `ORDER BY created_at DESC, id DESC` as
+`hm list`, filtered to the effective profile); anything that fails —
 missing file, unreadable file, damaged file — is treated as "no dynamic
 suggestion" and not as an error. The only schema knowledge outside
-`db/schema.sql` and `lib/` are three one-line queries
-(`generations.id`, `paths.path`, `profiles.name`), deliberately
+`db/schema.sql` and `lib/` are the completion queries (`generations.number`
+joined to `profiles.name`, `paths.path`, `profiles.name`), deliberately
 duplicated in the three files: a shared library would have to be sourced
 by three different shells.
 
-### Data model (schema v2 — authoritative file `db/schema.sql`)
+### Data model (schema v3 — authoritative file `db/schema.sql`)
 
 ```
-profiles(id PK, name UNIQUE, created_at)
+profiles(id PK, name UNIQUE, root, next_generation_number, created_at)
    │
    ├──< path_profiles >── paths(id PK, path UNIQUE, kind, created_at)
    │                         │
@@ -188,7 +193,8 @@ profiles(id PK, name UNIQUE, created_at)
    │                                                   entry_type, mode, owner_uid,
    │                                                   group_gid, mtime, size)
    │                                              │
-   └──< generations(id PK, name, comment, created_at, parent_id, profile_id) >──┘
+   └──< generations(id PK, number, name, comment, created_at, parent_id,
+                    profile_id, UNIQUE(profile_id, number)) >──┘
                                                               │
                                     files(id PK, hash UNIQUE, size, created_at)
                                                               └──► store/objects/<2-hex>/<sha256>
@@ -200,32 +206,39 @@ state(key PK, value)  ── 'active_profile' + 'selected_generation' +
 Invariants:
 - `paths.path` UNIQUE; `profiles.name` UNIQUE; `files.hash` UNIQUE;
   `path_profiles` PK `(path_id, profile_id)`; `pending_paths` PK
-  `(path_id, profile_id)`; `generation_entries` PK `(generation_id, path_id)`.
+  `(path_id, profile_id)`; `generation_entries` PK `(generation_id, path_id)`;
+  `generations` UNIQUE `(profile_id, number)`.
 - Foreign keys ON on every connection. `files` referenced by entries → `ON DELETE RESTRICT`.
 - A profile is an independent namespace: tracked paths, pending set,
-  generations and selection are profile scoped; the content store,
-  `current/` and `testing/` are shared. Every project has the profile
-  `default`; `hm profile add` and `hm add --profile` create a missing one,
-  the other commands require an existing one. The effective context is
+  generations, local numbers and selection are profile scoped; the content
+  store, `current/` and `testing/` are shared. Every project has the profile
+  `default` with root `/`; `hm profile create` creates a rooted profile and
+  `hm profile add`/`hm add --profile` create a legacy root-`/` profile, the
+  other commands require an existing one. The effective context is
   resolved by decision W.
+- `profiles.root` is an absolute path and bounds every registered,
+  captured and applied path. `next_generation_number` is monotonic, so a
+  deleted local number is never reused.
 - A path can belong to several profiles through `path_profiles`; it still
   has one row in `paths`.
 - Generations are immutable snapshots: entries are never rewritten, only inserted.
   The name and the comment are labels for the human reader and can be changed
   with `hm edit` (decision T); the entries and the content objects stay untouched.
 - The history is linear **per profile**: the parent of a new generation is the
-  newest generation of the same profile.
+  newest generation of the same profile. The user-visible `number` is a
+  separate, profile-local, monotonic sequence; the global `id` is never shown.
 - Deleting a generation is one TX (`generation_entries`, then `generations`): a
   generation selected in any profile is refused (exit 3), `parent_id ON DELETE SET NULL`
   keeps the children readable, and the released content objects are reclaimed only by `hm clean`.
 - Generation ordering = `ORDER BY created_at DESC, id DESC` (IDs are identifiers, not order).
 - `state` keeps the persisted `active_profile`, the global
   `selected_generation` and one `selected_generation:<profile>` per
-  profile; `hm switch` writes both selection keys, `hm apply` uses the
-  context selection or the global one. `hm profile rename` moves the
-  selection key and `active_profile` to the new name in the same TX;
-  `hm profile delete` protects `default` and both the effective and the
-  persisted active profile.
+  profile. The values are internal global ids. `hm switch` writes both
+  selection keys; `hm apply` always uses the effective profile's selection
+  (or `--profile`), while `hm discard` uses the global one. `hm profile
+  rename` moves the selection key and `active_profile` to the new name in
+  the same TX; `hm profile delete` protects `default` and both the
+  effective and the persisted active profile.
 
 ### The checked-read rule (no silent empty state)
 
@@ -316,15 +329,26 @@ runtime dependency and no new command. The content store, `current/` and
 `testing/` stayed global; the v1 data migrates into the profile `default`.
 
 The profile-management/context round added `hm profile add|list|show|use|
-rename|delete` and the `active_profile` context (decision W). It reuses the
+rename|delete` and the `active_profile` context (decision W). It reused the
 existing tables: no schema change, no migration and no new runtime
 dependency. Context precedence is explicit `--profile`, then
-`HM_PROFILE`, then the persisted active profile; only an explicit
-`--profile` on `add` (or `profile add` itself) creates a profile. All
-profile-aware generation commands validate ownership when a context is
-present and keep the legacy unscoped behaviour otherwise. The completion
-files learned the profile subcommands, profile names and new `--profile`
-options.
+`HM_PROFILE`, then the persisted active profile, then `default`; only an
+explicit `--profile` on `add` (or `profile add` itself) creates a profile.
+The completion files learned the profile subcommands, profile names and
+new `--profile` options.
+
+The profile-root/local-number round moved the project from schema v2 to
+**schema v3** (decision X): `profiles.root`, the monotonic
+`profiles.next_generation_number` and the unique per-profile
+`generations.number`, plus the migration `0003_profile_roots.sql`. It added
+`hm profile create NAME ROOT`, made the effective context the default for
+every generation-addressing command (there is no unscoped legacy lookup
+anymore), enforced the root in `add`, `gen` and `apply`, and converted
+`show`, `diff`, `edit`, `switch`, `delete`, `apply`, `list --generation`,
+`status` and `discard` to local numbers. The content store, `current/` and
+`testing/` stayed global. Existing profiles and generations migrate with
+root `/` and historical numbers `1…n`; `profile add` and `add --profile`
+remain legacy creation paths with root `/`.
 
 ### Closed decisions
 
@@ -339,20 +363,21 @@ options.
 | G | `apply` = copy-based live write with per-file backup, manifest, rollback | DECIDED — implemented in `core/apply.sh` |
 | H | Metadata = type, mode, uid, gid, mtime, size. NOT ACL/xattr/capabilities/hardlinks | DECIDED — documented limitation |
 | I | DB = `<runtime_dir>/db.sqlite`; store = `<runtime_dir>/store/objects/`; root = `$HM_DIR` | DECIDED — implemented in `lib/paths.sh` |
-| J | Schema versioning via `PRAGMA user_version` + numbered SQL migrations in `db/migrations/` | DECIDED — `user_version=2`, `db/schema.sql` is the single authoritative file; `0002_profiles.sql` migrates v1 into the profile `default` |
+| J | Schema versioning via `PRAGMA user_version` + numbered SQL migrations in `db/migrations/` | DECIDED — `user_version=3`, `db/schema.sql` is the single authoritative file; `0002_profiles.sql` migrates v1 into `default`, `0003_profile_roots.sql` adds roots, the local sequence and local numbers |
 | K | The configuration file is parsed as **data**, never sourced; the environment wins over the file | DECIDED — implemented in `lib/common.sh` and the dispatcher |
 | L | `apply` refuses every destination outside `$HOME` unless `HM_ALLOW_OUTSIDE_HOME=1` | DECIDED — implemented in `core/apply.sh` |
 | M | A declined confirmation ends the command with exit code **7** (`HM_EX_DECLINED`) instead of 0 | DECIDED — implemented in `add`, `gen`, `apply`, `clean`, `restore`; a script can tell "declined" from "done" |
 | N | `hm backup` has **no** `--yes` flag: the backup never changes the project state and therefore never prompts (it must stay scriptable for cron) | DECIDED — implemented in `core/backup.sh`; the flag is rejected with exit 2 |
 | O | The exit code constants live in the dispatcher (`hm`), the libraries use them, there is no second definition | DECIDED — implemented in `hm`; `HM_EX_OK`/`HM_EX_ERROR` are used for the bootstrap failures |
 | P | Every database and store read is checked; a failed query is never an empty result | DECIDED — implemented via the out-variable helpers; `clean` refuses to remove anything when a read fails |
-| Q | Completion = three independent, self-contained files (`completions/hm.bash`, `hm.zsh`, `hm.fish`) with **no** shared library and **no** installer. The dynamic part is a direct read-only `sqlite3` query, not `hm list`: no lock, no write, no `PRAGMA integrity_check`, and every failure degenerates to "no suggestion" with exit 0. Commands and options are hard-coded from the real CLI surface (`backup` has no `--yes`), positional arguments are only completed while they are still valid. | DECIDED — implemented; covered by `tests/cases/09_completion.sh` (23 tests). Zsh is verified in a container because it is not installed on the host (documented limit) |
+| Q | Completion = three independent, self-contained files (`completions/hm.bash`, `hm.zsh`, `hm.fish`) with **no** shared library and **no** installer. The dynamic part is a direct read-only `sqlite3` query, not `hm list`: no lock, no write, no `PRAGMA integrity_check`, and every failure degenerates to "no suggestion" with exit 0. Commands and options are hard-coded from the real CLI surface (`backup` has no `--yes`), positional arguments are only completed while they are still valid. | DECIDED — implemented; covered by `tests/cases/09_completion.sh` (24 tests). Zsh is verified in a container because it is not installed on the host (documented limit) |
 | R | `hm show` = read-only detail view (shared lock, metadata + rich entry table, reuses `hm_gen_entries`); `hm delete` = one transaction (`generation_entries`, then `generations`), refuses the selected generation (exit 3), lets `ON DELETE SET NULL` clear the children and leaves the unreferenced objects to `hm clean`; colours: a non-empty `NO_COLOR` always disables, otherwise `HM_COLOR=always/never` wins over the `auto` detection, and each stream gets its own palette (stderr diagnostics, stdout output) | DECIDED — implemented in `core/show.sh`, `core/delete.sh`, `lib/logging.sh`; covered by `10_show.sh` (12), `11_delete.sh` (15), `12_color.sh` (8) |
 | S | `hm status` = read-only dashboard (shared lock, no argument except `-h/--help`). Store space is the on-disk byte sum, classified in one pass as referenced (used by ≥1 generation), unreferenced (garbage for `hm clean`) or missing (needed but absent). A generation's size is the sum of its **distinct** content objects (`files.size` once per hash), so shared content is never double counted. Sizes are human readable with the exact byte count next to the store totals (`hm_format_bytes`, binary units, locale-safe integer arithmetic). Colours reuse the stdout palette: bold headings, cyan selection, yellow unreferenced, red missing, green clean. | DECIDED — implemented in `core/status.sh` + `lib/common.sh`; covered by `13_status.sh` (15 tests) |
 | T | `hm edit` = metadata edit of an **existing** generation (the name and the comment already existed at creation time via `hm gen --name/--comment`). At least one of `--name`, `--comment`, `--clear-name`, `--clear-comment` is required; an empty value is refused and removal has an explicit flag; `--name`+`--clear-name` (and the comment pair) conflict. Exclusive lock, preview + confirmation, one `UPDATE` in one transaction. The selected generation may be edited: the entries, the parent, the selection and the store are untouched, because a generation is immutable as a snapshot and the labels are not part of the snapshot. Unknown generation = exit 4 (same as show/delete/switch), declined = 7, failing update = 5. | DECIDED — implemented in `core/edit.sh`; covered by `14_edit.sh` (20 tests) |
 | U | `hm diff` = compare two or more generations, every consecutive pair in the **given** order (`hm diff 1 2 3` = 1→2 and 2→3). An entry is compared by type, content hash, mode, owner, group and size; mtime is deliberately ignored because `hm apply` ignores it too and a copy updates it without changing the content. Markers `+`/`-`/`~`/`=` (`=` only with `--all`), with a per-pair summary. Read-only shared lock, never opens the store (recorded hashes), duplicate ids rejected, unknown generation = 4. A difference is a normal result: the command always exits 0; exit 1 stays reserved for generic runtime failures. | DECIDED — implemented in `core/diff.sh`; covered by `15_diff.sh` (19 tests) |
-| V | Profiles are a real schema feature, not separate projects: `profiles`, the M2M `path_profiles`, a profile column on `pending_paths` and `generations`, one `selected_generation:<profile>` state key per profile, and a shared content store. `hm init` seeds `default`; v1 data migrates into it. `hm add --profile` creates a missing profile, the other commands require an existing one (invalid name = 2, unknown profile = 3). Without a context, `add`/`gen` use `default` and `list`/`status` show every profile (PROFILE columns); decision W adds the active context and the profile management commands. `switch` writes the per-profile and the global selection; `apply --profile` uses the profile selection; `delete` refuses a generation selected in any profile. Profile names are `[A-Za-z0-9][A-Za-z0-9._-]*`. The palette uses bright ANSI colours (`91`–`97`), bold bright cyan headings (`1;96`) and dim labels (`2`), with the stdout/stderr separation preserved. | DECIDED — implemented in `db/schema.sql`, `db/migrations/0002_profiles.sql`, `lib/profiles.sh`, the profile-aware commands, `lib/logging.sh` and the three completion files; covered by `16_profiles.sh` (19 tests) |
-| W | Profile management + active context: `hm profile add|list|show|use|rename|delete` and the persisted `active_profile` state key. Context precedence = explicit `--profile` > `HM_PROFILE` > active > command default (`default` for `add`/`gen`; every profile for `list`/`status`; unscoped legacy for generation commands). Only explicit `--profile` on `add` or `profile add` creates a profile; env/active contexts require an existing one. `profile use` is a project-global persisted switch; `HM_PROFILE` is the per-process script override. `default` cannot be renamed/deleted; the effective and persisted active profiles are protected; history requires `--force`. Rename moves the selection key and active context; delete keeps shared paths, removes orphan paths only when no generation entry references them, and leaves content objects to `hm clean`. | DECIDED — implemented in `core/profile.sh`, `lib/profiles.sh`, the profile-aware command modules, dispatcher/help and all three completion files; covered by `17_profile_commands.sh` (23 tests) and the expanded `09_completion.sh` (23 tests) |
+| V | Profiles are a real schema feature, not separate projects: `profiles`, the M2M `path_profiles`, a profile column on `pending_paths` and `generations`, one `selected_generation:<profile>` state key per profile, and a shared content store. `hm init` seeds `default`; v1 data migrates into it. Profiles created through the legacy `hm add --profile`/`profile add` paths get root `/`, and the other commands require an existing profile (invalid name = 2, unknown profile = 3). Without a context, `add`/`gen` use `default` and `list`/`status` show every profile (PROFILE columns); decision W adds the active context and the profile management commands, and decision X adds rooted creation and local numbers. `switch` writes the per-profile and the global selection; `apply` uses the effective profile selection; `delete` refuses a generation selected in any profile. Profile names are `[A-Za-z0-9][A-Za-z0-9._-]*`. The palette uses bright ANSI colours (`91`–`97`), bold bright cyan headings (`1;96`) and dim labels (`2`), with the stdout/stderr separation preserved. | DECIDED — implemented in `db/schema.sql`, `db/migrations/0002_profiles.sql`, `lib/profiles.sh`, the profile-aware commands, `lib/logging.sh` and the three completion files; covered by `16_profiles.sh` (19 tests) |
+| W | Profile management + active context: `hm profile add|list|show|use|rename|delete` and the persisted `active_profile` state key. Context precedence = explicit `--profile` > `HM_PROFILE` > active > `default`; `list`/`status` show every profile when no context is present and only the context profile when one is. Only explicit `--profile` on `add` or `profile add` creates a legacy profile (root `/`); env/active contexts require an existing one. `profile use` is a project-global persisted switch; `HM_PROFILE` is the per-process script override. `default` cannot be renamed/deleted; the effective and persisted active profiles are protected; history requires `--force`. Rename moves the selection key and active context; delete keeps shared paths, removes orphan paths only when no generation entry references them, and leaves content objects to `hm clean`. | DECIDED — implemented in `core/profile.sh`, `lib/profiles.sh`, the profile-aware command modules, dispatcher/help and all three completion files; covered by `17_profile_commands.sh` (23 tests) and `09_completion.sh` (24 tests) |
+| X | Rooted profiles + local generation numbers (schema v3): `hm profile create NAME ROOT` requires an existing directory, resolves a relative root against the current directory, expands a leading `~` and stores an absolute path. Existing and legacy profiles get root `/`; `profile add` and `add --profile` stay legacy. Every generation-addressing command resolves its argument in the effective profile (explicit `--profile` > `HM_PROFILE` > active > `default`) and accepts/prints the local `generations.number`, never the internal id. `profiles.next_generation_number` is monotonic, so deleting a generation never reuses its number. The root bounds `add`, `gen` and `apply`; an outside `apply` entry is a conflict. `hm profile show/list` print the root. The completion query joins `profiles.name` and `generations.number` with a tab separator and scopes it to the effective profile. | DECIDED — implemented in `db/schema.sql`, `db/migrations/0003_profile_roots.sql`, `lib/profiles.sh`, `lib/generations.sh`, the profile/add/gen/apply/local-number command modules, dispatcher/help, all three completions and the docs; covered by `18_profile_roots.sh` (10 tests), expanded `04_list.sh`/`14_edit.sh`/`09_completion.sh`, and the migration check in `01_init.sh` |
 
 
 ### Legacy artifacts
@@ -366,8 +391,9 @@ options.
 - **The implementation is committed.** The snapshot commits
   `e9a6271` (`5th-paused hm-lite`) and `3583c69` (`5th hm-lite`) contain
   the code, the tests and the earlier documentation round. The profile
-  round (schema v2, profiles, palette, status comments) and the current
-  profile-management/context round are **not** committed and live in the
+  round (schema v2, profiles, palette, status comments), the
+  profile-management/context round and the profile-root/local-number round
+  (schema v3, roots, local numbers) are **not** committed and live in the
   working tree. The snapshots also captured pre-existing unrelated changes
   (`.config/fish/...`, `dev/hm/test/k1`) that this work did not touch.
 
@@ -378,7 +404,7 @@ options.
 | 1 | Bootstrap: dispatcher, `init`, schema, libs | DONE — `tests/cases/01_init.sh` (11 tests) |
 | 2 | DB helpers, path validation, `add` | DONE — `tests/cases/02_add.sh` (15 tests) |
 | 3 | Hashing, content store, `gen` | DONE — `tests/cases/03_gen.sh` (15 tests) |
-| 4 | `list` + verification | DONE — `tests/cases/04_list.sh` (12 tests) |
+| 4 | `list` + verification | DONE — `tests/cases/04_list.sh` (13 tests) |
 | 5 | `current/`, `testing/`, `switch`, `discard` | DONE — `tests/cases/05_switch.sh` (13 tests) |
 | 6 | `apply` (live FS policy) | DONE — `tests/cases/06_apply.sh` (16 tests) |
 | 7 | `backup` / `restore` | DONE — `tests/cases/07_backup.sh` (11 tests) |
@@ -390,10 +416,11 @@ options.
 | 13 | Colour the output of every command + `edit` (metadata of an existing generation) + `diff` (two or more generations) + integration | DONE — `core/edit.sh`, `core/diff.sh`, `14_edit.sh` (20), `15_diff.sh` (19), `12_color.sh` (10); **214 checks green** on the host |
 | 14 | Profiles (schema v2, shared store, per-profile paths/pending/generations/selection) + brighter palette + comments in `status` + integration | DONE — `db/schema.sql`, `db/migrations/0002_profiles.sql`, `lib/profiles.sh`, `16_profiles.sh` (19), `04_list.sh` (13), `13_status.sh` (16), `09_completion.sh` (19); **236 checks green** on the host |
 | 15 | Profile management (`profile add/list/show/use/rename/delete`) + persisted active context + completion/docs/integration | DONE — `core/profile.sh`, context helpers in `lib/profiles.sh`, profile-aware commands, `hm` dispatcher/help, `17_profile_commands.sh` (23), `09_completion.sh` (23), all three completions and documentation; **263 checks green** on the host |
+| 16 | Rooted profiles (schema v3) + local generation numbers + root enforcement + completion/docs/integration | DONE — `db/schema.sql`, `db/migrations/0003_profile_roots.sql`, `lib/profiles.sh`, `lib/generations.sh`, profile/add/gen/apply/local-number commands, all three completions, `18_profile_roots.sh` (10), expanded `04_list.sh` (13), `09_completion.sh` (24), `14_edit.sh` (20), `16_profiles.sh` (19), `17_profile_commands.sh` (23), documentation; **274 checks green** on the host |
 
-Test totals: **263 checks, 263 passing** (`HM_COLOR=auto ./tests/run.sh`) =
-261 test cases + `bash -n` syntax check + ShellCheck (0 findings). The
-runner reports 262 checks when ShellCheck is not on the `PATH`. On this
+Test totals: **274 checks, 274 passing** (`HM_COLOR=auto ./tests/run.sh`) =
+272 test cases + `bash -n` syntax check + ShellCheck (0 findings). The
+runner reports 273 checks when ShellCheck is not on the `PATH`. On this
 host the two Zsh tests print an explicit `SKIP` line (Zsh is not
 installed) and count as passed without exercising the Zsh completion; the
 two pseudo terminal colour tests would print `SKIP` without `script` from
@@ -425,8 +452,9 @@ util-linux. A missing optional tool never fails the suite.
   tracked path that no longer exists is dropped. Decision C supersedes the original proposal.
 - The parent of a new generation is always the newest generation of the
   same profile (`created_at DESC, id DESC`), the history is linear per
-  profile. Generations of different profiles are never compared by the
-  history and `hm diff` still accepts any pair of ids.
+  profile. Generation numbers are local: `hm diff` resolves every number in
+  the effective profile, so it compares generations of one profile at a
+  time and never treats two equal local numbers as the same generation.
 - A profile name is limited to `[A-Za-z0-9][A-Za-z0-9._-]*`; `hm profile
   rename` can change it and `hm profile delete` can remove it under the
   documented policy. `current/` and `testing/` are global, so
@@ -436,10 +464,16 @@ util-linux. A missing optional tool never fails the suite.
   `state` table. Every terminal sees the same value; use `HM_PROFILE` for a
   process-local context. `--profile` remains the strongest override. Only
   an explicit `--profile` on `add` (or `profile add`) creates a missing
-  profile; environment and active contexts require an existing one.
-- `hm delete` leaves a gap in that linear history: the children keep their rows and their
-  `parent_id` becomes empty (`ON DELETE SET NULL`). The content objects that no generation
-  uses any more are reclaimed only by `hm clean`, never by the delete itself.
+  legacy profile with root `/`; `hm profile create NAME ROOT` is the rooted
+  creation path, and environment/active contexts require an existing one.
+- A profile root is a hard boundary for `add`, `gen` and `apply`. A path
+  outside `profiles.root` is rejected by `add`/`gen`, and an outside
+  generation entry is a conflict in `apply`. Migrated and legacy profiles
+  keep root `/`, so their existing behaviour is unchanged.
+- `hm delete` leaves a gap in the local number sequence: the children keep
+  their rows and their `parent_id` becomes empty (`ON DELETE SET NULL`).
+  The number is never reused. The content objects that no generation uses
+  any more are reclaimed only by `hm clean`, never by delete itself.
 - `hm status` reports a generation size from its **distinct** content objects, not from the
   entry sizes: content that several paths share inside one generation is counted once. The
   unformatted byte counts stay available in the database and in `hm list --store`.
@@ -456,7 +490,8 @@ util-linux. A missing optional tool never fails the suite.
   attributes, file capabilities and hard links are **not** tracked (decision H).
 - Only regular files and directories are tracked. Symbolic links and special files are skipped
   with a warning and are never followed.
-- `apply` refuses every destination outside of `$HOME` unless `HM_ALLOW_OUTSIDE_HOME=1`.
+- `apply` refuses every destination outside the profile root, and every
+  destination outside of `$HOME` unless `HM_ALLOW_OUTSIDE_HOME=1` is set.
 - `apply` refuses a destination that is a symbolic link, whose type does not match the
   generation, that is not absolute or that is the root of the filesystem; it never writes
   through a link.
@@ -464,9 +499,10 @@ util-linux. A missing optional tool never fails the suite.
 - Completion is a snapshot taken at the moment of `<TAB>`; a generation
   created in another terminal afterwards does not appear in an already
   opened menu.
-- Completion reads `generations.id`, `paths.path` and `profiles.name`
-  directly. A schema migration has to update `completions/hm.bash`,
-  `hm.zsh` and `hm.fish` together (decision Q).
+- Completion reads the effective profile's `generations.number` (joined to
+  `profiles.name`), `paths.path` and `profiles.name` directly. A schema
+  migration has to update `completions/hm.bash`, `hm.zsh` and `hm.fish`
+  together (decision Q).
 - Zsh is not installed on the development host. The Zsh completion was
   verified with `zsh -n`, a `compinit` registration check, a behavioural
   harness with stubbed completion primitives and a real interactive

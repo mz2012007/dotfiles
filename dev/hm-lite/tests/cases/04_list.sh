@@ -45,7 +45,7 @@ test_list_shows_the_generations() {
   run_hm list
 
   assert_rc 0 "$HM_STATUS" "list succeeds"
-  assert_contains "$HM_OUTPUT" "ID" "the table header is printed"
+  assert_contains "$HM_OUTPUT" "NUMBER" "the table header is printed"
   assert_contains "$HM_OUTPUT" "ENTRIES" "the entry count column is printed"
 }
 

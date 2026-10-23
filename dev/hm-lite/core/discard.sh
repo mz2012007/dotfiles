@@ -63,14 +63,15 @@ discard() {
     hm_die "$HM_EX_STATE" "The current tree is empty. Run 'hm switch <generation>' first."
   fi
 
-  local selected
+  local selected selected_label
   selected="$(hm_gen_selected)"
   if [[ -z "$selected" ]]; then
     hm_die "$HM_EX_STATE" "No generation is selected. Run 'hm switch <generation>' first."
   fi
+  selected_label="$(hm_gen_label "$selected")" || selected_label="$selected"
 
   printf 'The testing workspace is reset from generation %s%s%s.\n' \
-    "$HM_C_OUT_CYAN" "$selected" "$HM_C_OUT_RESET"
+    "$HM_C_OUT_CYAN" "$selected_label" "$HM_C_OUT_RESET"
   printf 'The live filesystem is not touched.\n'
   printf '\n'
 

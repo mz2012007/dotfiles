@@ -19,6 +19,7 @@ TESTS=(
   test_completion_bash_does_not_offer_arguments_out_of_range
   test_completion_bash_offers_the_generation_ids
   test_completion_bash_offers_the_profile_names
+  test_completion_bash_uses_local_generation_numbers
   test_completion_bash_offers_the_profile_subcommands
   test_completion_bash_offers_profile_names_for_management
   test_completion_bash_completes_the_inline_generation_option
@@ -367,12 +368,46 @@ test_completion_bash_offers_the_profile_names() {
     "the inline form filters the profile names"
 }
 
+test_completion_bash_uses_local_generation_numbers() {
+  local candidates
+
+  _test_setup completion_local_numbers
+  printf 'alpha one\n' > "$SRC_DIR/alpha-one.txt"
+  printf 'alpha two\n' > "$SRC_DIR/alpha-two.txt"
+  printf 'beta one\n' > "$SRC_DIR/beta-one.txt"
+
+  run_hm_input 'y\n' add --profile alpha "$SRC_DIR/alpha-one.txt"
+  run_hm_input 'y\n' gen --profile alpha
+  run_hm_input 'y\n' add --profile alpha "$SRC_DIR/alpha-two.txt"
+  run_hm_input 'y\n' gen --profile alpha
+  run_hm_input 'y\n' add --profile beta "$SRC_DIR/beta-one.txt"
+  run_hm_input 'y\n' gen --profile beta
+
+  candidates="$(HM_PROFILE=alpha _completion_bash hm switch '' | tr '\n' ' ')"
+  assert_eq "2 1 " "$candidates" \
+    "the environment context scopes the local numbers"
+
+  candidates="$(HM_PROFILE=beta _completion_bash hm switch '' | tr '\n' ' ')"
+  assert_eq "1 " "$candidates" \
+    "the completion uses the numbers of the selected profile"
+
+  candidates="$(HM_PROFILE=beta _completion_bash hm switch --profile alpha '' | tr '\n' ' ')"
+  assert_eq "2 1 " "$candidates" \
+    "an explicit profile scopes the completion"
+
+  run_hm profile use beta
+  candidates="$(_completion_bash hm switch '' | tr '\n' ' ')"
+  assert_eq "1 " "$candidates" \
+    "the active context scopes the completion without an environment"
+}
+
 test_completion_bash_offers_the_profile_subcommands() {
   local candidates
 
   _test_setup completion_profile_subcommands
 
   candidates="$(_completion_bash hm profile '')"
+  assert_contains "$candidates" "create" "profile offers create"
   assert_contains "$candidates" "add" "profile offers add"
   assert_contains "$candidates" "list" "profile offers list"
   assert_contains "$candidates" "show" "profile offers show"
@@ -646,6 +681,7 @@ test_completion_fish_offers_the_profile_subcommands() {
   _test_setup completion_fish_profile_subcommands
 
   candidates="$(_completion_fish 'hm profile ')"
+  assert_contains "$candidates" "create" "fish offers the profile create subcommand"
   assert_contains "$candidates" "add" "fish offers the profile add subcommand"
   assert_contains "$candidates" "list" "fish offers the profile list subcommand"
   assert_contains "$candidates" "show" "fish offers the profile show subcommand"

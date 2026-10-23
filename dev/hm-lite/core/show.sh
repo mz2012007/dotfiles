@@ -25,7 +25,7 @@ Usage: hm show [--profile NAME] <generation>
 Show the metadata and the entries of a generation.
 
 Options:
-  --profile NAME  Require the generation to belong to the profile
+  --profile NAME  Resolve the local number in the profile
   -h, --help      Show this help
 EOF
 }
@@ -33,8 +33,8 @@ EOF
 # _show_generation GENERATION - print the metadata and the entries.
 _show_generation() {
   local generation="$1" id
-  local row name_hex comment_hex name comment profile_name created parent
-  local entries objects size selected status missing missing_count=0
+  local row name_hex comment_hex name comment profile_name created parent_number
+  local number entries objects size selected status missing missing_count=0
   local rows encoded entry_type hash_hex mode uid gid mtime entry_size path hash
 
   id="$(hm_sql_int "$generation")"
@@ -43,19 +43,21 @@ _show_generation() {
     SELECT hex(COALESCE(g.name, '')),
            hex(COALESCE(g.comment, '')),
            pr.name,
+           g.number,
            g.created_at,
-           COALESCE(g.parent_id, ''),
+           COALESCE(parent.number, ''),
            (SELECT COUNT(*) FROM generation_entries ge WHERE ge.generation_id = g.id),
            (SELECT COUNT(DISTINCT ge.file_id) FROM generation_entries ge WHERE ge.generation_id = g.id AND ge.file_id IS NOT NULL),
            (SELECT COALESCE(SUM(ge.size), 0) FROM generation_entries ge WHERE ge.generation_id = g.id)
       FROM generations g
       JOIN profiles pr ON pr.id = g.profile_id
+      LEFT JOIN generations parent ON parent.id = g.parent_id
      WHERE g.id = $id;" row; then
     hm_die "$HM_EX_DB" "Cannot read the generation $generation from the database."
   fi
 
   [[ -n "$row" ]] || hm_die "$HM_EX_DB" "Cannot read the generation $generation from the database."
-  IFS="$HM_FIELD_SEP" read -r name_hex comment_hex profile_name created parent entries objects size <<< "$row"
+  IFS="$HM_FIELD_SEP" read -r name_hex comment_hex profile_name number created parent_number entries objects size <<< "$row"
 
   hm_hex_decode name "$name_hex"
   hm_hex_decode comment "$comment_hex"
@@ -74,13 +76,13 @@ _show_generation() {
     [[ -n "$hash" ]] && missing_count=$((missing_count + 1))
   done <<< "$missing"
 
-  printf '%sGeneration %s%s\n' "$HM_C_OUT_HEADING" "$id" "$HM_C_OUT_RESET"
+  printf '%sGeneration %s%s\n' "$HM_C_OUT_HEADING" "$number" "$HM_C_OUT_RESET"
   printf '\n'
   printf '  %s%-11s %s%s\n' "$HM_C_OUT_LABEL" "Name:" "${name:--}" "$HM_C_OUT_RESET"
   printf '  %s%-11s %s%s\n' "$HM_C_OUT_LABEL" "Comment:" "${comment:--}" "$HM_C_OUT_RESET"
   printf '  %s%-11s %s%s\n' "$HM_C_OUT_LABEL" "Profile:" "$profile_name" "$HM_C_OUT_RESET"
   printf '  %s%-11s %s%s\n' "$HM_C_OUT_LABEL" "Created:" "$(hm_format_epoch "$created" || printf '%s' "$created")" "$HM_C_OUT_RESET"
-  printf '  %s%-11s %s%s\n' "$HM_C_OUT_LABEL" "Parent:" "${parent:--}" "$HM_C_OUT_RESET"
+  printf '  %s%-11s %s%s\n' "$HM_C_OUT_LABEL" "Parent:" "${parent_number:--}" "$HM_C_OUT_RESET"
   printf '  %s%-11s %s%s\n' "$HM_C_OUT_LABEL" "Selected:" "$status" "$HM_C_OUT_RESET"
   printf '  %s%-11s %s%s\n' "$HM_C_OUT_LABEL" "Entries:" "$entries" "$HM_C_OUT_RESET"
   printf '  %s%-11s %s%s\n' "$HM_C_OUT_LABEL" "Objects:" "$objects" "$HM_C_OUT_RESET"
@@ -126,7 +128,7 @@ _show_generation() {
 
 # show - print a generation and its entries.
 show() {
-  local generation="" profile_arg="" profile
+  local generation="" profile_arg="" profile id
   local argument
 
   while [[ $# -gt 0 ]]; do
@@ -161,21 +163,12 @@ show() {
   hm_require_initialized
   hm_lock_acquire shared
 
-  profile="$(hm_profile_scope "$profile_arg")"
-  if [[ -n "$profile" ]]; then
-    hm_profile_require "$profile" > /dev/null
-  fi
+  profile="$(hm_profile_context_name "$profile_arg")" || exit $?
+  hm_profile_require "$profile" > /dev/null
+  id="$(hm_gen_require "$profile" "$generation")" || exit $?
 
-  if ! hm_gen_exists "$generation"; then
-    hm_die "$HM_EX_STATE" "There is no generation with the id $generation."
-  fi
-
-  if [[ -n "$profile" && "$(hm_profile_of_generation "$generation")" != "$profile" ]]; then
-    hm_die "$HM_EX_VALIDATION" "The generation $generation does not belong to the profile $profile."
-  fi
-
-  hm_log_debug "Showing the generation $generation."
-  _show_generation "$generation"
+  hm_log_debug "Showing generation $generation of the profile $profile."
+  _show_generation "$id"
 
   return 0
 }

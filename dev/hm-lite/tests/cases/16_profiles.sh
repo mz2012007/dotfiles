@@ -182,6 +182,12 @@ test_generations_are_separated_per_profile() {
   assert_sql "dev-env" \
     "SELECT pr.name FROM generations g JOIN profiles pr ON pr.id = g.profile_id WHERE g.id = 2;" \
     "the second generation belongs to the second profile"
+  assert_sql "1" \
+    "SELECT number FROM generations g JOIN profiles pr ON pr.id = g.profile_id WHERE g.id = 1;" \
+    "the first local generation is number one"
+  assert_sql "1" \
+    "SELECT number FROM generations g JOIN profiles pr ON pr.id = g.profile_id WHERE g.id = 2;" \
+    "the second local generation is also number one"
   assert_sql "" "SELECT COALESCE(parent_id, '') FROM generations WHERE id = 2;" \
     "the second profile does not inherit the first profile parent"
 }
@@ -196,6 +202,8 @@ test_each_profile_has_its_own_parent() {
   assert_rc 0 "$HM_STATUS" "the second generation of the profile succeeds"
   assert_sql "1" "SELECT parent_id FROM generations WHERE id = 3;" \
     "the parent is the newest generation of the same profile"
+  assert_sql "2" "SELECT number FROM generations WHERE id = 3;" \
+    "the second generation has the local number two"
   assert_sql "2" \
     "SELECT COUNT(*) FROM generation_entries WHERE generation_id = 3;" \
     "the profile carries its own paths forward"
@@ -298,14 +306,14 @@ test_status_rejects_an_unknown_profile() {
 test_switch_records_the_selection_per_profile() {
   _profiles_fixture
 
-  run_hm switch 1
+  run_hm switch --profile update-system 1
   assert_rc 0 "$HM_STATUS" "switch succeeds for the first profile"
   assert_sql "1" "SELECT value FROM state WHERE key = 'selected_generation:update-system';" \
     "the selection of the first profile was recorded"
   assert_sql "1" "SELECT value FROM state WHERE key = 'selected_generation';" \
     "the global selection was recorded"
 
-  run_hm switch 2
+  run_hm switch --profile dev-env 1
   assert_rc 0 "$HM_STATUS" "switch succeeds for the second profile"
   assert_sql "2" "SELECT value FROM state WHERE key = 'selected_generation:dev-env';" \
     "the selection of the second profile was recorded"
@@ -316,7 +324,7 @@ test_switch_records_the_selection_per_profile() {
 test_show_prints_the_profile() {
   _profiles_fixture
 
-  run_hm show 1
+  run_hm show --profile update-system 1
 
   assert_rc 0 "$HM_STATUS" "show succeeds"
   assert_contains "$HM_OUTPUT" "Profile:" "the profile field is printed"
@@ -326,10 +334,10 @@ test_show_prints_the_profile() {
 test_delete_refuses_a_generation_selected_in_any_profile() {
   _profiles_fixture
 
-  run_hm switch 1
-  run_hm switch 2
+  run_hm switch --profile update-system 1
+  run_hm switch --profile dev-env 1
 
-  run_hm delete 1 --yes
+  run_hm delete --profile update-system 1 --yes
 
   assert_rc 3 "$HM_STATUS" "a generation selected in any profile is refused"
   assert_contains "$HM_OUTPUT" "selected generation" "the error explains the rule"
@@ -339,8 +347,8 @@ test_delete_refuses_a_generation_selected_in_any_profile() {
 test_apply_profile_uses_the_profile_selection() {
   _profiles_fixture
 
-  run_hm switch 1
-  run_hm switch 2
+  run_hm switch --profile update-system 1
+  run_hm switch --profile dev-env 1
 
   run_hm apply --profile update-system --dry-run
 
@@ -371,12 +379,20 @@ test_an_existing_v1_database_is_migrated() {
   run_hm init
 
   assert_rc 0 "$HM_STATUS" "init migrates the database"
-  assert_sql "2" "PRAGMA user_version;" "the schema version was raised"
+  assert_sql "3" "PRAGMA user_version;" "the schema version was raised"
   assert_sql "default" "SELECT name FROM profiles;" "the default profile was created"
+  assert_sql "/" "SELECT root FROM profiles WHERE name = 'default';" \
+    "the migrated profile keeps an unrestricted root"
   assert_sql "1" "SELECT profile_id FROM pending_paths;" \
     "the pending path moved to the default profile"
   assert_sql "1" "SELECT profile_id FROM generations WHERE id = 1;" \
     "the generation moved to the default profile"
+  assert_sql "1" \
+    "SELECT number FROM generations WHERE id = 1;" \
+    "the legacy generation became local number one"
+  assert_sql "2" \
+    "SELECT next_generation_number FROM profiles WHERE name = 'default';" \
+    "the migrated sequence continues after the existing generation"
   assert_sql "1" "SELECT COUNT(*) FROM path_profiles;" \
     "the tracked path is a member of the default profile"
   assert_sql "1" "SELECT value FROM state WHERE key = 'selected_generation:default';" \

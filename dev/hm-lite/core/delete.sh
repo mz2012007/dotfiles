@@ -28,7 +28,7 @@ Usage: hm delete [--profile NAME] <generation> [options]
 Delete a generation and its entries.
 
 Options:
-  --profile NAME  Require the generation to belong to the profile
+  --profile NAME  Resolve the local number in the profile
   --yes, -y       Do not ask for a confirmation
   -h, --help      Show this help
 EOF
@@ -79,20 +79,11 @@ delete() {
   hm_require_initialized
   hm_lock_acquire exclusive
 
-  profile="$(hm_profile_scope "$profile_arg")"
-  if [[ -n "$profile" ]]; then
-    hm_profile_require "$profile" > /dev/null
-  fi
+  profile="$(hm_profile_context_name "$profile_arg")" || exit $?
+  hm_profile_require "$profile" > /dev/null
+  id="$(hm_gen_require "$profile" "$generation")" || exit $?
+  generation="$(hm_gen_number "$id")"
 
-  if ! hm_gen_exists "$generation"; then
-    hm_die "$HM_EX_STATE" "There is no generation with the id $generation."
-  fi
-
-  if [[ -n "$profile" && "$(hm_profile_of_generation "$generation")" != "$profile" ]]; then
-    hm_die "$HM_EX_VALIDATION" "The generation $generation does not belong to the profile $profile."
-  fi
-
-  id="$(hm_sql_int "$generation")"
   selected_count="$(hm_profile_selection_count "$id")"
 
   if [[ "$selected_count" != "0" ]]; then
@@ -110,9 +101,9 @@ delete() {
   IFS="$HM_FIELD_SEP" read -r name_hex created <<< "$row"
   hm_hex_decode name "$name_hex"
 
-  entries="$(hm_gen_entry_count "$generation")" ||
+  entries="$(hm_gen_entry_count "$id")" ||
     hm_die "$HM_EX_DB" "Cannot read the entries of the generation $generation from the database."
-  objects="$(hm_gen_object_count "$generation")" ||
+  objects="$(hm_gen_object_count "$id")" ||
     hm_die "$HM_EX_DB" "Cannot read the content objects of the generation $generation from the database."
 
   orphans="$(hm_db_scalar "

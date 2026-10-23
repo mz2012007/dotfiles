@@ -4,17 +4,19 @@
 -- The shell code never contains a second copy of these statements, it only
 -- applies this file.
 --
--- Schema version 2.
+-- Schema version 3.
 --
 -- Design notes:
 --   * paths, content objects, generations and pending paths are four
 --     different concepts and live in four different tables.
 --   * a path is a location, it is not a content.
 --   * a profile is an independent namespace: the tracked paths, the pending
---     set, the generations and the selection belong to a profile, the
---     content store is shared.
+--     set, the generations, the selection and the root directory belong to a
+--     profile, the content store is shared.
 --   * a path may belong to several profiles, the membership lives in
 --     path_profiles.
+--   * the generations of a profile are numbered locally, starting at 1. The
+--     internal id stays global and is never shown as the generation number.
 --   * a content object is identified by the SHA-256 hash of its bytes only.
 --   * permissions, ownership and timestamps belong to the generation entry,
 --     never to the shared content object.
@@ -33,10 +35,20 @@ CREATE TABLE IF NOT EXISTS schema_meta (
 -- --------------------------------------------------------------------------
 -- Profiles
 -- --------------------------------------------------------------------------
+-- root is the directory that owns the paths of the profile. A legacy
+-- profile created by "hm profile add" or by "hm add --profile" keeps the
+-- historical unrestricted root "/". "hm profile create" stores a narrower
+-- root and validates every path against it.
+--
+-- next_generation_number is the local sequence of the profile. It is
+-- monotonic, so a number is never reused after a generation is deleted.
 CREATE TABLE IF NOT EXISTS profiles (
-    id         INTEGER PRIMARY KEY,
-    name       TEXT    NOT NULL UNIQUE,
-    created_at INTEGER NOT NULL
+    id                     INTEGER PRIMARY KEY,
+    name                   TEXT    NOT NULL UNIQUE,
+    root                   TEXT    NOT NULL DEFAULT '/',
+    next_generation_number INTEGER NOT NULL DEFAULT 1
+                                   CHECK (next_generation_number >= 1),
+    created_at             INTEGER NOT NULL
 );
 
 -- --------------------------------------------------------------------------
@@ -86,11 +98,13 @@ CREATE TABLE IF NOT EXISTS files (
 -- --------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS generations (
     id         INTEGER PRIMARY KEY,
+    number     INTEGER NOT NULL CHECK (number >= 1),
     name       TEXT,
     comment    TEXT,
     created_at INTEGER NOT NULL,
     parent_id  INTEGER REFERENCES generations(id) ON DELETE SET NULL,
-    profile_id INTEGER REFERENCES profiles(id) ON DELETE CASCADE
+    profile_id INTEGER REFERENCES profiles(id) ON DELETE CASCADE,
+    UNIQUE (profile_id, number)
 );
 
 -- The recorded state of a generation. One row per path.
@@ -113,9 +127,10 @@ CREATE TABLE IF NOT EXISTS generation_entries (
 -- Project state (selected generation and similar pointers)
 -- --------------------------------------------------------------------------
 --
--- The global "selected_generation" key points to the generation that
--- "hm apply" uses without an argument. Every profile also stores its own
--- selection under "selected_generation:<profile>". The "active_profile"
+-- The global "selected_generation" key points to the last generation that
+-- any profile switched to; "hm discard" uses it. Every profile also stores
+-- its own selection under "selected_generation:<profile>", and "hm apply"
+-- always uses the selection of its effective profile. The "active_profile"
 -- key holds the persisted context selected by "hm profile use"; it is not
 -- part of the schema version because it only uses this key/value table.
 CREATE TABLE IF NOT EXISTS state (
@@ -138,4 +153,4 @@ CREATE INDEX IF NOT EXISTS idx_generations_profile ON generations(profile_id, cr
 -- --------------------------------------------------------------------------
 -- Schema version
 -- --------------------------------------------------------------------------
-PRAGMA user_version = 2;
+PRAGMA user_version = 3;

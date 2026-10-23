@@ -28,17 +28,17 @@ EOF
 
 # _list_generations [PROFILE] - print the overview of the generations.
 _list_generations() {
-  local profile="${1:-}" where="" rows row id profile_name created entries objects name
+  local profile="${1:-}" where="" rows row number profile_name created entries objects name
 
   if [[ -n "$profile" ]]; then
     where="WHERE pr.name = $(hm_sql_quote "$profile")"
   fi
 
   printf '%s%-6s %-16s %-21s %8s %8s  %s%s\n' "$HM_C_OUT_HEADING" \
-    "ID" "PROFILE" "CREATED" "ENTRIES" "OBJECTS" "NAME" "$HM_C_OUT_RESET"
+    "NUMBER" "PROFILE" "CREATED" "ENTRIES" "OBJECTS" "NAME" "$HM_C_OUT_RESET"
 
   if ! hm_db_rows "
-    SELECT g.id,
+    SELECT g.number,
            pr.name,
            g.created_at,
            (SELECT COUNT(*) FROM generation_entries ge WHERE ge.generation_id = g.id),
@@ -53,24 +53,26 @@ _list_generations() {
 
   while IFS= read -r row; do
     [[ -n "$row" ]] || continue
-    IFS="$HM_FIELD_SEP" read -r id profile_name created entries objects name <<< "$row"
+    IFS="$HM_FIELD_SEP" read -r number profile_name created entries objects name <<< "$row"
 
     printf '%-6s %-16s %-21s %8s %8s  %s\n' \
-      "$id" "$profile_name" "$(hm_format_epoch "$created" || printf '%s' "$created")" \
+      "$number" "$profile_name" "$(hm_format_epoch "$created" || printf '%s' "$created")" \
       "$entries" "$objects" "${name:-(unnamed)}"
   done <<< "$rows"
 }
 
 # _list_generation ID - print the entries of a single generation.
 _list_generation() {
-  local id="$1"
+  local id="$1" number
   local rows row encoded entry_type hash_hex mode size path hash created profile_name
 
+  number="$(hm_gen_number "$id")" ||
+    hm_die "$HM_EX_DB" "Cannot read the generation $id from the database."
   created="$(hm_db_scalar "SELECT created_at FROM generations WHERE id = $(hm_sql_int "$id");")" ||
     hm_die "$HM_EX_DB" "Cannot read the generation $id from the database."
   profile_name="$(hm_profile_of_generation "$id")"
 
-  printf 'Generation %s%s%s, created %s\n' "$HM_C_OUT_CYAN" "$id" "$HM_C_OUT_RESET" \
+  printf 'Generation %s%s%s, created %s\n' "$HM_C_OUT_CYAN" "$number" "$HM_C_OUT_RESET" \
     "$(hm_format_epoch "$created" || printf '%s' "$created")"
   printf '%sProfile:%s %s\n' "$HM_C_OUT_LABEL" "$HM_C_OUT_RESET" "$profile_name"
   printf '\n'
@@ -213,7 +215,7 @@ _list_store() {
 list() {
   local mode="generations"
   local generation=""
-  local profile=""
+  local profile="" generation_profile="" id
   local argument
 
   while [[ $# -gt 0 ]]; do
@@ -264,20 +266,17 @@ list() {
   hm_require_initialized
   hm_lock_acquire shared
 
-  profile="$(hm_profile_scope "$profile")"
+  profile="$(hm_profile_scope "$profile")" || exit $?
   if [[ -n "$profile" ]]; then
     hm_profile_require "$profile" > /dev/null
   fi
 
   case "$mode" in
     generation)
-      if ! hm_gen_exists "$generation"; then
-        hm_die "$HM_EX_STATE" "There is no generation with the id $generation."
-      fi
-      if [[ -n "$profile" && "$(hm_profile_of_generation "$generation")" != "$profile" ]]; then
-        hm_die "$HM_EX_VALIDATION" "The generation $generation does not belong to the profile $profile."
-      fi
-      _list_generation "$generation"
+      generation_profile="$(hm_profile_context_name "$profile")" || exit $?
+      hm_profile_require "$generation_profile" > /dev/null
+      id="$(hm_gen_require "$generation_profile" "$generation")" || exit $?
+      _list_generation "$id"
       ;;
     pending)
       _list_pending "$profile"

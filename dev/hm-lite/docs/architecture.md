@@ -69,8 +69,8 @@ stays testable.
 | `hm` | Dispatcher only. Bootstrap aware: `hm init` works with no configuration and no database present. It also owns the exit code constants, so that the dispatcher reports its own bootstrap failures with the same contract as the commands. |
 | `config` | Default `KEY=VALUE` configuration template. Parsed as data, never executed. |
 | `core/init.sh` | Create the directories, write the configuration, apply `db/schema.sql`, validate the result. Idempotent. |
-| `core/profile.sh` | Profile management: `add`, `list`, `show`, `use`, `rename`, `delete`; reuses the `add` registration pipeline and the read-only list helpers. |
-| `core/add.sh` | Registration only: discovery → dedupe → preview → confirm → one transaction. The shared `_add_register` entry point is also used by `profile add`. |
+| `core/profile.sh` | Profile management: `create`, `add`, `list`, `show`, `use`, `rename`, `delete`; reuses the `add` registration pipeline and the read-only list helpers. |
+| `core/add.sh` | Registration only: discovery → root check → dedupe → preview → confirm → one transaction. The shared `_add_register` entry point is also used by `profile add`. |
 | `core/gen.sh` | Content capture: lock, stage, hash, store, one transaction, clear the pending set. |
 | `core/list.sh` | Read only views: generations, entries, tracked paths, pending paths, store statistics; optional profile filter. |
 | `core/status.sh` | Read only dashboard: the project, the profile, the store space (referenced, unreferenced, missing) and the profile, size and comment of every generation. |
@@ -90,8 +90,8 @@ stays testable.
 | `lib/database.sh` | The `sqlite3` invocation, the SQL quoting, the transaction helper, the schema version, the hex codec. |
 | `lib/hashing.sh` | The SHA-256 of a file and of staged bytes. |
 | `lib/storage.sh` | The content store: put, get, verify, the prefix layout, the removal. |
-| `lib/profiles.sh` | The profile helpers: name validation, lookup, creation, the active context (`--profile`/`HM_PROFILE`/state), the profile of a generation, the state key of a selection and the selection guard. |
-| `lib/generations.sh` | The creation of a generation, the materialisation, the listing of the entries, the profile aware selection and parent lookup. |
+| `lib/profiles.sh` | The profile helpers: name validation, lookup, root normalisation and containment, creation, the effective context (`--profile`/`HM_PROFILE`/state/default), the profile of a generation, the state key of a selection and the selection guard. |
+| `lib/generations.sh` | The creation of a generation, the local number/label/resolve helpers, the materialisation, the listing of the entries, the profile aware selection and parent lookup. |
 | `lib/validation.sh` | The validation of the runtime directory, the database, the schema version and the store. |
 | `lib/locking.sh` | The `flock` wrapper for `<runtime>/hm.lock`. |
 | `completions/hm.bash` | Bash completion. Self contained builtins only, no `bash-completion` dependency. |
@@ -102,10 +102,10 @@ The `completions/` directory is a consumer of the command surface, not a
 layer of the application: it is never loaded by `hm`, it never writes, it
 never takes the lock and it treats a failed database read as "no dynamic
 suggestion" instead of an error. The only schema knowledge outside
-`db/schema.sql` and `lib/` are three one-line read-only queries
-(`generations.id`, `paths.path`, `profiles.name`), duplicated in the three
-files on purpose: the alternative would be a fourth shared library that
-none of the shells could source.
+`db/schema.sql` and `lib/` are the small read-only completion queries
+(profile-local generation numbers, `paths.path`, `profiles.name`),
+duplicated in the three files on purpose: the alternative would be a fourth
+shared library that none of the shells could source.
 
 ### Every query is checked
 
@@ -150,11 +150,12 @@ failure themselves instead of returning an empty value.
 ## 3. The data flow of a generation
 
 ```
+hm profile create NAME ROOT  ──►  profiles.root + local sequence
 hm profile use NAME  ──►  active_profile (persisted context)
 hm add [--profile NAME] <paths>
    │
    │  explicit > HM_PROFILE > active > default
-   │  find -print0 → normalise → deduplicate
+   │  find -print0 → normalise → root check → deduplicate
    ▼
 profiles ─< path_profiles >─ paths (the location)   pending_paths (the selection)
                                                      │
@@ -166,7 +167,7 @@ stage a copy → sha256 → store/objects/… → files (the content, shared)
 generation_entries (the recorded state: path + content + metadata)
    │
    ▼
-generations (the immutable snapshot, one profile per generation)
+generations (immutable snapshot, one profile, local number)
 ```
 
 The four concepts are four different tables:
@@ -188,30 +189,35 @@ the mode of a file belongs to the generation entry, not to the object.
 
 A profile is an independent namespace above the same content store:
 
-* the tracked paths (`path_profiles`), the pending set, the generations and
-  the selection belong to a profile,
-* every project has the profile `default`, created by `hm init`,
-* `hm profile add NAME` and `hm add --profile NAME` create a missing
-  profile; the other commands require an existing one,
+* the tracked paths (`path_profiles`), the pending set, the generations,
+  their local numbers and the selection belong to a profile,
+* every project has the profile `default`, created by `hm init` with root
+  `/`; `hm profile create NAME ROOT` creates a rooted profile whose local
+  generation sequence starts at `1`,
+* `hm profile add NAME` and `hm add --profile NAME` remain legacy creation
+  paths with root `/`; the other commands require an existing one,
 * the effective context is resolved as `--profile`, then `HM_PROFILE`, then
-  the persisted `active_profile` state key,
+  the persisted `active_profile` state key, then `default`,
 * `hm profile use NAME` writes the persisted context; `HM_PROFILE` is the
   per-process override and is never read from the configuration file,
-* without a context, `add` and `gen` fall back to `default`, `list` and
-  `status` cover every profile, and the generation commands keep their
-  legacy unscoped behaviour,
+* `list` and `status` cover every profile when no context is present; every
+  command that addresses a generation resolves its local number inside the
+  effective profile,
 * `current/` and `testing/` stay global: they hold the materialised
   selection of the last `hm switch`.
 
 The context is deliberately a **scope**, not a creation mechanism. An
-explicit `--profile` on `add` may create a missing profile; the environment
-and the persisted context never do, so a typo cannot silently start writing
-into a new namespace. The generation commands use the context as an
-ownership check and reject a generation that belongs to another profile.
+explicit `--profile` on `add` may create a missing legacy profile; the
+environment and the persisted context never do, so a typo cannot silently
+start writing into a new namespace. Every generation number is resolved
+inside the effective profile, so a number that belongs to another profile
+is never reachable by accident. The root bounds the paths that `add` and
+`gen` accept, and `apply` reports an outside entry as a conflict.
 
 This lets two independent trees (for example the dotfiles and a
 system-update set) share one project, one store and one history while each
-one keeps its own paths, pending set, generations and selection.
+one keeps its own root, paths, pending set, local generation numbers and
+selection.
 
 ### A generation is a complete snapshot
 
@@ -225,6 +231,9 @@ When `hm gen` runs:
 3. The parent of the new generation is the newest existing generation
    **of the same profile** (`ORDER BY created_at DESC, id DESC`). The
    history is linear per profile.
+4. The new generation receives the next local number of the profile from
+   `profiles.next_generation_number`. The sequence is monotonic, so a
+   deleted number is never reused.
 
 The consequence is simple and predictable: a generation always describes
 the complete state of the tracked paths of its profile, and two
@@ -377,11 +386,15 @@ code `8` instead of waiting forever.
 shell code never contains a second copy of a `CREATE TABLE` statement, it
 only applies the file.
 
-The version is stored in `PRAGMA user_version`. The current version is `2`.
+The version is stored in `PRAGMA user_version`. The current version is `3`.
 The step from `1` to `2` added the profiles; the numbered migration
 [`db/migrations/0002_profiles.sql`](../db/migrations/0002_profiles.sql)
-moves the existing data into the profile `default`, so a version 1 project
-keeps its state and its behaviour.
+moves the existing data into the profile `default`. The step from `2` to
+`3` added the profile roots, the local generation sequence and the local
+generation numbers; [`db/migrations/0003_profile_roots.sql`](../db/migrations/0003_profile_roots.sql)
+gives existing profiles root `/` and numbers their generations in
+historical order, so a version 2 project keeps its state and its
+behaviour.
 
 Resolution order of the schema file:
 

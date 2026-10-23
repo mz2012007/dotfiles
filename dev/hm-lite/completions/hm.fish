@@ -49,18 +49,73 @@ function __hm_db_file
     echo $dir/db.sqlite
 end
 
+# __hm_context_profile
+# Print the profile that scopes a command: HM_PROFILE, the active profile,
+# then the default profile.
+function __hm_context_profile
+    if set -q HM_PROFILE; and test -n "$HM_PROFILE"
+        echo $HM_PROFILE
+        return 0
+    end
+
+    set -l db (__hm_db_file)
+    or begin
+        echo default
+        return 0
+    end
+
+    if test -f $db
+        set -l active (sqlite3 -readonly -noheader -list $db \
+            "SELECT value FROM state WHERE key = 'active_profile';" 2>/dev/null)
+        if test -n "$active"
+            echo $active
+            return 0
+        end
+    end
+
+    echo default
+end
+
 # __hm_generation_ids
-# Print the identifiers of the known generations, newest first. A missing or
-# unreadable database is not an error, it produces no output. The database is
-# opened read only, the file is never created and never modified.
+# Print the local generation numbers of the effective profile, newest first.
+# An explicit --profile on the command line wins. A missing or unreadable
+# database is not an error, it produces no output. The database is opened
+# read only, the file is never created and never modified.
 function __hm_generation_ids
     set -l db (__hm_db_file)
     or return 0
 
     test -f $db; or return 0
 
-    sqlite3 -readonly -noheader -list $db \
-        'SELECT id FROM generations ORDER BY created_at DESC, id DESC;' 2>/dev/null
+    set -l profile (__hm_context_profile)
+    set -l tokens (commandline -opc)
+    set -l count (count $tokens)
+
+    for index in (seq 1 $count)
+        set -l token $tokens[$index]
+        switch "$token"
+            case --profile
+                set -l next (math $index + 1)
+                if test $next -le $count
+                    set profile $tokens[$next]
+                end
+            case '--profile=*'
+                set profile (string replace -- '--profile=' '' "$token")
+        end
+    end
+
+    set -l rows (sqlite3 -readonly -noheader -list $db \
+        'SELECT pr.name || char(9) || g.number
+           FROM generations g
+           JOIN profiles pr ON pr.id = g.profile_id
+          ORDER BY g.created_at DESC, g.id DESC;' 2>/dev/null)
+
+    for row in $rows
+        set -l parts (string split \t -- $row)
+        if test (count $parts) -ge 2; and test "$parts[1]" = "$profile"
+            echo $parts[2]
+        end
+    end
 end
 
 # __hm_profile_names
@@ -179,7 +234,7 @@ end
 # __hm_positional_slot SUBCOMMAND
 # Return 0 when the current token is the first positional argument of the
 # subcommand. Options that are already typed are ignored, so
-# "hm apply --dry-run <TAB>" still offers the generation identifiers.
+# "hm apply --dry-run <TAB>" still offers the local generation numbers.
 function __hm_positional_slot
     set -l expected $argv[1]
     set -l tokens (commandline -opc)
@@ -239,7 +294,8 @@ complete -c hm -n '__fish_use_subcommand' -l version -d 'Show the version of HM-
 
 # profile
 complete -c hm -n '__hm_is_command profile' -l help -s h -d 'Show the usage of the profile command'
-complete -c hm -n '__hm_profile_subcommand_slot' -a 'add list show use rename delete help' -d 'Profile subcommand'
+complete -c hm -n '__hm_profile_subcommand_slot' -a 'create add list show use rename delete help' -d 'Profile subcommand'
+complete -c hm -n '__hm_profile_slot create 1' -a '(__fish_complete_directories)' -d 'Root directory'
 complete -c hm -n '__hm_profile_path_slot' -F -a '(__hm_tracked_paths)' -d 'Path to register'
 complete -c hm -n '__hm_profile_slot show 0; or __hm_profile_slot use 0; or __hm_profile_slot delete 0' -a '(__hm_profile_names)' -d 'Profile name'
 complete -c hm -n '__hm_profile_slot rename 0; or __hm_profile_slot rename 1' -a '(__hm_profile_names)' -d 'Profile name'

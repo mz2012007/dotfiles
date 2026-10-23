@@ -127,8 +127,8 @@ gen() {
   hm_require_initialized
   hm_lock_acquire exclusive
 
-  profile="$(hm_profile_context_name "$profile_arg")"
-  profile_id="$(hm_profile_require "$profile")"
+  profile="$(hm_profile_context_name "$profile_arg")" || exit $?
+  profile_id="$(hm_profile_require "$profile")" || exit $?
   hm_log_debug "Creating a generation in the profile $profile."
 
   # --- Read the pending manifest -----------------------------------------
@@ -164,17 +164,29 @@ gen() {
   # A pending path that vanished or that turned into a symbolic link makes
   # the manifest inconsistent. The generation is refused, the remedy is a
   # new "hm add" run that refreshes the manifest.
-  local -a vanished=() unsupported=()
-  local index=0
+  local -a vanished=() unsupported=() outside_root=()
+  local profile_root index=0
 
+  profile_root="$(hm_profile_root "$profile")" || exit $?
   for index in "${!pend_paths[@]}"; do
     path="${pend_paths[$index]}"
-    if [[ -L "$path" ]]; then
+    if ! hm_path_is_under "$profile_root" "$path"; then
+      outside_root+=("$path")
+    elif [[ -L "$path" ]]; then
       unsupported+=("$path")
     elif [[ ! -e "$path" ]]; then
       vanished+=("$path")
     fi
   done
+
+  if [[ ${#outside_root[@]} -gt 0 ]]; then
+    local outside_path
+    hm_log_error "The pending manifest is outside of the profile root, no generation was created."
+    for outside_path in "${outside_root[@]}"; do
+      hm_log_error "  the path is outside of $profile_root: $(hm_path_display "$outside_path")"
+    done
+    hm_die "$HM_EX_VALIDATION" "The pending manifest does not belong to the profile $profile."
+  fi
 
   if [[ ${#vanished[@]} -gt 0 || ${#unsupported[@]} -gt 0 ]]; then
     hm_log_error "The pending manifest is inconsistent, no generation was created."
@@ -345,13 +357,15 @@ gen() {
     printf 'DELETE FROM _hm_gen_ctx;\n'
 
     if [[ -n "$parent_id" ]]; then
-      printf 'INSERT INTO generations (name, comment, created_at, parent_id, profile_id) VALUES (%s, %s, %s, %s, %s);\n' \
-        "$(hm_sql_quote "$name")" "$(hm_sql_quote "$comment")" "$now" "$parent_id" "$profile_id"
+      printf 'INSERT INTO generations (number, name, comment, created_at, parent_id, profile_id) VALUES ((SELECT next_generation_number FROM profiles WHERE id = %s), %s, %s, %s, %s, %s);\n' \
+        "$profile_id" "$(hm_sql_quote "$name")" "$(hm_sql_quote "$comment")" "$now" "$parent_id" "$profile_id"
     else
-      printf 'INSERT INTO generations (name, comment, created_at, parent_id, profile_id) VALUES (%s, %s, %s, NULL, %s);\n' \
-        "$(hm_sql_quote "$name")" "$(hm_sql_quote "$comment")" "$now" "$profile_id"
+      printf 'INSERT INTO generations (number, name, comment, created_at, parent_id, profile_id) VALUES ((SELECT next_generation_number FROM profiles WHERE id = %s), %s, %s, %s, NULL, %s);\n' \
+        "$profile_id" "$(hm_sql_quote "$name")" "$(hm_sql_quote "$comment")" "$now" "$profile_id"
     fi
     printf 'INSERT INTO _hm_gen_ctx (id) VALUES (last_insert_rowid());\n'
+    printf 'UPDATE profiles SET next_generation_number = next_generation_number + 1 WHERE id = %s;\n' \
+      "$profile_id"
 
     # The content objects.
     for index in "${!pend_paths[@]}"; do
@@ -392,14 +406,16 @@ gen() {
     printf 'DELETE FROM pending_paths WHERE profile_id = %s;\n' "$profile_id"
   } | hm_db_tx || hm_die "$HM_EX_DB" "The generation failed, nothing was changed."
 
-  local generation_id
+  local generation_id generation_number parent_number
   generation_id="$(hm_gen_latest "$profile")"
+  generation_number="$(hm_gen_number "$generation_id")"
 
-  hm_log_success "Created generation $generation_id in the profile $profile with $((captured + carried)) entries."
-  printf 'Generation: %s%s%s\n' "$HM_C_OUT_GREEN" "$generation_id" "$HM_C_OUT_RESET"
+  hm_log_success "Created generation $generation_number in the profile $profile with $((captured + carried)) entries."
+  printf 'Generation: %s%s%s\n' "$HM_C_OUT_GREEN" "$generation_number" "$HM_C_OUT_RESET"
   printf 'Profile:    %s%s%s\n' "$HM_C_OUT_CYAN" "$profile" "$HM_C_OUT_RESET"
   if [[ -n "$parent_id" ]]; then
-    printf 'Parent:     %s%s%s\n' "$HM_C_OUT_CYAN" "$parent_id" "$HM_C_OUT_RESET"
+    parent_number="$(hm_gen_number "$parent_id")"
+    printf 'Parent:     %s%s%s\n' "$HM_C_OUT_CYAN" "$parent_number" "$HM_C_OUT_RESET"
   fi
 
   return 0

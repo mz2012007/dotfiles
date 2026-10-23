@@ -49,17 +49,47 @@ _hm_db_file() {
   printf '%s\n' "$dir/db.sqlite"
 }
 
-# _hm_generation_ids
-# Print the identifiers of the known generations, newest first. A missing or
-# unreadable database is not an error, it produces no output. The database is
-# opened read only, the file is never created and never modified.
+# _hm_context_profile
+# Print the profile that scopes a command: HM_PROFILE, the active profile,
+# then the default profile. A missing or unreadable database yields the
+# default profile and therefore no generation candidates.
+_hm_context_profile() {
+  local db active=""
+
+  if [[ -n "${HM_PROFILE:-}" ]]; then
+    printf '%s\n' "$HM_PROFILE"
+    return 0
+  fi
+
+  db="$(_hm_db_file)" || true
+  if [[ -n "$db" && -f "$db" ]]; then
+    active="$(sqlite3 -readonly -noheader -list "$db" \
+      "SELECT value FROM state WHERE key = 'active_profile';" 2>/dev/null || true)"
+  fi
+
+  printf '%s\n' "${active:-default}"
+}
+
+# _hm_generation_ids [PROFILE]
+# Print the local generation numbers of the profile, newest first. A missing
+# or unreadable database is not an error, it produces no output. The database
+# is opened read only, the file is never created and never modified.
 _hm_generation_ids() {
-  local db
+  local profile="${1:-}" db escaped
   db="$(_hm_db_file)" || return 0
   [[ -f "$db" ]] || return 0
 
+  if [[ -z "$profile" ]]; then
+    profile="$(_hm_context_profile)" || return 0
+  fi
+  escaped="${profile//\'/\'\'}"
+
   sqlite3 -readonly -noheader -list "$db" \
-    'SELECT id FROM generations ORDER BY created_at DESC, id DESC;' 2>/dev/null || true
+    "SELECT g.number
+       FROM generations g
+       JOIN profiles pr ON pr.id = g.profile_id
+      WHERE pr.name = '$escaped'
+      ORDER BY g.created_at DESC, g.id DESC;" 2>/dev/null || true
 }
 
 # _hm_profile_names
@@ -123,7 +153,7 @@ _hm_global_options() {
 # _hm_profile_subcommands
 # Print the subcommands of "hm profile", one per line.
 _hm_profile_subcommands() {
-  printf '%s\n' add list show use rename delete help
+  printf '%s\n' create add list show use rename delete help
 }
 
 # _hm_command_options COMMAND
@@ -261,15 +291,20 @@ _hm_complete_option() {
   done
 }
 
-# _hm_complete_generation CURRENT PREFIX
-# Complete the identifier of a generation. PREFIX is prepended to every
-# candidate, it carries the "--option=" prefix of the inline form.
+# _hm_complete_generation CURRENT PREFIX [PROFILE]
+# Complete a local generation number. PREFIX is prepended to every
+# candidate, it carries the "--option=" prefix of the inline form. Without
+# PROFILE the effective context is used.
 _hm_complete_generation() {
-  local current="$1" prefix="$2"
+  local current="$1" prefix="$2" profile="${3:-}"
   local -a ids=()
   local id
 
-  mapfile -t ids < <(_hm_generation_ids)
+  if [[ -z "$profile" ]]; then
+    profile="$(_hm_context_profile)" || return 0
+  fi
+
+  mapfile -t ids < <(_hm_generation_ids "$profile")
 
   for id in "${ids[@]}"; do
     if [[ "$id" == "$current"* ]]; then
@@ -323,6 +358,18 @@ _hm_complete_path() {
   done
 }
 
+# _hm_complete_directory CURRENT
+# Complete the directories of the filesystem, for example a profile root.
+_hm_complete_directory() {
+  local current="$1"
+  local -a directories=()
+
+  mapfile -t directories < <(compgen -d -- "$current")
+  if (( ${#directories[@]} > 0 )); then
+    COMPREPLY+=("${directories[@]}")
+  fi
+}
+
 # _hm_complete_archive CURRENT
 # Complete the backup archives of the project and the files of the filesystem.
 _hm_complete_archive() {
@@ -345,12 +392,13 @@ _hm_complete_archive() {
   fi
 }
 
-# _hm_complete_argument COMMAND COUNT CURRENT [POSITIONALS...]
+# _hm_complete_argument COMMAND COUNT CURRENT PROFILE [POSITIONALS...]
 # Complete the argument of a command. COUNT is the number of arguments that
-# the command already received, POSITIONALS carries their values.
+# the command already received, PROFILE carries the explicit --profile value
+# and POSITIONALS carries the argument values.
 _hm_complete_argument() {
-  local command="$1" count="$2" current="$3"
-  shift 3
+  local command="$1" count="$2" current="$3" profile="$4"
+  shift 4
   local -a positionals=("$@")
   local -a names=()
   local name
@@ -379,6 +427,11 @@ _hm_complete_argument() {
               _hm_complete_profile "$current" ""
             fi
             ;;
+          create)
+            if (( count == 2 )); then
+              _hm_complete_directory "$current"
+            fi
+            ;;
           add)
             if (( count >= 2 )); then
               _hm_complete_path "$current"
@@ -389,30 +442,30 @@ _hm_complete_argument() {
       ;;
     switch)
       if (( count == 0 )); then
-        _hm_complete_generation "$current" ""
+        _hm_complete_generation "$current" "" "$profile"
       fi
       ;;
     show)
       if (( count == 0 )); then
-        _hm_complete_generation "$current" ""
+        _hm_complete_generation "$current" "" "$profile"
       fi
       ;;
     diff)
-      _hm_complete_generation "$current" ""
+      _hm_complete_generation "$current" "" "$profile"
       ;;
     edit)
       if (( count == 0 )); then
-        _hm_complete_generation "$current" ""
+        _hm_complete_generation "$current" "" "$profile"
       fi
       ;;
     delete)
       if (( count == 0 )); then
-        _hm_complete_generation "$current" ""
+        _hm_complete_generation "$current" "" "$profile"
       fi
       ;;
     apply)
       if (( count == 0 )); then
-        _hm_complete_generation "$current" ""
+        _hm_complete_generation "$current" "" "$profile"
       fi
       ;;
     restore)
@@ -430,7 +483,7 @@ _hm_complete_argument() {
 # _hm - the completion function of the hm command.
 _hm() {
   local current command command_index index word prefix value
-  local pending_option=""
+  local pending_option="" profile=""
   local -a positionals=()
   local -a words=()
 
@@ -478,6 +531,9 @@ _hm() {
     case "$word" in
       --*=*)
         # An option with an inline value, it consumes nothing else.
+        case "$word" in
+          --profile=*) profile="${word#*=}" ;;
+        esac
         pending_option=""
         ;;
       -*)
@@ -489,6 +545,9 @@ _hm() {
         ;;
       *)
         if [[ -n "$pending_option" ]]; then
+          case "$pending_option" in
+            --profile) profile="$word" ;;
+          esac
           pending_option=""
         else
           positionals+=("$word")
@@ -501,7 +560,7 @@ _hm() {
   # The previous word waits for its value.
   if [[ -n "$pending_option" ]]; then
     case "$pending_option" in
-      --generation) _hm_complete_generation "$current" "" ;;
+      --generation) _hm_complete_generation "$current" "" "$profile" ;;
       --profile) _hm_complete_profile "$current" "" ;;
     esac
     return 0
@@ -513,7 +572,7 @@ _hm() {
     value="${current#*=}"
     if _hm_is_value_option "$command" "$prefix"; then
       case "$prefix" in
-        --generation) _hm_complete_generation "$value" "$prefix=" ;;
+        --generation) _hm_complete_generation "$value" "$prefix=" "$profile" ;;
         --profile) _hm_complete_profile "$value" "$prefix=" ;;
       esac
       return 0
@@ -527,7 +586,7 @@ _hm() {
   fi
 
   # The current word is an argument of the command.
-  _hm_complete_argument "$command" "${#positionals[@]}" "$current" "${positionals[@]}"
+  _hm_complete_argument "$command" "${#positionals[@]}" "$current" "$profile" "${positionals[@]}"
   return 0
 }
 

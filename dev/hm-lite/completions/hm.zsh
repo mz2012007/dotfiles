@@ -54,17 +54,63 @@ __hm_db_file() {
   print -r -- $dir/db.sqlite
 }
 
+# __hm_context_profile
+# Print the profile that scopes the current command line: an explicit
+# --profile wins, then HM_PROFILE, the active profile and the default
+# profile.
+__hm_context_profile() {
+  local selected="${HM_PROFILE:-}" active="" db
+  local current=${CURRENT:-0}
+  local i word
+
+  for (( i = 2; i < current; i++ )); do
+    word=${words[i]-}
+    case $word in
+      --profile)
+        (( i + 1 < current )) && selected=${words[i + 1]-}
+        ;;
+      --profile=*)
+        selected=${word#--profile=}
+        ;;
+    esac
+  done
+
+  if [[ -n $selected ]]; then
+    print -r -- $selected
+    return 0
+  fi
+
+  db=$(__hm_db_file) || true
+  if [[ -n $db && -f $db ]]; then
+    active=$(sqlite3 -readonly -noheader -list $db \
+      "SELECT value FROM state WHERE key = 'active_profile';" 2>/dev/null)
+  fi
+
+  print -r -- ${active:-default}
+}
+
 # __hm_generation_ids
-# Print the identifiers of the known generations, newest first. A missing or
-# unreadable database is not an error, it produces no output. The database is
-# opened read only, the file is never created and never modified.
+# Print the local generation numbers of the effective profile, newest first.
+# A missing or unreadable database is not an error, it produces no output.
+# The database is opened read only, the file is never created and never
+# modified.
 __hm_generation_ids() {
-  local db
+  local db profile row name number
   db=$(__hm_db_file) || return 0
   [[ -f $db ]] || return 0
 
-  sqlite3 -readonly -noheader -list $db \
-    'SELECT id FROM generations ORDER BY created_at DESC, id DESC;' 2>/dev/null
+  profile=$(__hm_context_profile)
+
+  for row in "${(@f)$(sqlite3 -readonly -noheader -list $db \
+      'SELECT pr.name || char(9) || g.number
+         FROM generations g
+         JOIN profiles pr ON pr.id = g.profile_id
+        ORDER BY g.created_at DESC, g.id DESC;' 2>/dev/null)}"; do
+    [[ -n $row ]] || continue
+    name=${row%%$'\t'*}
+    number=${row#*$'\t'}
+    [[ $name == $profile ]] && print -r -- $number
+  done
 }
 
 # __hm_profile_names
@@ -345,7 +391,8 @@ _hm_argument() {
     profile)
       if (( $2 == 0 )); then
         subcommands=(
-          'add:Create a profile and optionally register paths'
+          'create:Create a profile with a root directory'
+          'add:Create a legacy profile and optionally register paths'
           'list:List the profiles and their counts'
           'show:Show the paths and generations of a profile'
           'use:Select the active profile, or print it'
@@ -366,6 +413,11 @@ _hm_argument() {
         rename)
           if (( $2 == 1 || $2 == 2 )); then
             _hm_value --profile
+          fi
+          ;;
+        create)
+          if (( $2 == 2 )); then
+            _directories
           fi
           ;;
         add)

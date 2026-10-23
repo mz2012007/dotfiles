@@ -18,8 +18,15 @@ The number is the schema version that the migration produces. The file
 must end with the version it sets:
 
 ```sql
-PRAGMA user_version = 2;
+PRAGMA user_version = 3;
 ```
+
+## Migrations
+
+| File | Produces | Content |
+|---|---|---|
+| `0002_profiles.sql` | v2 | Profiles, their memberships and per-profile generations; v1 data moves into `default`. |
+| `0003_profile_roots.sql` | v3 | Root directories, the local generation sequence and local generation numbers; existing profiles get root `/` and are numbered in historical order. |
 
 ## Rules
 

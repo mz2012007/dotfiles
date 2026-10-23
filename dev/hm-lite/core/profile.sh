@@ -31,9 +31,10 @@ Usage: hm profile <subcommand> [arguments...]
 Manage the profiles of the project.
 
 Subcommands:
-  profile add <name> [path...]  Create a profile and optionally register paths
-  profile list                  List the profiles and their counts
-  profile show [name]           Show the paths and generations of a profile
+  profile create <name> <root>  Create a profile with a root directory
+  profile add <name> [path...]  Create a legacy profile (root /) and optionally register paths
+  profile list                  List the profiles, roots and counts
+  profile show [name]           Show the root, paths and generations of a profile
   profile use [name]            Select the active profile, or print it
   profile rename <old> <new>    Rename a profile and its context
   profile delete <name>         Delete a profile after a confirmation
@@ -43,7 +44,21 @@ Options:
 
 The active profile is the context of the commands that do not name a
 profile. The precedence is --profile, HM_PROFILE, the active profile and
-then the default profile for the mutating commands that need one.
+then the default profile.
+EOF
+}
+
+# _profile_create_usage
+_profile_create_usage() {
+  cat <<'EOF'
+Usage: hm profile create <name> <root>
+
+Create a profile whose paths are confined to ROOT. The root is normalized
+against the current directory, a leading ~ is expanded and the directory
+must already exist.
+
+Options:
+  -h, --help     Show this help
 EOF
 }
 
@@ -52,7 +67,8 @@ _profile_add_usage() {
   cat <<'EOF'
 Usage: hm profile add <name> [path...]
 
-Create a profile and optionally register paths in it.
+Create a legacy profile with root / and optionally register paths in it.
+Use "hm profile create NAME ROOT" for a rooted profile.
 
 Options:
   -h, --help     Show this help
@@ -64,7 +80,7 @@ _profile_list_usage() {
   cat <<'EOF'
 Usage: hm profile list
 
-List the profiles with their path, pending and generation counts.
+List the profiles with their root, path, pending and generation counts.
 
 Options:
   -h, --help     Show this help
@@ -76,8 +92,8 @@ _profile_show_usage() {
   cat <<'EOF'
 Usage: hm profile show [name]
 
-Show the details, the paths and the generations of a profile. Without a
-name the effective context is shown, falling back to the default profile.
+Show the root, the paths and the generations of a profile. Without a name
+the effective context is shown, falling back to the default profile.
 
 Options:
   -h, --help     Show this help
@@ -144,17 +160,88 @@ _profile_remove_if_empty() {
     true
 }
 
-# _profile_print_created NAME
+# _profile_print_created NAME [ROOT]
 _profile_print_created() {
-  local name="$1"
+  local name="$1" root="${2:-}"
 
   printf '%sProfile created%s\n' "$HM_C_OUT_HEADING" "$HM_C_OUT_RESET"
   printf '\n'
   printf '  %s%-11s%s %s%s%s\n' "$HM_C_OUT_LABEL" "Name:" "$HM_C_OUT_RESET" \
     "$HM_C_OUT_CYAN" "$name" "$HM_C_OUT_RESET"
+  if [[ -n "$root" ]]; then
+    printf '  %s%-11s%s %s\n' "$HM_C_OUT_LABEL" "Root:" "$HM_C_OUT_RESET" \
+      "$(hm_path_display "$root")"
+  fi
 }
 
 # --- Subcommands -----------------------------------------------------------
+
+# _profile_create NAME ROOT - create a profile with a root directory.
+_profile_create() {
+  local name="" root_arg="" root argument
+
+  while [[ $# -gt 0 ]]; do
+    argument="$1"
+    case "$argument" in
+      -h | --help)
+        _profile_create_usage
+        return 0
+        ;;
+      --)
+        shift
+        while [[ $# -gt 0 ]]; do
+          if [[ -z "$name" ]]; then
+            name="$1"
+          elif [[ -z "$root_arg" ]]; then
+            root_arg="$1"
+          else
+            hm_die "$HM_EX_USAGE" "Usage: hm profile create <name> <root>"
+          fi
+          shift
+        done
+        ;;
+      -*)
+        hm_die "$HM_EX_USAGE" "Unknown option for 'hm profile create': $argument"
+        ;;
+      *)
+        if [[ -z "$name" ]]; then
+          name="$argument"
+        elif [[ -z "$root_arg" ]]; then
+          root_arg="$argument"
+        else
+          hm_die "$HM_EX_USAGE" "Usage: hm profile create <name> <root>"
+        fi
+        shift
+        ;;
+    esac
+  done
+
+  [[ -n "$name" && -n "$root_arg" ]] ||
+    hm_die "$HM_EX_USAGE" "Usage: hm profile create <name> <root>"
+  hm_profile_valid "$name" || hm_die "$HM_EX_USAGE" "Invalid profile name: $name"
+
+  root="$(hm_profile_normalize_root "$root_arg")" ||
+    hm_die "$HM_EX_VALIDATION" "Invalid profile root: $root_arg"
+
+  hm_require_initialized
+  hm_lock_acquire exclusive
+
+  if hm_profile_exists "$name"; then
+    hm_die "$HM_EX_VALIDATION" "The profile $name already exists."
+  fi
+
+  if [[ ! -d "$root" ]]; then
+    hm_die "$HM_EX_VALIDATION" "The profile root must be an existing directory: $(hm_path_display "$root")"
+  fi
+
+  hm_db_exec "INSERT INTO profiles (name, root, created_at) VALUES ($(hm_sql_quote "$name"), $(hm_sql_quote "$root"), $(hm_now_epoch));" ||
+    hm_die "$HM_EX_DB" "Cannot create the profile $name."
+
+  hm_log_success "Created the profile $name with the root $(hm_path_display "$root")."
+  _profile_print_created "$name" "$root"
+
+  return 0
+}
 
 # _profile_add [NAME] [PATH...] - create a profile.
 _profile_add() {
@@ -205,7 +292,7 @@ _profile_add() {
   fi
 
   if [[ ${#paths[@]} -gt 0 ]]; then
-    profile_id="$(hm_profile_ensure "$name")"
+    profile_id="$(hm_profile_ensure "$name")" || exit $?
     rc=0
     _add_register "$name" "$profile_id" "${paths[@]}" || rc=$?
     if [[ "$rc" -ne 0 ]]; then
@@ -228,14 +315,14 @@ _profile_add() {
 
   hm_profile_ensure "$name" > /dev/null
   hm_log_success "Created the profile $name."
-  _profile_print_created "$name"
+  _profile_print_created "$name" "/"
 
   return 0
 }
 
 # _profile_list - print every profile with its counts.
 _profile_list() {
-  local argument rows row name created paths pending generations selected
+  local argument rows row name root created paths pending generations selected
   local active context marker
 
   for argument in "$@"; do
@@ -262,12 +349,16 @@ _profile_list() {
 
   if ! hm_db_rows "
     SELECT pr.name,
+           pr.root,
            pr.created_at,
            (SELECT COUNT(*) FROM path_profiles x WHERE x.profile_id = pr.id),
            (SELECT COUNT(*) FROM pending_paths pp WHERE pp.profile_id = pr.id),
            (SELECT COUNT(*) FROM generations g WHERE g.profile_id = pr.id),
-           COALESCE((SELECT value FROM state
-                      WHERE key = 'selected_generation:' || pr.name), '')
+           COALESCE((SELECT g.number
+                       FROM generations g
+                      WHERE g.id = CAST((SELECT value FROM state
+                                          WHERE key = 'selected_generation:' || pr.name)
+                                        AS INTEGER)), '')
       FROM profiles pr
      ORDER BY pr.name;" rows; then
     hm_die "$HM_EX_DB" "Cannot read the profiles from the database."
@@ -275,17 +366,18 @@ _profile_list() {
 
   printf '%sProfiles%s\n' "$HM_C_OUT_HEADING" "$HM_C_OUT_RESET"
   printf '\n'
-  printf '%s%-20s %8s %8s %12s %10s %s%s\n' "$HM_C_OUT_HEADING" \
-    "NAME" "PATHS" "PENDING" "GENERATIONS" "SELECTED" "ACTIVE" "$HM_C_OUT_RESET"
+  printf '%s%-20s %-36s %8s %8s %12s %10s %s%s\n' "$HM_C_OUT_HEADING" \
+    "NAME" "ROOT" "PATHS" "PENDING" "GENERATIONS" "SELECTED" "ACTIVE" "$HM_C_OUT_RESET"
 
-  while IFS="$HM_FIELD_SEP" read -r name created paths pending generations selected; do
+  while IFS="$HM_FIELD_SEP" read -r name root created paths pending generations selected; do
     [[ -n "$name" ]] || continue
     marker="no"
     if [[ -n "$context" && "$name" == "$context" ]]; then
       marker="yes"
     fi
-    printf '%-20s %8s %8s %12s %10s %s\n' \
-      "$name" "$paths" "$pending" "$generations" "${selected:--}" "$marker"
+    printf '%-20s %-36s %8s %8s %12s %10s %s\n' \
+      "$name" "$(hm_path_display "$root")" "$paths" "$pending" "$generations" \
+      "${selected:--}" "$marker"
   done <<< "$rows"
 
   printf '\n'
@@ -305,7 +397,7 @@ _profile_list() {
 # _profile_show [NAME] - print the details, paths and generations.
 _profile_show() {
   local name="" argument
-  local row created paths pending generations selected active marker
+  local row root created paths pending generations selected active marker
 
   while [[ $# -gt 0 ]]; do
     argument="$1"
@@ -329,24 +421,28 @@ _profile_show() {
   hm_lock_acquire shared
 
   if [[ -z "$name" ]]; then
-    name="$(hm_profile_context_name "")"
+    name="$(hm_profile_context_name "")" || exit $?
   fi
   hm_profile_require "$name" > /dev/null
 
   if ! hm_db_rows "
-    SELECT pr.created_at,
+    SELECT pr.root,
+           pr.created_at,
            (SELECT COUNT(*) FROM path_profiles x WHERE x.profile_id = pr.id),
            (SELECT COUNT(*) FROM pending_paths pp WHERE pp.profile_id = pr.id),
            (SELECT COUNT(*) FROM generations g WHERE g.profile_id = pr.id),
-           COALESCE((SELECT value FROM state
-                      WHERE key = 'selected_generation:' || pr.name), '')
+           COALESCE((SELECT g.number
+                       FROM generations g
+                      WHERE g.id = CAST((SELECT value FROM state
+                                          WHERE key = 'selected_generation:' || pr.name)
+                                        AS INTEGER)), '')
       FROM profiles pr
      WHERE pr.name = $(hm_sql_quote "$name");" row; then
     hm_die "$HM_EX_DB" "Cannot read the profile $name from the database."
   fi
 
   [[ -n "$row" ]] || hm_die "$HM_EX_VALIDATION" "There is no profile named $name."
-  IFS="$HM_FIELD_SEP" read -r created paths pending generations selected <<< "$row"
+  IFS="$HM_FIELD_SEP" read -r root created paths pending generations selected <<< "$row"
 
   if hm_profile_is_context "$name"; then
     active="yes"
@@ -356,6 +452,7 @@ _profile_show() {
 
   printf '%sProfile %s%s\n' "$HM_C_OUT_HEADING" "$name" "$HM_C_OUT_RESET"
   printf '\n'
+  printf '  %s%-13s %s\n' "$HM_C_OUT_LABEL" "Root:" "$(hm_path_display "$root")"
   printf '  %s%-13s %s%s\n' "$HM_C_OUT_LABEL" "Created:" \
     "$(hm_format_epoch "$created" || printf '%s' "$created")" "$HM_C_OUT_RESET"
   printf '  %s%-13s %s%s\n' "$HM_C_OUT_LABEL" "Active:" "$active" "$HM_C_OUT_RESET"
@@ -480,7 +577,7 @@ _profile_rename() {
   hm_require_initialized
   hm_lock_acquire exclusive
 
-  old_id="$(hm_profile_require "$old")"
+  old_id="$(hm_profile_require "$old")" || exit $?
   if [[ "$old" == "$HM_DEFAULT_PROFILE" ]]; then
     hm_die "$HM_EX_VALIDATION" "The default profile cannot be renamed."
   fi
@@ -564,7 +661,7 @@ _profile_delete() {
   hm_require_initialized
   hm_lock_acquire exclusive
 
-  id="$(hm_profile_require "$name")"
+  id="$(hm_profile_require "$name")" || exit $?
 
   if [[ "$name" == "$HM_DEFAULT_PROFILE" ]]; then
     hm_die "$HM_EX_VALIDATION" "The default profile cannot be deleted."
@@ -676,6 +773,9 @@ profile() {
       ;;
     add)
       _profile_add "$@"
+      ;;
+    create)
+      _profile_create "$@"
       ;;
     list)
       _profile_list "$@"

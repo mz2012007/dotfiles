@@ -114,8 +114,8 @@ _status_render() {
   local profile="${1:-}" where="" generation_where=""
   local row objects store_bytes referenced referenced_bytes
   local unreferenced unreferenced_bytes missing missing_bytes
-  local generations paths_count pending_count selected store_root
-  local rows id name_hex name comment_hex comment profile_name marker
+  local generations paths_count pending_count selected selected_label store_root
+  local rows id name_hex name comment_hex comment profile_name marker number
   local created entries entry_objects size
 
   if [[ -n "$profile" ]]; then
@@ -140,6 +140,14 @@ _status_render() {
       JOIN profiles pr ON pr.id = pp.profile_id
       $where;")"
   selected="$(hm_gen_selected "$profile")"
+  selected_label=""
+  if [[ -n "$selected" ]]; then
+    if [[ -n "$profile" ]]; then
+      selected_label="$(hm_gen_number "$selected")" || selected_label="$selected"
+    else
+      selected_label="$(hm_gen_label "$selected")" || selected_label="$selected"
+    fi
+  fi
 
   _status_store_objects row
   IFS="$HM_FIELD_SEP" read -r objects store_bytes referenced referenced_bytes \
@@ -158,7 +166,7 @@ _status_render() {
   printf '  %s%-16s%s %s\n' "$HM_C_OUT_LABEL" "Generations:" "$HM_C_OUT_RESET" "$generations"
   if [[ -n "$selected" ]]; then
     printf '  %s%-16s%s %s%s%s\n' "$HM_C_OUT_LABEL" "Selected:" "$HM_C_OUT_RESET" \
-      "$HM_C_OUT_CYAN" "$selected" "$HM_C_OUT_RESET"
+      "$HM_C_OUT_CYAN" "$selected_label" "$HM_C_OUT_RESET"
   else
     printf '  %s%-16s%s %s\n' "$HM_C_OUT_LABEL" "Selected:" "$HM_C_OUT_RESET" "-"
   fi
@@ -200,10 +208,11 @@ _status_render() {
   printf '%sGenerations%s\n' "$HM_C_OUT_HEADING" "$HM_C_OUT_RESET"
   printf '\n'
   printf '%s%-6s %-3s %-16s %-21s %8s %8s %10s  %-20s %s%s\n' "$HM_C_OUT_HEADING" \
-    "ID" "SEL" "PROFILE" "CREATED" "ENTRIES" "OBJECTS" "SIZE" "NAME" "COMMENT" "$HM_C_OUT_RESET"
+    "NUMBER" "SEL" "PROFILE" "CREATED" "ENTRIES" "OBJECTS" "SIZE" "NAME" "COMMENT" "$HM_C_OUT_RESET"
 
   if ! hm_db_rows "
     SELECT g.id,
+           g.number,
            hex(COALESCE(g.name, '')),
            hex(COALESCE(g.comment, '')),
            pr.name,
@@ -229,7 +238,7 @@ _status_render() {
 
   while IFS= read -r row; do
     [[ -n "$row" ]] || continue
-    IFS="$HM_FIELD_SEP" read -r id name_hex comment_hex profile_name created entries \
+    IFS="$HM_FIELD_SEP" read -r id number name_hex comment_hex profile_name created entries \
       entry_objects size <<< "$row"
 
     hm_hex_decode name "$name_hex"
@@ -241,7 +250,7 @@ _status_render() {
     fi
 
     printf '%-6s %-3s %-16s %-21s %8s %8s %10s  %-20s %s\n' \
-      "$id" "$marker" "$profile_name" \
+      "$number" "$marker" "$profile_name" \
       "$(hm_format_epoch "$created" || printf '%s' "$created")" \
       "$entries" "$entry_objects" "$(hm_format_bytes "$size")" \
       "${name:-(unnamed)}" "${comment:-}"
@@ -287,7 +296,7 @@ status() {
   hm_require_initialized
   hm_lock_acquire shared
 
-  profile="$(hm_profile_scope "$profile")"
+  profile="$(hm_profile_scope "$profile")" || exit $?
   if [[ -n "$profile" ]]; then
     hm_profile_require "$profile" > /dev/null
   fi

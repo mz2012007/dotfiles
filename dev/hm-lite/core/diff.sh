@@ -35,7 +35,7 @@ The generations are compared in the given order, every consecutive pair is
 one comparison.
 
 Options:
-  --profile NAME Require the generations to belong to the profile
+  --profile NAME Resolve the local numbers in the profile
   --all          Show the entries that did not change
   -h, --help     Show this help
 EOF
@@ -87,15 +87,18 @@ _diff_pair() {
   local keys encoded path old_record new_record detail reason
   local o_type o_hash o_mode o_uid o_gid _o_mtime o_size
   local n_type n_hash n_mode n_uid n_gid _n_mtime n_size
-  local added=0 removed=0 changed=0 unchanged=0
+  local added=0 removed=0 changed=0 unchanged=0 from_number to_number
   local -a reasons=()
 
   _diff_load "$from" old
   _diff_load "$to" new
 
+  from_number="$(hm_gen_number "$from")"
+  to_number="$(hm_gen_number "$to")"
+
   keys="$(printf '%s\n' "${!old[@]}" "${!new[@]}" | sort -u)"
 
-  printf '%sGeneration %s -> %s%s\n' "$HM_C_OUT_HEADING" "$from" "$to" "$HM_C_OUT_RESET"
+  printf '%sGeneration %s -> %s%s\n' "$HM_C_OUT_HEADING" "$from_number" "$to_number" "$HM_C_OUT_RESET"
   printf '\n'
 
   while IFS= read -r encoded; do
@@ -219,19 +222,11 @@ diff() {
   hm_require_initialized
   hm_lock_acquire shared
 
-  profile="$(hm_profile_scope "$profile_arg")"
-  if [[ -n "$profile" ]]; then
-    hm_profile_require "$profile" > /dev/null
-  fi
+  profile="$(hm_profile_context_name "$profile_arg")" || exit $?
+  hm_profile_require "$profile" > /dev/null
 
   for index in "${!generations[@]}"; do
-    if ! hm_gen_exists "${generations[$index]}"; then
-      hm_die "$HM_EX_STATE" "There is no generation with the id ${generations[$index]}."
-    fi
-    if [[ -n "$profile" && "$(hm_profile_of_generation "${generations[$index]}")" != "$profile" ]]; then
-      hm_die "$HM_EX_VALIDATION" "The generation ${generations[$index]} does not belong to the profile $profile."
-    fi
-    id="$(hm_sql_int "${generations[$index]}")"
+    id="$(hm_gen_require "$profile" "${generations[$index]}")" || exit $?
     generations[index]="$((10#$id))"
   done
 
