@@ -72,7 +72,7 @@ test_color_is_on_when_the_output_is_a_terminal() {
   local out
   out="$(env -u NO_COLOR HM_COLOR=auto script -qec "$HM_BIN show 1" /dev/null 2>&1)"
 
-  assert_contains "$out" $'\033[1m' "the colours are enabled automatically on a terminal"
+  assert_contains "$out" $'\033[1;96m' "the colours are enabled automatically on a terminal"
 }
 
 test_hm_color_always_forces_the_colours() {
@@ -81,7 +81,9 @@ test_hm_color_always_forces_the_colours() {
   _color_run always __unset__
 
   assert_rc 0 "$HM_STATUS" "show succeeds"
-  assert_contains "$HM_OUTPUT" $'\033[1m' "the heading is bold"
+  assert_contains "$HM_OUTPUT" $'\033[1;96m' "the heading is bold and bright cyan"
+  assert_contains "$HM_OUTPUT" $'\033[2m' "the labels are dim"
+  assert_contains "$HM_OUTPUT" $'\033[96m' "the identifiers and paths are bright cyan"
   assert_contains "$HM_OUTPUT" $'\033[0m' "the colour is reset"
 }
 
@@ -111,7 +113,7 @@ test_an_empty_no_color_does_not_disable_the_colours() {
   _color_run always ""
 
   assert_rc 0 "$HM_STATUS" "show succeeds"
-  assert_contains "$HM_OUTPUT" $'\033[1m' "an empty NO_COLOR keeps the colours"
+  assert_contains "$HM_OUTPUT" $'\033[1;96m' "an empty NO_COLOR keeps the colours"
 }
 
 test_color_diagnostics_follow_standard_error() {

@@ -32,7 +32,7 @@ EOF
 # _show_generation GENERATION - print the metadata and the entries.
 _show_generation() {
   local generation="$1" id
-  local row name_hex comment_hex name comment created parent
+  local row name_hex comment_hex name comment profile_name created parent
   local entries objects size selected status missing missing_count=0
   local rows encoded entry_type hash_hex mode uid gid mtime entry_size path hash
 
@@ -41,23 +41,25 @@ _show_generation() {
   if ! hm_db_rows "
     SELECT hex(COALESCE(g.name, '')),
            hex(COALESCE(g.comment, '')),
+           pr.name,
            g.created_at,
            COALESCE(g.parent_id, ''),
            (SELECT COUNT(*) FROM generation_entries ge WHERE ge.generation_id = g.id),
            (SELECT COUNT(DISTINCT ge.file_id) FROM generation_entries ge WHERE ge.generation_id = g.id AND ge.file_id IS NOT NULL),
            (SELECT COALESCE(SUM(ge.size), 0) FROM generation_entries ge WHERE ge.generation_id = g.id)
       FROM generations g
+      JOIN profiles pr ON pr.id = g.profile_id
      WHERE g.id = $id;" row; then
     hm_die "$HM_EX_DB" "Cannot read the generation $generation from the database."
   fi
 
   [[ -n "$row" ]] || hm_die "$HM_EX_DB" "Cannot read the generation $generation from the database."
-  IFS="$HM_FIELD_SEP" read -r name_hex comment_hex created parent entries objects size <<< "$row"
+  IFS="$HM_FIELD_SEP" read -r name_hex comment_hex profile_name created parent entries objects size <<< "$row"
 
   hm_hex_decode name "$name_hex"
   hm_hex_decode comment "$comment_hex"
 
-  selected="$(hm_gen_selected)"
+  selected="$(hm_gen_selected "$profile_name")"
   status="no"
   if [[ -n "$selected" && "$id" -eq "$selected" ]]; then
     status="yes"
@@ -71,18 +73,19 @@ _show_generation() {
     [[ -n "$hash" ]] && missing_count=$((missing_count + 1))
   done <<< "$missing"
 
-  printf '%sGeneration %s%s\n' "$HM_C_OUT_BOLD" "$id" "$HM_C_OUT_RESET"
+  printf '%sGeneration %s%s\n' "$HM_C_OUT_HEADING" "$id" "$HM_C_OUT_RESET"
   printf '\n'
-  printf '  %-11s %s\n' "Name:" "${name:--}"
-  printf '  %-11s %s\n' "Comment:" "${comment:--}"
-  printf '  %-11s %s\n' "Created:" "$(hm_format_epoch "$created" || printf '%s' "$created")"
-  printf '  %-11s %s\n' "Parent:" "${parent:--}"
-  printf '  %-11s %s\n' "Selected:" "$status"
-  printf '  %-11s %s\n' "Entries:" "$entries"
-  printf '  %-11s %s\n' "Objects:" "$objects"
-  printf '  %-11s %s\n' "Size:" "$size bytes"
+  printf '  %s%-11s %s%s\n' "$HM_C_OUT_LABEL" "Name:" "${name:--}" "$HM_C_OUT_RESET"
+  printf '  %s%-11s %s%s\n' "$HM_C_OUT_LABEL" "Comment:" "${comment:--}" "$HM_C_OUT_RESET"
+  printf '  %s%-11s %s%s\n' "$HM_C_OUT_LABEL" "Profile:" "$profile_name" "$HM_C_OUT_RESET"
+  printf '  %s%-11s %s%s\n' "$HM_C_OUT_LABEL" "Created:" "$(hm_format_epoch "$created" || printf '%s' "$created")" "$HM_C_OUT_RESET"
+  printf '  %s%-11s %s%s\n' "$HM_C_OUT_LABEL" "Parent:" "${parent:--}" "$HM_C_OUT_RESET"
+  printf '  %s%-11s %s%s\n' "$HM_C_OUT_LABEL" "Selected:" "$status" "$HM_C_OUT_RESET"
+  printf '  %s%-11s %s%s\n' "$HM_C_OUT_LABEL" "Entries:" "$entries" "$HM_C_OUT_RESET"
+  printf '  %s%-11s %s%s\n' "$HM_C_OUT_LABEL" "Objects:" "$objects" "$HM_C_OUT_RESET"
+  printf '  %s%-11s %s%s\n' "$HM_C_OUT_LABEL" "Size:" "$size bytes" "$HM_C_OUT_RESET"
   if [[ "$missing_count" -gt 0 ]]; then
-    printf '  %-11s %s\n' "Missing:" "$missing_count content object(s)"
+    printf '  %s%-11s %s%s\n' "$HM_C_OUT_LABEL" "Missing:" "$missing_count content object(s)" "$HM_C_OUT_RESET"
   fi
   printf '\n'
 
@@ -91,7 +94,7 @@ _show_generation() {
   fi
 
   printf '%s%-40s %-5s %-5s %-9s %10s  %-19s %s%s\n' \
-    "$HM_C_OUT_BOLD" "PATH" "TYPE" "MODE" "OWNER" "SIZE" "MODIFIED" "HASH" "$HM_C_OUT_RESET"
+    "$HM_C_OUT_HEADING" "PATH" "TYPE" "MODE" "OWNER" "SIZE" "MODIFIED" "HASH" "$HM_C_OUT_RESET"
 
   while IFS= read -r row; do
     [[ -n "$row" ]] || continue
@@ -106,8 +109,8 @@ _show_generation() {
       hash="${hash:0:12}"
     fi
 
-    printf '%-40s %-5s %-5s %-9s %10s  %-19s %s\n' \
-      "$(hm_path_display "$path")" "$entry_type" \
+    printf '%s%-40s%s %-5s %-5s %-9s %10s  %-19s %s\n' \
+      "$HM_C_OUT_CYAN" "$(hm_path_display "$path")" "$HM_C_OUT_RESET" "$entry_type" \
       "$(hm_mode_to_octal "$mode" || printf '%s' "$mode")" \
       "$uid:$gid" "$entry_size" \
       "$(hm_format_epoch "$mtime" || printf '%s' "$mtime")" "$hash"

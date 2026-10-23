@@ -77,22 +77,28 @@ _add_collect() {
   return 1
 }
 
-# _add_load_state KNOWN_VAR PENDING_VAR
-# Load the tracked paths and the pending set from the database into the two
-# associative arrays named by the caller.
+# _add_load_state PROFILE_ID KNOWN_VAR PENDING_VAR
+# Load the paths tracked by the profile and its pending set from the
+# database into the two associative arrays named by the caller.
 _add_load_state() {
+  local profile_id
+  profile_id="$(hm_sql_int "$1")"
   # The two namerefs write into the arrays of the caller, shellcheck cannot
   # see through them.
   # shellcheck disable=SC2034
-  local -n known_ref="$1"
+  local -n known_ref="$2"
   # shellcheck disable=SC2034
-  local -n pending_ref="$2"
+  local -n pending_ref="$3"
   local rows row encoded kind path
 
   known_ref=()
   pending_ref=()
 
-  if ! hm_db_rows "SELECT hex(path), kind FROM paths;" rows; then
+  if ! hm_db_rows "
+    SELECT hex(p.path), p.kind
+      FROM paths p
+      JOIN path_profiles x ON x.path_id = p.id
+     WHERE x.profile_id = $profile_id;" rows; then
     hm_die "$HM_EX_DB" "Cannot read the tracked paths from the database."
   fi
 
@@ -105,7 +111,11 @@ _add_load_state() {
     known_ref["$path"]="$kind"
   done <<< "$rows"
 
-  if ! hm_db_rows "SELECT hex(path) FROM paths p JOIN pending_paths pp ON pp.path_id = p.id;" rows; then
+  if ! hm_db_rows "
+    SELECT hex(p.path)
+      FROM paths p
+      JOIN pending_paths pp ON pp.path_id = p.id
+     WHERE pp.profile_id = $profile_id;" rows; then
     hm_die "$HM_EX_DB" "Cannot read the pending paths from the database."
   fi
 
@@ -122,6 +132,7 @@ _add_load_state() {
 add() {
   local -a args=()
   local argument path kind label
+  local profile="$HM_DEFAULT_PROFILE" profile_id
   local -A seen=()
   local -A known=()
   local -A pending=()
@@ -133,27 +144,44 @@ add() {
   local discovered=0 errors=0 now
 
   if [[ $# -eq 0 ]]; then
-    hm_die "$HM_EX_USAGE" "Usage: hm add <file|directory...>"
+    hm_die "$HM_EX_USAGE" "Usage: hm add [--profile NAME] <file|directory...>"
   fi
 
-  for argument in "$@"; do
+  while [[ $# -gt 0 ]]; do
+    argument="$1"
     case "$argument" in
       -h | --help)
-        printf 'Usage: hm add <file|directory...>\n'
+        printf 'Usage: hm add [--profile NAME] <file|directory...>\n'
         return 0
+        ;;
+      --profile)
+        [[ $# -ge 2 ]] || hm_die "$HM_EX_USAGE" "--profile requires a value."
+        profile="$2"
+        shift 2
+        ;;
+      --profile=*)
+        profile="${argument#*=}"
+        shift
+        ;;
+      -*)
+        hm_die "$HM_EX_USAGE" "Unknown option for 'hm add': $argument"
         ;;
       *)
         args+=("$argument")
+        shift
         ;;
     esac
   done
 
   if [[ ${#args[@]} -eq 0 ]]; then
-    hm_die "$HM_EX_USAGE" "Usage: hm add <file|directory...>"
+    hm_die "$HM_EX_USAGE" "Usage: hm add [--profile NAME] <file|directory...>"
   fi
 
   hm_require_initialized
   hm_lock_acquire exclusive
+
+  profile_id="$(hm_profile_ensure "$profile")"
+  hm_log_debug "Registering paths in the profile $profile."
 
   _ADD_CANDIDATES=()
   _ADD_KINDS=()
@@ -181,7 +209,7 @@ add() {
     fi
   done
 
-  _add_load_state known pending
+  _add_load_state "$profile_id" known pending
 
   # Classify every candidate.
   for path in "${!candidates[@]}"; do
@@ -214,7 +242,8 @@ add() {
   removed_count=${#removed[@]}
 
   # Preview.
-  printf '%sPaths selected for registration:%s\n' "$HM_C_OUT_BOLD" "$HM_C_OUT_RESET"
+  printf '%sPaths selected for registration (profile: %s)%s\n' \
+    "$HM_C_OUT_HEADING" "$profile" "$HM_C_OUT_RESET"
   printf '\n'
 
   # The preview is NUL delimited, a file name may contain a newline.
@@ -224,7 +253,7 @@ add() {
     case "$label" in
       NEW) printf '  %s[NEW]%s      %s\n' "$HM_C_OUT_GREEN" "$HM_C_OUT_RESET" "$(hm_path_display "$sorted_path")" ;;
       TRACKED) printf '  %s[TRACKED]%s  %s\n' "$HM_C_OUT_YELLOW" "$HM_C_OUT_RESET" "$(hm_path_display "$sorted_path")" ;;
-      PENDING) printf '  %s[PENDING]%s  %s\n' "$HM_C_OUT_BLUE" "$HM_C_OUT_RESET" "$(hm_path_display "$sorted_path")" ;;
+      PENDING) printf '  %s[PENDING]%s  %s\n' "$HM_C_OUT_MAGENTA" "$HM_C_OUT_RESET" "$(hm_path_display "$sorted_path")" ;;
     esac
   done < <(printf '%s\0' "${!candidates[@]}" | sort -z)
 
@@ -261,12 +290,15 @@ add() {
         "$(hm_sql_quote "$sorted_path")" \
         "$(hm_sql_quote "${candidate_kind[$sorted_path]:-file}")" \
         "$now"
-      printf 'INSERT OR IGNORE INTO pending_paths (path_id, added_at) SELECT id, %s FROM paths WHERE path = %s;\n' \
-        "$now" "$(hm_sql_quote "$sorted_path")"
+      printf 'INSERT OR IGNORE INTO path_profiles (path_id, profile_id, added_at) SELECT id, %s, %s FROM paths WHERE path = %s;\n' \
+        "$profile_id" "$now" "$(hm_sql_quote "$sorted_path")"
+      printf 'INSERT OR IGNORE INTO pending_paths (path_id, profile_id, added_at) SELECT id, %s, %s FROM paths WHERE path = %s;\n' \
+        "$profile_id" "$now" "$(hm_sql_quote "$sorted_path")"
     done < <(printf '%s\0' "${!candidates[@]}" | sort -z)
 
     if [[ $removed_count -gt 0 ]]; then
-      printf 'DELETE FROM pending_paths WHERE path_id IN (SELECT id FROM paths WHERE path IN ('
+      printf 'DELETE FROM pending_paths WHERE profile_id = %s AND path_id IN (SELECT id FROM paths WHERE path IN (' \
+        "$profile_id"
       local first=1 removed_path
       for removed_path in "${removed[@]}"; do
         if [[ $first -eq 1 ]]; then
@@ -280,11 +312,11 @@ add() {
     fi
   } | hm_db_tx || hm_die "$HM_EX_DB" "The registration failed, nothing was changed."
 
-  hm_log_success "Registered $new_count new path(s), queued $requeue_count path(s) again."
+  hm_log_success "Registered $new_count new path(s) in the profile $profile, queued $requeue_count path(s) again."
   if [[ $removed_count -gt 0 ]]; then
-    hm_log_success "Removed $removed_count path(s) from the pending set."
+    hm_log_success "Removed $removed_count path(s) from the pending set of the profile $profile."
   fi
-  hm_log_info "Run 'hm gen' to create a generation from the pending paths."
+  hm_log_info "Run 'hm gen --profile $profile' to create a generation from the pending paths."
 
   return 0
 }

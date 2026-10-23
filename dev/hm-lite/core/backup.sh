@@ -143,9 +143,11 @@ backup() {
   size="$(stat -c '%s' -- "$archive" 2>/dev/null || printf '0')"
 
   hm_log_success "The backup was created."
-  printf 'Backup:   %s%s%s\n' "$HM_C_OUT_GREEN" "$(hm_path_display "$archive")" "$HM_C_OUT_RESET"
-  printf 'Size:     %s bytes\n' "$size"
-  printf 'Restore:  %shm restore %s%s\n' "$HM_C_OUT_CYAN" "$(hm_path_display "$archive")" "$HM_C_OUT_RESET"
+  printf '%sBackup:%s   %s%s%s\n' "$HM_C_OUT_LABEL" "$HM_C_OUT_RESET" \
+    "$HM_C_OUT_GREEN" "$(hm_path_display "$archive")" "$HM_C_OUT_RESET"
+  printf '%sSize:%s     %s bytes\n' "$HM_C_OUT_LABEL" "$HM_C_OUT_RESET" "$size"
+  printf '%sRestore:%s  %shm restore %s%s\n' "$HM_C_OUT_LABEL" "$HM_C_OUT_RESET" \
+    "$HM_C_OUT_CYAN" "$(hm_path_display "$archive")" "$HM_C_OUT_RESET"
 
   return 0
 }

@@ -139,10 +139,14 @@ switch() {
     hm_rm_rf_under "$HM_TMP_DIR" "$previous" 2>/dev/null || true
   fi
 
-  hm_gen_set_selected "$generation"
+  local profile
+  profile="$(hm_profile_of_generation "$generation")"
+  hm_gen_set_selected "$generation" "$profile"
 
   hm_log_success "Generation $generation is now materialized in current/."
-  printf 'Selected generation: %s%s%s\n' "$HM_C_OUT_GREEN" "$generation" "$HM_C_OUT_RESET"
+  printf '%sProfile:%s             %s\n' "$HM_C_OUT_LABEL" "$HM_C_OUT_RESET" "$profile"
+  printf '%sSelected generation:%s %s%s%s\n' "$HM_C_OUT_LABEL" "$HM_C_OUT_RESET" \
+    "$HM_C_OUT_GREEN" "$generation" "$HM_C_OUT_RESET"
 
   return 0
 }

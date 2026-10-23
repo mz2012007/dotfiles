@@ -94,6 +94,7 @@ HM_LIBS=(
   hashing
   storage
   generations
+  profiles
   validation
   locking
 )

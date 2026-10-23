@@ -93,10 +93,10 @@ place, so `current/` is always complete.
 `hm delete` never removes a file either: it removes rows. The preview names
 the generation and the content objects that no other generation uses, the
 confirmation is mandatory unless `--yes` is given, and both `DELETE`
-statements share one transaction. The selected generation is refused,
-because `current/` and an argument-less `hm apply` must always resolve to a
-generation that exists. The content objects themselves are only removed by
-`hm clean`, after its exact reference analysis.
+statements share one transaction. A generation selected in any profile is
+refused, because `current/` and an argument-less `hm apply` must always
+resolve to a generation that exists. The content objects themselves are
+only removed by `hm clean`, after its exact reference analysis.
 
 ---
 
@@ -165,8 +165,9 @@ These are deliberate limits, not bugs:
 * **No ACLs, no extended attributes, no file capabilities, no hard links.**
   The recorded metadata is type, mode, uid, gid, mtime and size.
 * **Only regular files and directories are tracked.**
-* **The generation history is linear.** The parent of a new generation is
-  always the newest existing generation.
+* **The generation history is linear per profile.** The parent of a new
+  generation is always the newest existing generation of the same profile.
+  The content store, `current/` and `testing/` are shared by every profile.
 * **A symbolic link at a destination is a conflict, never a silent
   replacement.** Remove the link by hand and run `hm apply` again.
 * **The root of the filesystem is never a destination.** A recorded path

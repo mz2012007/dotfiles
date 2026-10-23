@@ -3,9 +3,13 @@
 The authoritative definition lives in [`db/schema.sql`](../db/schema.sql).
 This document explains the tables, the relations and the invariants.
 
-* Schema version: **1** (stored in `PRAGMA user_version`)
+* Schema version: **2** (stored in `PRAGMA user_version`)
 * Engine: SQLite, foreign keys enabled on every connection
 * File: `<runtime>/db.sqlite`
+
+The version 2 migration ([`db/migrations/0002_profiles.sql`](../db/migrations/0002_profiles.sql))
+introduced the profiles. Every project has a profile named `default`, and
+the data of an earlier version 1 database is migrated into it.
 
 ---
 
@@ -22,6 +26,22 @@ Free form metadata about the project itself.
 
 Used for `created_at` and `hm_version`.
 
+### `profiles`
+
+The independent namespaces of the project.
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | INTEGER | Primary key. |
+| `name` | TEXT | Unique. `[A-Za-z0-9][A-Za-z0-9._-]*`. |
+| `created_at` | INTEGER | Unix epoch seconds. |
+
+`hm init` creates `default`. `hm add --profile NAME` creates a missing
+profile, the other commands require an existing one. The tracked paths,
+the pending set, the generations and the selections are profile scoped;
+the content store (`files` and `store/objects/`) is shared by every
+profile.
+
 ### `paths`
 
 Every path that HM-Lite knows about. A path is a **location**, never a
@@ -35,19 +55,37 @@ content.
 | `created_at` | INTEGER | Unix epoch seconds. |
 
 The uniqueness of `path` is what makes `add` idempotent: adding a path
-twice does not create a second row.
+twice does not create a second row. The membership in a profile lives in
+`path_profiles`, so the same path can be tracked by two profiles while it
+still has one row here.
 
-### `pending_paths`
+### `path_profiles`
 
-The paths that are selected for the next generation.
+The membership of a path in a profile.
 
 | Column | Type | Notes |
 |---|---|---|
-| `path_id` | INTEGER | Primary key, references `paths(id)` with `ON DELETE CASCADE`. |
+| `path_id` | INTEGER | References `paths(id)` with `ON DELETE CASCADE`. |
+| `profile_id` | INTEGER | References `profiles(id)` with `ON DELETE CASCADE`. |
 | `added_at` | INTEGER | Unix epoch seconds. |
+| | | Primary key `(path_id, profile_id)`. |
 
-A path that is registered but never captured stays pending until the next
-`hm gen`.
+A path that belongs to several profiles is carried forward into the
+generations of each of them, independently.
+
+### `pending_paths`
+
+The paths that are selected for the next generation of a profile.
+
+| Column | Type | Notes |
+|---|---|---|
+| `path_id` | INTEGER | References `paths(id)` with `ON DELETE CASCADE`. |
+| `profile_id` | INTEGER | References `profiles(id)` with `ON DELETE CASCADE`. |
+| `added_at` | INTEGER | Unix epoch seconds. |
+| | | Primary key `(path_id, profile_id)`. |
+
+A path that is registered but never captured stays pending in its profile
+until the next `hm gen` of that profile.
 
 ### `files`
 
@@ -75,16 +113,18 @@ The immutable snapshots.
 | `comment` | TEXT | Optional comment. |
 | `created_at` | INTEGER | Unix epoch seconds. |
 | `parent_id` | INTEGER | References `generations(id)` with `ON DELETE SET NULL`. |
+| `profile_id` | INTEGER | References `profiles(id)` with `ON DELETE CASCADE`. The owning profile. |
 
 The order of the generations is always `ORDER BY created_at DESC, id DESC`.
 The identifier is never used as an ordering, because two generations can
 share the same second.
 
-`parent_id` is the link of the linear history. `hm delete` removes a
-generation row, so `ON DELETE SET NULL` clears the parent of its children
-and the remaining history stays readable; the entries cascade with the
-row. A snapshot is never edited, it is either present or removed as a
-whole.
+`parent_id` is the link of the linear history **inside a profile**: the
+parent of a new generation is the newest generation of the same profile.
+`hm delete` removes a generation row, so `ON DELETE SET NULL` clears the
+parent of its children and the remaining history stays readable; the
+entries cascade with the row. A snapshot is never edited, it is either
+present or removed as a whole.
 
 ### `generation_entries`
 
@@ -119,19 +159,29 @@ Small key/value table for the pointers of the project.
 | `key` | TEXT | Primary key. |
 | `value` | TEXT | The value. |
 
-The only key in use is `selected_generation`, the generation that `hm
-switch` selected and that `hm apply` uses when no generation is named.
+The keys in use:
+
+* `selected_generation:<profile>` — the generation that `hm switch`
+  selected in that profile.
+* `selected_generation` — the global selection, the last generation that
+  any `hm switch` selected. `hm apply` without `--profile` uses it;
+  `hm apply --profile NAME` uses the selection of that profile.
+
+`hm delete` refuses a generation that appears in any of these keys.
 
 ---
 
 ## The relations
 
 ```
-paths ─┬─< pending_paths
-       │
-       └─< generation_entries >─ generations
-                       │
-                       └─────── files ───────► store/objects/<2 hex>/<sha256>
+profiles ─┬─< path_profiles >─ paths ─┬─< pending_paths
+          │                            │
+          │                            └─< generation_entries >─ generations
+          │                                                       │
+          └───────────────────────────────────────────────────────┘
+                                                                  │
+                                                     files ───────┘
+                                                       └──────► store/objects/<2 hex>/<sha256>
 ```
 
 ---
@@ -141,28 +191,37 @@ paths ─┬─< pending_paths
 | Index | Table | Columns | Purpose |
 |---|---|---|---|
 | `idx_paths_kind` | `paths` | `kind` | Filter by kind. |
+| `idx_path_profiles_profile` | `path_profiles` | `profile_id` | The paths of a profile. |
 | `idx_pending_added` | `pending_paths` | `added_at` | Order the pending set. |
+| `idx_pending_profile` | `pending_paths` | `profile_id` | The pending set of a profile. |
 | `idx_entries_file` | `generation_entries` | `file_id` | The reference analysis of `hm clean`. |
 | `idx_entries_path` | `generation_entries` | `path_id` | The history of one path. |
 | `idx_generations_created` | `generations` | `created_at DESC, id DESC` | The default ordering of the generations. |
+| `idx_generations_profile` | `generations` | `profile_id, created_at DESC, id DESC` | The generations of a profile. |
 
 ---
 
 ## The invariants
 
-1. `paths.path` is unique. A path is registered once.
-2. `files.hash` is unique. A content is stored once.
-3. The primary key of `generation_entries` is `(generation_id, path_id)`.
+1. `paths.path` is unique. A path is registered once, in the `paths` table,
+   however many profiles track it.
+2. `profiles.name` is unique. A profile name is validated by the shell code
+   before it reaches the database.
+3. `files.hash` is unique. A content is stored once, shared by all profiles.
+4. The primary key of `path_profiles` is `(path_id, profile_id)` and the
+   primary key of `pending_paths` is `(path_id, profile_id)`: a path
+   belongs to a profile at most once and is pending in it at most once.
+5. The primary key of `generation_entries` is `(generation_id, path_id)`.
    A path appears at most once per generation.
-4. Foreign keys are enabled on every connection. The cascade rules keep the
-   database consistent when a generation or a path is removed.
-5. A generation entry is never updated, only inserted.
-6. The order of the generations is `created_at DESC, id DESC`.
-7. `PRAGMA user_version` equals the version of the schema that created the
+6. Foreign keys are enabled on every connection. The cascade rules keep the
+   database consistent when a generation, a path or a profile is removed.
+7. A generation entry is never updated, only inserted.
+8. The order of the generations is `created_at DESC, id DESC`.
+9. `PRAGMA user_version` equals the version of the schema that created the
    database. A newer version is refused, never migrated silently.
-8. The metadata of an entry is type, mode, uid, gid, mtime and size.
-   ACLs, extended attributes, file capabilities and hard links are **not**
-   part of the model.
+10. The metadata of an entry is type, mode, uid, gid, mtime and size.
+    ACLs, extended attributes, file capabilities and hard links are **not**
+    part of the model.
 
 ---
 

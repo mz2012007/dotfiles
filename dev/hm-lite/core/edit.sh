@@ -200,21 +200,21 @@ edit() {
 
   # --- Preview -------------------------------------------------------------
   printf '%sEdit preview for generation %s%s%s\n' \
-    "$HM_C_OUT_BOLD" "$HM_C_OUT_CYAN" "$id" "$HM_C_OUT_RESET"
+    "$HM_C_OUT_HEADING" "$HM_C_OUT_CYAN" "$id" "$HM_C_OUT_RESET"
   printf '\n'
-  printf '  %s%-11s%s %s\n' "$HM_C_OUT_BOLD" "Generation:" "$HM_C_OUT_RESET" "$id"
+  printf '  %s%-11s%s %s\n' "$HM_C_OUT_LABEL" "Generation:" "$HM_C_OUT_RESET" "$id"
 
   if [[ "$old_name" == "$new_name" ]]; then
-    printf '  %s%-11s%s %s\n' "$HM_C_OUT_BOLD" "Name:" "$HM_C_OUT_RESET" "$new_name"
+    printf '  %s%-11s%s %s\n' "$HM_C_OUT_LABEL" "Name:" "$HM_C_OUT_RESET" "$new_name"
   else
-    printf '  %s%-11s%s %s -> %s%s%s\n' "$HM_C_OUT_BOLD" "Name:" "$HM_C_OUT_RESET" \
+    printf '  %s%-11s%s %s -> %s%s%s\n' "$HM_C_OUT_LABEL" "Name:" "$HM_C_OUT_RESET" \
       "$old_name" "$HM_C_OUT_GREEN" "$new_name" "$HM_C_OUT_RESET"
   fi
 
   if [[ "$old_comment" == "$new_comment" ]]; then
-    printf '  %s%-11s%s %s\n' "$HM_C_OUT_BOLD" "Comment:" "$HM_C_OUT_RESET" "$new_comment"
+    printf '  %s%-11s%s %s\n' "$HM_C_OUT_LABEL" "Comment:" "$HM_C_OUT_RESET" "$new_comment"
   else
-    printf '  %s%-11s%s %s -> %s%s%s\n' "$HM_C_OUT_BOLD" "Comment:" "$HM_C_OUT_RESET" \
+    printf '  %s%-11s%s %s -> %s%s%s\n' "$HM_C_OUT_LABEL" "Comment:" "$HM_C_OUT_RESET" \
       "$old_comment" "$HM_C_OUT_GREEN" "$new_comment" "$HM_C_OUT_RESET"
   fi
   printf '\n'

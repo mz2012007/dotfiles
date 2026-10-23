@@ -42,13 +42,15 @@ test_init_creates_the_schema() {
   run_hm init
   assert_rc 0 "$HM_STATUS" "init succeeds"
 
-  assert_sql "1" "PRAGMA user_version;" "the schema version is 1"
-  assert_sql "7" \
+  assert_sql "2" "PRAGMA user_version;" "the schema version is 2"
+  assert_sql "9" \
     "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table';" \
-    "all seven tables were created"
-  assert_sql "5" \
+    "all nine tables were created"
+  assert_sql "8" \
     "SELECT COUNT(*) FROM sqlite_master WHERE type = 'index' AND name LIKE 'idx_%';" \
     "the schema indexes were created"
+  assert_sql "default" "SELECT name FROM profiles;" \
+    "the default profile was created"
 
   # The foreign key enforcement must be active on every connection, an
   # empty result means that no violation was found.

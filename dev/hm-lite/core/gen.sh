@@ -59,9 +59,10 @@ _gen_usage() {
   cat <<'EOF'
 Usage: hm gen [options]
 
-Create a new generation from the pending paths.
+Create a new generation from the pending paths of a profile.
 
 Options:
+  --profile NAME     Use the profile (default: default)
   --name NAME        Give the generation a name
   --comment TEXT     Attach a comment to the generation
   --yes, -y          Do not ask for a confirmation
@@ -74,12 +75,22 @@ EOF
 # gen - capture the pending paths into a new generation.
 gen() {
   local name="" comment=""
+  local profile="$HM_DEFAULT_PROFILE" profile_id
   local assume_yes=0
   local argument
 
   while [[ $# -gt 0 ]]; do
     argument="$1"
     case "$argument" in
+      --profile)
+        [[ $# -ge 2 ]] || hm_die "$HM_EX_USAGE" "--profile requires a value."
+        profile="$2"
+        shift 2
+        ;;
+      --profile=*)
+        profile="${argument#*=}"
+        shift
+        ;;
       --name)
         [[ $# -ge 2 ]] || hm_die "$HM_EX_USAGE" "--name requires a value."
         name="$2"
@@ -116,6 +127,9 @@ gen() {
   hm_require_initialized
   hm_lock_acquire exclusive
 
+  profile_id="$(hm_profile_require "$profile")"
+  hm_log_debug "Creating a generation in the profile $profile."
+
   # --- Read the pending manifest -----------------------------------------
   local -a pend_ids=() pend_paths=() pend_kinds=()
   local rows row pid hexpath kind path
@@ -126,6 +140,7 @@ gen() {
            p.kind
       FROM paths p
       JOIN pending_paths pp ON pp.path_id = p.id
+     WHERE pp.profile_id = $profile_id
      ORDER BY p.path;" rows; then
     hm_die "$HM_EX_DB" "Cannot read the pending manifest from the database."
   fi
@@ -140,7 +155,7 @@ gen() {
   done <<< "$rows"
 
   if [[ ${#pend_paths[@]} -eq 0 ]]; then
-    hm_log_info "There are no pending paths, nothing to capture."
+    hm_log_info "There are no pending paths in the profile $profile, nothing to capture."
     return 0
   fi
 
@@ -175,7 +190,7 @@ gen() {
 
   # --- Parent generation --------------------------------------------------
   local parent_id=""
-  parent_id="$(hm_gen_latest)"
+  parent_id="$(hm_gen_latest "$profile")"
   [[ -n "$parent_id" ]] && parent_id="$(hm_sql_int "$parent_id")"
 
   # --- Capture the pending content ----------------------------------------
@@ -296,7 +311,8 @@ gen() {
   fi
 
   # --- Preview -------------------------------------------------------------
-  printf '%sGeneration preview:%s\n' "$HM_C_OUT_BOLD" "$HM_C_OUT_RESET"
+  printf '%sGeneration preview (profile: %s)%s\n' \
+    "$HM_C_OUT_HEADING" "$profile" "$HM_C_OUT_RESET"
   printf '\n'
   printf '  %d path(s) captured\n' "$captured"
   printf '  %d new content object(s)\n' "$new_objects"
@@ -305,7 +321,7 @@ gen() {
   printf '  %d path(s) dropped, they no longer exist\n' "${#dropped_ids[@]}"
   printf '\n'
 
-  printf '%sCaptured paths:%s\n' "$HM_C_OUT_BOLD" "$HM_C_OUT_RESET"
+  printf '%sCaptured paths:%s\n' "$HM_C_OUT_HEADING" "$HM_C_OUT_RESET"
   for index in "${!pend_paths[@]}"; do
     printf '  %s\n' "$(hm_path_display "${pend_paths[$index]}")"
   done
@@ -328,11 +344,11 @@ gen() {
     printf 'DELETE FROM _hm_gen_ctx;\n'
 
     if [[ -n "$parent_id" ]]; then
-      printf 'INSERT INTO generations (name, comment, created_at, parent_id) VALUES (%s, %s, %s, %s);\n' \
-        "$(hm_sql_quote "$name")" "$(hm_sql_quote "$comment")" "$now" "$parent_id"
+      printf 'INSERT INTO generations (name, comment, created_at, parent_id, profile_id) VALUES (%s, %s, %s, %s, %s);\n' \
+        "$(hm_sql_quote "$name")" "$(hm_sql_quote "$comment")" "$now" "$parent_id" "$profile_id"
     else
-      printf 'INSERT INTO generations (name, comment, created_at, parent_id) VALUES (%s, %s, %s, NULL);\n' \
-        "$(hm_sql_quote "$name")" "$(hm_sql_quote "$comment")" "$now"
+      printf 'INSERT INTO generations (name, comment, created_at, parent_id, profile_id) VALUES (%s, %s, %s, NULL, %s);\n' \
+        "$(hm_sql_quote "$name")" "$(hm_sql_quote "$comment")" "$now" "$profile_id"
     fi
     printf 'INSERT INTO _hm_gen_ctx (id) VALUES (last_insert_rowid());\n'
 
@@ -362,25 +378,27 @@ gen() {
 
     # The paths that are carried forward from the parent generation.
     if [[ -n "$parent_id" ]]; then
-      printf 'INSERT INTO generation_entries (generation_id, path_id, file_id, entry_type, mode, owner_uid, group_gid, mtime, size) SELECT (SELECT id FROM _hm_gen_ctx), ge.path_id, ge.file_id, ge.entry_type, ge.mode, ge.owner_uid, ge.group_gid, ge.mtime, ge.size FROM generation_entries ge WHERE ge.generation_id = %s AND ge.path_id NOT IN (SELECT path_id FROM pending_paths)' \
-        "$parent_id"
+      printf 'INSERT INTO generation_entries (generation_id, path_id, file_id, entry_type, mode, owner_uid, group_gid, mtime, size) SELECT (SELECT id FROM _hm_gen_ctx), ge.path_id, ge.file_id, ge.entry_type, ge.mode, ge.owner_uid, ge.group_gid, ge.mtime, ge.size FROM generation_entries ge WHERE ge.generation_id = %s AND ge.path_id NOT IN (SELECT path_id FROM pending_paths WHERE profile_id = %s)' \
+        "$parent_id" "$profile_id"
       if [[ ${#dropped_ids[@]} -gt 0 ]]; then
         printf ' AND ge.path_id NOT IN (%s)' "$(IFS=,; printf '%s' "${dropped_ids[*]}")"
       fi
       printf ';\n'
     fi
 
-    # The pending set is cleared in the same transaction as the generation.
-    printf 'DELETE FROM pending_paths;\n'
+    # The pending set of the profile is cleared in the same transaction as
+    # the generation.
+    printf 'DELETE FROM pending_paths WHERE profile_id = %s;\n' "$profile_id"
   } | hm_db_tx || hm_die "$HM_EX_DB" "The generation failed, nothing was changed."
 
   local generation_id
-  generation_id="$(hm_gen_latest)"
+  generation_id="$(hm_gen_latest "$profile")"
 
-  hm_log_success "Created generation $generation_id with $((captured + carried)) entries."
+  hm_log_success "Created generation $generation_id in the profile $profile with $((captured + carried)) entries."
   printf 'Generation: %s%s%s\n' "$HM_C_OUT_GREEN" "$generation_id" "$HM_C_OUT_RESET"
+  printf 'Profile:    %s%s%s\n' "$HM_C_OUT_CYAN" "$profile" "$HM_C_OUT_RESET"
   if [[ -n "$parent_id" ]]; then
-    printf 'Parent:    %s%s%s\n' "$HM_C_OUT_CYAN" "$parent_id" "$HM_C_OUT_RESET"
+    printf 'Parent:     %s%s%s\n' "$HM_C_OUT_CYAN" "$parent_id" "$HM_C_OUT_RESET"
   fi
 
   return 0

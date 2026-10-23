@@ -118,7 +118,7 @@ clean() {
   done
 
   # --- Preview ---------------------------------------------------------------
-  printf '%sClean preview:%s\n' "$HM_C_OUT_BOLD" "$HM_C_OUT_RESET"
+  printf '%sClean preview:%s\n' "$HM_C_OUT_HEADING" "$HM_C_OUT_RESET"
   printf '\n'
   printf '  %s%d unreferenced object(s) in the store%s\n' \
     "$HM_C_OUT_YELLOW" "${#objects[@]}" "$HM_C_OUT_RESET"

@@ -86,16 +86,16 @@ that supports it.
 | Command | Options | Argument |
 |---|---|---|
 | `hm init` | `-h`, `--help` | — |
-| `hm add` | `-h`, `--help` | one or more paths |
-| `hm gen` | `--name`, `--comment`, `--yes`, `-y`, `-h`, `--help` | — |
-| `hm list` | `--generation`, `--pending`, `--paths`, `--store`, `-h`, `--help` | — |
-| `hm status` | `-h`, `--help` | — |
+| `hm add` | `--profile`, `-h`, `--help` | one or more paths |
+| `hm gen` | `--profile`, `--name`, `--comment`, `--yes`, `-y`, `-h`, `--help` | — |
+| `hm list` | `--profile`, `--generation`, `--pending`, `--paths`, `--store`, `-h`, `--help` | — |
+| `hm status` | `--profile`, `-h`, `--help` | — |
 | `hm show` | `-h`, `--help` | exactly one generation id |
 | `hm diff` | `--all`, `-h`, `--help` | two or more generation ids |
 | `hm edit` | `--name`, `--comment`, `--clear-name`, `--clear-comment`, `--yes`, `-y`, `-h`, `--help` | exactly one generation id |
 | `hm switch` | `-h`, `--help` | exactly one generation id |
 | `hm delete` | `--yes`, `-y`, `-h`, `--help` | exactly one generation id |
-| `hm apply` | `--dry-run`, `--yes`, `-y`, `-h`, `--help` | one optional generation id |
+| `hm apply` | `--profile`, `--dry-run`, `--yes`, `-y`, `-h`, `--help` | one optional generation id |
 | `hm discard` | `-h`, `--help` | — |
 | `hm backup` | `-h`, `--help` | — |
 | `hm restore` | `--yes`, `-y`, `-h`, `--help` | exactly one backup archive |
@@ -127,6 +127,10 @@ The argument is only completed while it is still valid:
 the project already tracks. `hm restore <TAB>` offers the archives of
 `<runtime>/backup/` **and** the files of the filesystem.
 
+`--profile <TAB>` offers the existing profile names, and the inline form
+`--profile=<TAB>` offers `--profile=default`, … The names come from a
+read-only query just like the generation ids.
+
 The inline form of the value options is completed as well:
 `hm list --generation=<TAB>` offers `--generation=1`, `--generation=2`, …
 
@@ -148,7 +152,8 @@ SELECT id FROM generations ORDER BY created_at DESC, id DESC;
 ```
 
 The same order as `hm list`: newest generation first. The tracked paths are
-read with `SELECT path FROM paths ORDER BY path;`.
+read with `SELECT path FROM paths ORDER BY path;` and the profile names
+with `SELECT name FROM profiles ORDER BY name;`.
 
 This has four consequences, and they are the design:
 
@@ -212,7 +217,8 @@ of `./tests/run.sh`.
   `<TAB>`. A generation that is created in another terminal afterwards is
   not in the list of an already open menu.
 * The completion reads the database schema directly (`generations.id`,
-  `paths.path`). A future schema migration has to update the three files.
+  `paths.path`, `profiles.name`). A future schema migration has to update
+  the three files.
   The queries are one line each and they are the only schema knowledge
   outside `db/schema.sql` and `lib/`.
 * `hm add` suggests absolute tracked paths. That is how `hm add` stores

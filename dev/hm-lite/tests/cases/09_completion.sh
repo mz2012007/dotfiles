@@ -18,6 +18,7 @@ TESTS=(
   test_completion_bash_does_not_offer_unsupported_options
   test_completion_bash_does_not_offer_arguments_out_of_range
   test_completion_bash_offers_the_generation_ids
+  test_completion_bash_offers_the_profile_names
   test_completion_bash_completes_the_inline_generation_option
   test_completion_bash_offers_the_tracked_paths
   test_completion_bash_keeps_paths_with_spaces
@@ -160,16 +161,20 @@ test_completion_bash_offers_the_options_of_each_command() {
   _test_setup completion_options
 
   candidates="$(_completion_bash hm gen '--' | tr '\n' ' ')"
-  assert_eq "--name --comment --yes --help " "$candidates" \
+  assert_eq "--profile --name --comment --yes --help " "$candidates" \
     "gen offers its long options"
 
   candidates="$(_completion_bash hm list '--' | tr '\n' ' ')"
-  assert_eq "--generation --pending --paths --store --help " "$candidates" \
+  assert_eq "--profile --generation --pending --paths --store --help " "$candidates" \
     "list offers its long options"
 
   candidates="$(_completion_bash hm apply '--' | tr '\n' ' ')"
-  assert_eq "--dry-run --yes --help " "$candidates" \
+  assert_eq "--profile --dry-run --yes --help " "$candidates" \
     "apply offers its long options"
+
+  candidates="$(_completion_bash hm add '--' | tr '\n' ' ')"
+  assert_eq "--profile --help " "$candidates" \
+    "add offers its long options"
 
   candidates="$(_completion_bash hm clean '--' | tr '\n' ' ')"
   assert_eq "--dry-run --yes --help " "$candidates" \
@@ -188,8 +193,8 @@ test_completion_bash_offers_the_options_of_each_command() {
     "show offers only the help option"
 
   candidates="$(_completion_bash hm status '--' | tr '\n' ' ')"
-  assert_eq "--help " "$candidates" \
-    "status offers only the help option"
+  assert_eq "--profile --help " "$candidates" \
+    "status offers its long options"
 
   candidates="$(_completion_bash hm edit '--' | tr '\n' ' ')"
   assert_eq "--name --comment --clear-name --clear-comment --yes --help " "$candidates" \
@@ -312,6 +317,27 @@ test_completion_bash_offers_the_generation_ids() {
 
   candidates="$(_completion_bash hm list --generation '' | tr '\n' ' ')"
   assert_eq "2 1 " "$candidates" "list --generation offers the ids, newest first"
+}
+
+test_completion_bash_offers_the_profile_names() {
+  local candidates
+
+  _completion_fixture
+  printf 'third\n' > "$SRC_DIR/third.txt"
+  run_hm_input 'y\n' add --profile nightly "$SRC_DIR/third.txt"
+  assert_rc 0 "$HM_STATUS" "the fixture creates a second profile"
+
+  candidates="$(_completion_bash hm gen --profile '' | tr '\n' ' ')"
+  assert_eq "default nightly " "$candidates" \
+    "gen --profile offers the profile names in order"
+
+  candidates="$(_completion_bash hm list '--profile=' | tr '\n' ' ')"
+  assert_eq "--profile=default --profile=nightly " "$candidates" \
+    "the inline form offers the prefixed profile names"
+
+  candidates="$(_completion_bash hm add "--profile=n" | tr '\n' ' ')"
+  assert_eq "--profile=nightly " "$candidates" \
+    "the inline form filters the profile names"
 }
 
 test_completion_bash_completes_the_inline_generation_option() {

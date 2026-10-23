@@ -94,7 +94,7 @@ _diff_pair() {
 
   keys="$(printf '%s\n' "${!old[@]}" "${!new[@]}" | sort -u)"
 
-  printf '%sGeneration %s -> %s%s\n' "$HM_C_OUT_BOLD" "$from" "$to" "$HM_C_OUT_RESET"
+  printf '%sGeneration %s -> %s%s\n' "$HM_C_OUT_HEADING" "$from" "$to" "$HM_C_OUT_RESET"
   printf '\n'
 
   while IFS= read -r encoded; do
@@ -226,7 +226,7 @@ diff() {
 
   hm_log_debug "Comparing the generations: ${generations[*]}."
 
-  printf '%sHM-Lite diff%s\n' "$HM_C_OUT_BOLD" "$HM_C_OUT_RESET"
+  printf '%sHM-Lite diff%s\n' "$HM_C_OUT_HEADING" "$HM_C_OUT_RESET"
   printf '\n'
 
   for (( index = 1; index < ${#generations[@]}; index++ )); do

@@ -143,12 +143,13 @@ restore() {
   paths="$(sqlite3 "$stage/db.sqlite" 'SELECT COUNT(*) FROM paths;' 2>/dev/null || printf '?')"
   objects="$(sqlite3 "$stage/db.sqlite" 'SELECT COUNT(*) FROM files;' 2>/dev/null || printf '?')"
 
-  printf '%sRestore preview:%s\n' "$HM_C_OUT_BOLD" "$HM_C_OUT_RESET"
+  printf '%sRestore preview:%s\n' "$HM_C_OUT_HEADING" "$HM_C_OUT_RESET"
   printf '\n'
-  printf '  Backup:       %s%s%s\n' "$HM_C_OUT_CYAN" "$(hm_path_display "$archive")" "$HM_C_OUT_RESET"
-  printf '  Generations:  %s\n' "$generations"
-  printf '  Paths:        %s\n' "$paths"
-  printf '  Objects:      %s\n' "$objects"
+  printf '  %s%-13s%s %s%s%s\n' "$HM_C_OUT_LABEL" "Backup:" "$HM_C_OUT_RESET" \
+    "$HM_C_OUT_CYAN" "$(hm_path_display "$archive")" "$HM_C_OUT_RESET"
+  printf '  %s%-13s%s %s\n' "$HM_C_OUT_LABEL" "Generations:" "$HM_C_OUT_RESET" "$generations"
+  printf '  %s%-13s%s %s\n' "$HM_C_OUT_LABEL" "Paths:" "$HM_C_OUT_RESET" "$paths"
+  printf '  %s%-13s%s %s\n' "$HM_C_OUT_LABEL" "Objects:" "$HM_C_OUT_RESET" "$objects"
   printf '\n'
   printf '%s\n' "The current database and the current content store are replaced."
   printf '%s\n' "The current/ and testing/ workspaces are cleared."

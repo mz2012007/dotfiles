@@ -13,7 +13,7 @@ HM_LOG_LEVEL=INFO
 HM_LOG_FILE=1
 
 # Coloured output: auto, always or never.
-HM_COLOR=auto
+HM_COLOR=always
 
 # Content hashing algorithm. Only sha256 is implemented.
 HM_HASH_ALGORITHM=sha256

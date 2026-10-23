@@ -34,6 +34,12 @@ HM_C_OUT_RESET=''
 # shellcheck disable=SC2034
 HM_C_OUT_BOLD=''
 # shellcheck disable=SC2034
+HM_C_OUT_DIM=''
+# shellcheck disable=SC2034
+HM_C_OUT_HEADING=''
+# shellcheck disable=SC2034
+HM_C_OUT_LABEL=''
+# shellcheck disable=SC2034
 HM_C_OUT_RED=''
 # shellcheck disable=SC2034
 HM_C_OUT_GREEN=''
@@ -43,6 +49,8 @@ HM_C_OUT_YELLOW=''
 HM_C_OUT_BLUE=''
 # shellcheck disable=SC2034
 HM_C_OUT_CYAN=''
+# shellcheck disable=SC2034
+HM_C_OUT_MAGENTA=''
 HM_LOG_LEVEL="${HM_LOG_LEVEL:-INFO}"
 HM_LOG_FILE="${HM_LOG_FILE:-1}"
 
@@ -70,18 +78,23 @@ _hm_color_mode() {
 # and when HM_COLOR or NO_COLOR disables them.
 hm_color_palette() {
   local prefix="$1" fd="$2" mode
-  local reset='' bold='' red='' green='' yellow='' blue='' cyan=''
+  local reset='' bold='' dim='' heading='' label=''
+  local red='' green='' yellow='' blue='' cyan='' magenta=''
 
   mode="$(_hm_color_mode)"
 
   if [[ "$mode" == "always" ]] || { [[ "$mode" == "auto" ]] && [[ -t "$fd" ]]; }; then
     reset=$'\033[0m'
     bold=$'\033[1m'
-    red=$'\033[31m'
-    green=$'\033[32m'
-    yellow=$'\033[33m'
-    blue=$'\033[34m'
-    cyan=$'\033[36m'
+    dim=$'\033[2m'
+    heading=$'\033[1;96m'
+    label=$'\033[2m'
+    red=$'\033[91m'
+    green=$'\033[92m'
+    yellow=$'\033[93m'
+    blue=$'\033[94m'
+    cyan=$'\033[96m'
+    magenta=$'\033[95m'
   fi
 
   # The palette lives in the caller, shellcheck cannot see the indirection.
@@ -89,6 +102,12 @@ hm_color_palette() {
   printf -v "${prefix}_RESET" '%s' "$reset"
   # shellcheck disable=SC2034
   printf -v "${prefix}_BOLD" '%s' "$bold"
+  # shellcheck disable=SC2034
+  printf -v "${prefix}_DIM" '%s' "$dim"
+  # shellcheck disable=SC2034
+  printf -v "${prefix}_HEADING" '%s' "$heading"
+  # shellcheck disable=SC2034
+  printf -v "${prefix}_LABEL" '%s' "$label"
   # shellcheck disable=SC2034
   printf -v "${prefix}_RED" '%s' "$red"
   # shellcheck disable=SC2034
@@ -99,6 +118,8 @@ hm_color_palette() {
   printf -v "${prefix}_BLUE" '%s' "$blue"
   # shellcheck disable=SC2034
   printf -v "${prefix}_CYAN" '%s' "$cyan"
+  # shellcheck disable=SC2034
+  printf -v "${prefix}_MAGENTA" '%s' "$magenta"
 }
 
 # hm_log_init

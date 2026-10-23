@@ -62,6 +62,18 @@ _hm_generation_ids() {
     'SELECT id FROM generations ORDER BY created_at DESC, id DESC;' 2>/dev/null || true
 }
 
+# _hm_profile_names
+# Print the names of the profiles, in name order. A missing or unreadable
+# database is not an error, it produces no output.
+_hm_profile_names() {
+  local db
+  db="$(_hm_db_file)" || return 0
+  [[ -f "$db" ]] || return 0
+
+  sqlite3 -readonly -noheader -list "$db" \
+    'SELECT name FROM profiles ORDER BY name;' 2>/dev/null || true
+}
+
 # _hm_tracked_paths
 # Print the paths that the project already tracks. The database is opened
 # read only, the file is never created and never modified.
@@ -117,16 +129,16 @@ _hm_command_options() {
       printf '%s\n' -h --help
       ;;
     add)
-      printf '%s\n' -h --help
+      printf '%s\n' --profile= -h --help
       ;;
     gen)
-      printf '%s\n' --name= --comment= --yes -y -h --help
+      printf '%s\n' --profile= --name= --comment= --yes -y -h --help
       ;;
     list)
-      printf '%s\n' --generation= --pending --paths --store -h --help
+      printf '%s\n' --profile= --generation= --pending --paths --store -h --help
       ;;
     status)
-      printf '%s\n' -h --help
+      printf '%s\n' --profile= -h --help
       ;;
     show)
       printf '%s\n' -h --help
@@ -144,7 +156,7 @@ _hm_command_options() {
       printf '%s\n' --yes -y -h --help
       ;;
     apply)
-      printf '%s\n' --dry-run --yes -y -h --help
+      printf '%s\n' --profile= --dry-run --yes -y -h --help
       ;;
     discard)
       printf '%s\n' -h --help
@@ -240,6 +252,23 @@ _hm_complete_generation() {
   for id in "${ids[@]}"; do
     if [[ "$id" == "$current"* ]]; then
       COMPREPLY+=("$prefix$id")
+    fi
+  done
+}
+
+# _hm_complete_profile CURRENT PREFIX
+# Complete the name of a profile. PREFIX is prepended to every candidate, it
+# carries the "--option=" prefix of the inline form.
+_hm_complete_profile() {
+  local current="$1" prefix="$2"
+  local -a names=()
+  local name
+
+  mapfile -t names < <(_hm_profile_names)
+
+  for name in "${names[@]}"; do
+    if [[ "$name" == "$current"* ]]; then
+      COMPREPLY+=("$prefix$name")
     fi
   done
 }
@@ -417,9 +446,10 @@ _hm() {
 
   # The previous word waits for its value.
   if [[ -n "$pending_option" ]]; then
-    if [[ "$pending_option" == "--generation" ]]; then
-      _hm_complete_generation "$current" ""
-    fi
+    case "$pending_option" in
+      --generation) _hm_complete_generation "$current" "" ;;
+      --profile) _hm_complete_profile "$current" "" ;;
+    esac
     return 0
   fi
 
@@ -428,9 +458,10 @@ _hm() {
     prefix="${current%=*}"
     value="${current#*=}"
     if _hm_is_value_option "$command" "$prefix"; then
-      if [[ "$prefix" == "--generation" ]]; then
-        _hm_complete_generation "$value" "$prefix="
-      fi
+      case "$prefix" in
+        --generation) _hm_complete_generation "$value" "$prefix=" ;;
+        --profile) _hm_complete_profile "$value" "$prefix=" ;;
+      esac
       return 0
     fi
   fi

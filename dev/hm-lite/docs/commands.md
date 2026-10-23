@@ -20,6 +20,16 @@ Every command is `hm <command> [options]`.
 * The exit codes are documented in the [README](../README.md#exit-codes).
 * All commands require an initialised project (`hm init`) except `init`
   itself.
+* A **profile** is an independent namespace: the tracked paths, the pending
+  set, the generations and the selection belong to a profile, the content
+  store is shared. `hm init` creates the profile `default`. `hm add
+  --profile NAME` creates a missing profile, the other commands require an
+  existing one. Without `--profile`, `add` and `gen` use `default`, while
+  `list` and `status` show every profile.
+* A profile name starts with a letter or a digit and continues with
+  letters, digits, dots, underscores or hyphens
+  (`[A-Za-z0-9][A-Za-z0-9._-]*`). An invalid name is a usage error (`2`),
+  an unknown profile is a validation error (`3`).
 
 ---
 
@@ -45,12 +55,14 @@ Usage: hm init
 Register paths for the next generation.
 
 ```
-Usage: hm add <file|directory...>
+Usage: hm add [--profile NAME] <file|directory...>
 ```
 
 `add` is a **registration only** command. It does not hash a file, does not
 write to the content store, does not create a generation and never changes
-the file that was registered.
+the file that was registered. The paths are registered in the profile
+`default` unless `--profile` names another one; a missing profile is
+created on the spot.
 
 What it does:
 
@@ -65,7 +77,7 @@ What it does:
 5. Write everything in a single transaction.
 
 ```
-Paths selected for registration:
+Paths selected for registration (profile: default):
 
   [NEW]      /home/user/.bashrc
 
@@ -92,6 +104,7 @@ Capture the pending paths into a new generation.
 Usage: hm gen [options]
 
 Options:
+  --profile NAME     Profile of the generation (default: default)
   --name NAME        Give the generation a name
   --comment TEXT     Attach a comment to the generation
   --yes, -y          Do not ask for a confirmation
@@ -100,20 +113,22 @@ Options:
 What it does:
 
 1. Take the **exclusive** project lock.
-2. Read the pending set.
+2. Read the pending set of the profile. The generation is attached to that
+   profile; the other profiles are not touched.
 3. For every pending path that no longer exists the command **fails hard**
    with exit code `4`. The remedy is to run `hm add` again, which prunes
    the paths that vanished.
 4. Stage a copy of every pending file in `tmp/`, hash it with SHA-256 and
    store the unique contents in the content store. A stored object is read
    back and verified.
-5. Carry the other tracked paths forward from the parent generation and
-   drop the ones that vanished.
+5. Carry the other tracked paths of the profile forward from its parent
+   generation and drop the ones that vanished.
 6. Insert the `files`, `generations` and `generation_entries` rows in one
-   transaction and clear the pending set in the same transaction.
+   transaction and clear the pending set of the profile in the same
+   transaction.
 
 ```
-Generation preview:
+Generation preview (profile: default):
 
   1 path(s) captured
   1 new content object(s)
@@ -137,18 +152,25 @@ Show the state of the project. The command is read only.
 Usage: hm list [options]
 
 Options:
+  --profile NAME    Show a single profile (default: every profile)
   --generation ID   Show the entries of a single generation
   --pending         Show the paths that are queued for the next generation
   --paths           Show the tracked paths
   --store           Show the statistics of the content store
 ```
 
-Without an option the overview of all generations is shown:
+Without an option the overview of all generations is shown, with the
+profile of every generation:
 
 ```
-ID     CREATED                ENTRIES  OBJECTS  NAME
-1      2026-10-22T14:01:44Z         1        1  (unnamed)
+ID     PROFILE          CREATED                ENTRIES  OBJECTS  NAME
+1      default          2026-10-22T14:01:44Z         1        1  (unnamed)
 ```
+
+With `--profile NAME` only the generations, the pending paths and the
+tracked paths of that profile are shown, and the `PROFILE` column and the
+`Profile:` line are still printed for clarity. The generation ids stay
+global across the profiles: a generation belongs to exactly one profile.
 
 The generations are ordered by `created_at DESC, id DESC`.
 
@@ -160,20 +182,22 @@ dashboard is [`hm status`](#hm-status).
 ## `hm status`
 
 Show a read-only dashboard of the project: the project itself, the content
-store and every generation with its size. The command only takes the
-shared lock and changes nothing.
+store and the generations with their profiles, sizes and comments. The
+command only takes the shared lock and changes nothing.
 
 ```
-Usage: hm status
+Usage: hm status [options]
 
 Options:
-  -h, --help     Show this help
+  --profile NAME  Show a single profile (default: every profile)
+  -h, --help      Show this help
 ```
 
 ```
 HM-Lite status
 
   Project:         /home/user/.config/hm-lite
+  Profile:         all
   Generations:     3
   Selected:        2
   Tracked paths:   3
@@ -190,13 +214,23 @@ Store
 
 Generations
 
-ID     SEL CREATED                ENTRIES  OBJECTS       SIZE  NAME
-3          2026-10-22T16:13:02Z         3        2        6 B  third
-2      *   2026-10-22T16:13:02Z         2        1        2 B  second
-1          2026-10-22T16:13:02Z         1        1        2 B  first
+ID     SEL PROFILE          CREATED                ENTRIES  OBJECTS       SIZE  NAME                  COMMENT
+3           default          2026-10-22T16:13:02Z         3        2        6 B  third
+2      *    default          2026-10-22T16:13:02Z         2        1        2 B  second                the working configuration
+1           default          2026-10-22T16:13:02Z         1        1        2 B  first
 ```
 
-* `SEL` marks the selected generation with `*`.
+* `PROFILE` names the profile that owns the generation and `COMMENT` prints
+  the comment set with `hm gen --comment` or `hm edit --comment` (empty
+  when the generation has none).
+* `SEL` marks the selection of the shown scope: the global selection (the
+  last `hm switch`) when every profile is shown, and the selection of that
+  profile with `--profile NAME`.
+* `Selected:` follows the same scope: the global selection, or the
+  selection of the named profile.
+* With `--profile NAME` the dashboard is restricted to that profile: only
+  its generations, tracked paths and pending paths are counted and listed,
+  and `Profile:` names the profile instead of `all`.
 * The size of a generation is the summed size of the **distinct** content
   objects it references. Content that several paths or several generations
   share is counted once, therefore the generation sizes never add up to
@@ -215,8 +249,9 @@ ID     SEL CREATED                ENTRIES  OBJECTS       SIZE  NAME
   value.
 * Colours follow the same rules as every other command: they are enabled on
   a terminal and disabled on a pipe, `HM_COLOR` and `NO_COLOR` override the
-  detection. The headings are bold, the selected generation is cyan,
-  unreferenced objects are yellow and missing objects are red.
+  detection. The headings are bold bright cyan, the labels are dim, the
+  selected generation is bright cyan, unreferenced objects are bright
+  yellow and missing objects are bright red.
 
 ---
 
@@ -232,15 +267,16 @@ Options:
   -h, --help     Show this help
 ```
 
-The metadata block names the generation, whether it is the selected one,
-how many entries and content objects it holds and how many bytes the
-files occupy:
+The metadata block names the generation, its profile, whether that profile
+selected it, how many entries and content objects it holds and how many
+bytes the files occupy:
 
 ```
 Generation 2
 
   Name:       dotfiles-2026-10
   Comment:    the working configuration
+  Profile:    default
   Created:    2026-10-22T14:01:44Z
   Parent:     1
   Selected:   no
@@ -369,8 +405,12 @@ Usage: hm switch <generation>
   so `current/` is never half written.
 * The live filesystem is **not** touched. `current/` is a copy, never a
   hard link and never a symbolic link.
-* The selected generation is recorded in the `state` table and is used by
-  `hm apply` when no generation is named.
+* The selected generation is recorded in the `state` table twice: under
+  `selected_generation:<profile>` for the profile that owns the generation
+  and under the global `selected_generation` (the last selection of any
+  profile). `hm apply` uses the global one or, with `--profile`, the
+  selection of that profile. Two profiles can therefore keep two different
+  selections.
 
 ---
 
@@ -405,10 +445,11 @@ Delete preview:
 Delete the generation? [y/N]
 ```
 
-* **The selected generation is never deleted.** The command refuses it
-  with exit code `3`, because `current/` and a later `hm apply` without an
+* **A selected generation is never deleted.** The command refuses it
+  with exit code `3` when **any** profile (or the global selection) points
+  to the generation, because `current/` and a later `hm apply` without an
   argument would otherwise point to a generation that no longer exists.
-  `hm switch` must select another generation first.
+  `hm switch` must select another generation in that profile first.
 * The removal runs in **one transaction**: the entries are deleted first,
   then the generation row. A failure rolls everything back and the project
   is unchanged. An unknown generation ends the command with exit code `4`
@@ -432,12 +473,15 @@ Write a generation to the live filesystem.
 Usage: hm apply [generation] [options]
 
 Options:
+  --profile NAME Profile whose selection is applied
   --dry-run      Show the preview only, change nothing
   --yes, -y      Do not ask for a confirmation
 ```
 
 Without an argument the selected generation (the one `hm switch`
-selected) is applied.
+selected) is applied. With `--profile NAME` and without an argument the
+selection of that profile is applied; a named generation must belong to
+the profile, otherwise the command refuses it with exit code `3`.
 
 Every entry of the generation is classified:
 

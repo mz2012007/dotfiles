@@ -63,6 +63,19 @@ function __hm_generation_ids
         'SELECT id FROM generations ORDER BY created_at DESC, id DESC;' 2>/dev/null
 end
 
+# __hm_profile_names
+# Print the names of the profiles, in name order. A missing or unreadable
+# database is not an error, it produces no output.
+function __hm_profile_names
+    set -l db (__hm_db_file)
+    or return 0
+
+    test -f $db; or return 0
+
+    sqlite3 -readonly -noheader -list $db \
+        'SELECT name FROM profiles ORDER BY name;' 2>/dev/null
+end
+
 # __hm_tracked_paths
 # Print the paths that the project already tracks. The database is opened
 # read only, the file is never created and never modified.
@@ -117,7 +130,7 @@ function __hm_positional_slot
         switch "$token"
             case -h --help
                 return 1
-            case --name --comment --generation
+            case --name --comment --generation --profile
                 # The option consumes the next word.
                 set skip 1
             case '-*'
@@ -158,16 +171,19 @@ complete -c hm -n '__fish_seen_subcommand_from init' -l help -s h -d 'Show the u
 
 # add
 complete -c hm -n '__fish_seen_subcommand_from add' -l help -s h -d 'Show the usage of the command'
+complete -c hm -n '__fish_seen_subcommand_from add' -l profile -r -f -a '(__hm_profile_names)' -d 'Profile of the paths'
 complete -c hm -n '__fish_seen_subcommand_from add' -F -a '(__hm_tracked_paths)' -d 'Path that the project tracks'
 
 # gen
 complete -c hm -n '__fish_seen_subcommand_from gen' -l help -s h -d 'Show the usage of the command'
+complete -c hm -n '__fish_seen_subcommand_from gen' -l profile -r -f -a '(__hm_profile_names)' -d 'Profile of the generation'
 complete -c hm -n '__fish_seen_subcommand_from gen' -l name -r -f -d 'Name of the generation'
 complete -c hm -n '__fish_seen_subcommand_from gen' -l comment -r -f -d 'Comment of the generation'
 complete -c hm -n '__fish_seen_subcommand_from gen' -l yes -s y -d 'Do not ask for a confirmation'
 
 # list
 complete -c hm -n '__fish_seen_subcommand_from list' -l help -s h -d 'Show the usage of the command'
+complete -c hm -n '__fish_seen_subcommand_from list' -l profile -r -f -a '(__hm_profile_names)' -d 'Profile to show'
 complete -c hm -n '__fish_seen_subcommand_from list' -l generation -r -f -a '(__hm_generation_ids)' -d 'Identifier of the generation'
 complete -c hm -n '__fish_seen_subcommand_from list' -l pending -d 'Show the paths that are queued for the next generation'
 complete -c hm -n '__fish_seen_subcommand_from list' -l paths -d 'Show the tracked paths'
@@ -179,6 +195,7 @@ complete -c hm -n '__fish_seen_subcommand_from switch; and __hm_positional_slot 
 
 # status
 complete -c hm -n '__fish_seen_subcommand_from status' -l help -s h -d 'Show the usage of the command'
+complete -c hm -n '__fish_seen_subcommand_from status' -l profile -r -f -a '(__hm_profile_names)' -d 'Profile to show'
 
 # show
 complete -c hm -n '__fish_seen_subcommand_from show' -l help -s h -d 'Show the usage of the command'
@@ -205,6 +222,7 @@ complete -c hm -n '__fish_seen_subcommand_from delete; and __hm_positional_slot 
 
 # apply
 complete -c hm -n '__fish_seen_subcommand_from apply' -l help -s h -d 'Show the usage of the command'
+complete -c hm -n '__fish_seen_subcommand_from apply' -l profile -r -f -a '(__hm_profile_names)' -d 'Profile of the selection'
 complete -c hm -n '__fish_seen_subcommand_from apply' -l dry-run -d 'Show what would be written'
 complete -c hm -n '__fish_seen_subcommand_from apply' -l yes -s y -d 'Do not ask for a confirmation'
 complete -c hm -n '__fish_seen_subcommand_from apply; and __hm_positional_slot apply' -a '(__hm_generation_ids)' -d 'Identifier of the generation'

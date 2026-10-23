@@ -274,10 +274,10 @@ test_diff_colours_the_markers() {
   _diff_run_colour always diff 1 2
 
   assert_rc 0 "$HM_STATUS" "diff succeeds"
-  assert_contains "$HM_OUTPUT" $'\033[1m' "the heading is bold"
-  assert_contains "$HM_OUTPUT" $'\033[32m' "the added path is green"
-  assert_contains "$HM_OUTPUT" $'\033[31m' "the removed path is red"
-  assert_contains "$HM_OUTPUT" $'\033[33m' "the changed path is yellow"
+  assert_contains "$HM_OUTPUT" $'\033[1;96m' "the heading is bold and bright cyan"
+  assert_contains "$HM_OUTPUT" $'\033[92m' "the added path is bright green"
+  assert_contains "$HM_OUTPUT" $'\033[91m' "the removed path is bright red"
+  assert_contains "$HM_OUTPUT" $'\033[93m' "the changed path is bright yellow"
   assert_contains "$HM_OUTPUT" $'\033[0m' "the colour is reset"
 }
 

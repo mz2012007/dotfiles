@@ -8,6 +8,7 @@
 
 TESTS=(
   test_list_shows_the_generations
+  test_list_shows_the_profile_of_each_generation
   test_list_orders_the_generations_by_creation
   test_list_shows_a_single_generation
   test_list_shows_the_pending_paths
@@ -46,6 +47,16 @@ test_list_shows_the_generations() {
   assert_rc 0 "$HM_STATUS" "list succeeds"
   assert_contains "$HM_OUTPUT" "ID" "the table header is printed"
   assert_contains "$HM_OUTPUT" "ENTRIES" "the entry count column is printed"
+}
+
+test_list_shows_the_profile_of_each_generation() {
+  _list_fixture
+
+  run_hm list
+
+  assert_rc 0 "$HM_STATUS" "list succeeds"
+  assert_contains "$HM_OUTPUT" "PROFILE" "the profile column is printed"
+  assert_contains "$HM_OUTPUT" "default" "the profile of the generation is printed"
 }
 
 test_list_orders_the_generations_by_creation() {

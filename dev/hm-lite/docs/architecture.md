@@ -71,25 +71,26 @@ stays testable.
 | `core/init.sh` | Create the directories, write the configuration, apply `db/schema.sql`, validate the result. Idempotent. |
 | `core/add.sh` | Registration only: discovery → dedupe → preview → confirm → one transaction. |
 | `core/gen.sh` | Content capture: lock, stage, hash, store, one transaction, clear the pending set. |
-| `core/list.sh` | Read only views: generations, entries, tracked paths, pending paths, store statistics. |
-| `core/status.sh` | Read only dashboard: the project, the store space (referenced, unreferenced, missing) and the size of every generation. |
+| `core/list.sh` | Read only views: generations, entries, tracked paths, pending paths, store statistics; optional profile filter. |
+| `core/status.sh` | Read only dashboard: the project, the profile, the store space (referenced, unreferenced, missing) and the profile, size and comment of every generation. |
 | `core/show.sh` | Read only detail view of one generation: metadata and the rich entry table. |
 | `core/diff.sh` | Read only comparison of two or more generations: consecutive pairs, type/content hash/mode/owner/group/size, modification time ignored, never opens the store. |
 | `core/edit.sh` | Metadata edit of one generation: exclusive lock, preview, one `UPDATE`; the entries, the parent and the store are untouched. |
-| `core/switch.sh` | Select a generation and materialise it into `current/`. Never touches the live filesystem. |
-| `core/delete.sh` | Remove one generation and its entries in one transaction; the selected generation is refused. |
+| `core/switch.sh` | Select a generation in its profile and materialise it into `current/`. Never touches the live filesystem. |
+| `core/delete.sh` | Remove one generation and its entries in one transaction; a generation selected in any profile is refused. |
 | `core/apply.sh` | The live filesystem write path: preview → backup → confirm → write → verify → rollback. |
 | `core/discard.sh` | Reset `testing/` from `current/`. Only touches the HM owned workspace. |
 | `core/backup.sh` | Consistent backup: `sqlite3 .backup` + store + manifest with checksums. |
 | `core/restore.sh` | Validate → stage → verify → activate the restored state. |
 | `core/clean.sh` | Garbage collection: exact reference analysis → preview → confirm → delete. |
 | `lib/common.sh` | Error and report helpers, `require_cmd`, `confirm`, temporary files, configuration parsing. The exit code constants live in the dispatcher, there is no second definition. |
-| `lib/logging.sh` | The levels `ERROR`/`WARN`/`INFO`/`DEBUG`, the append only log file, the colour handling: `HM_COLOR`, `NO_COLOR` and one palette per stream. |
+| `lib/logging.sh` | The levels `ERROR`/`WARN`/`INFO`/`DEBUG`, the append only log file, the colour handling: `HM_COLOR`, `NO_COLOR` and one bright palette per stream (headings bold bright cyan, labels dim). |
 | `lib/paths.sh` | Path normalisation, validation, containment checks, safe joins, the runtime paths. |
 | `lib/database.sh` | The `sqlite3` invocation, the SQL quoting, the transaction helper, the schema version, the hex codec. |
 | `lib/hashing.sh` | The SHA-256 of a file and of staged bytes. |
 | `lib/storage.sh` | The content store: put, get, verify, the prefix layout, the removal. |
-| `lib/generations.sh` | The creation of a generation, the materialisation, the listing of the entries. |
+| `lib/profiles.sh` | The profile helpers: name validation, lookup, creation, the profile of a generation, the state key of a selection. |
+| `lib/generations.sh` | The creation of a generation, the materialisation, the listing of the entries, the profile aware selection and parent lookup. |
 | `lib/validation.sh` | The validation of the runtime directory, the database, the schema version and the store. |
 | `lib/locking.sh` | The `flock` wrapper for `<runtime>/hm.lock`. |
 | `completions/hm.bash` | Bash completion. Self contained builtins only, no `bash-completion` dependency. |
@@ -100,10 +101,10 @@ The `completions/` directory is a consumer of the command surface, not a
 layer of the application: it is never loaded by `hm`, it never writes, it
 never takes the lock and it treats a failed database read as "no dynamic
 suggestion" instead of an error. The only schema knowledge outside
-`db/schema.sql` and `lib/` are two one-line read-only queries
-(`generations.id`, `paths.path`), duplicated in the three files on purpose:
-the alternative would be a fourth shared library that none of the shells
-could source.
+`db/schema.sql` and `lib/` are three one-line read-only queries
+(`generations.id`, `paths.path`, `profiles.name`), duplicated in the three
+files on purpose: the alternative would be a fourth shared library that
+none of the shells could source.
 
 ### Every query is checked
 
@@ -148,52 +149,73 @@ failure themselves instead of returning an empty value.
 ## 3. The data flow of a generation
 
 ```
-hm add <paths>
+hm add --profile NAME <paths>
    │
    │  find -print0 → normalise → deduplicate
    ▼
-paths        (the location)                 pending_paths   (the selection)
-   │                                            │
-   │  hm gen                                    │
-   ▼                                            ▼
-stage a copy → sha256 → store/objects/… → files (the content)
+profiles ─< path_profiles >─ paths (the location)   pending_paths (the selection)
+                                                     │
+   │  hm gen                                          │
+   ▼                                                 ▼
+stage a copy → sha256 → store/objects/… → files (the content, shared)
    │
    ▼
 generation_entries (the recorded state: path + content + metadata)
    │
    ▼
-generations (the immutable snapshot)
+generations (the immutable snapshot, one profile per generation)
 ```
 
 The four concepts are four different tables:
 
-* **path** — *where* a thing lives. A path is not a content.
+* **path** — *where* a thing lives. A path is not a content. A path can
+  belong to several profiles through `path_profiles`.
 * **content object** — *what* the bytes are. It is identified by the SHA-256
-  of its bytes and nothing else.
+  of its bytes and nothing else, shared by every profile.
 * **generation entry** — the recorded state of a path inside a generation:
   the content, the mode, the owner, the timestamps.
-* **generation** — the immutable snapshot of all tracked paths. The
-  entries are immutable; the name and the comment are labels for the
-  human reader and can be changed with `hm edit`.
+* **generation** — the immutable snapshot of all tracked paths of **one
+  profile**. The entries are immutable; the name and the comment are labels
+  for the human reader and can be changed with `hm edit`.
 
 Because the content object is shared, the metadata can never be shared:
 the mode of a file belongs to the generation entry, not to the object.
+
+### Profiles
+
+A profile is an independent namespace above the same content store:
+
+* the tracked paths (`path_profiles`), the pending set, the generations and
+  the selection belong to a profile,
+* every project has the profile `default`, created by `hm init`,
+* `hm add --profile NAME` creates a missing profile on the spot; the other
+  commands require an existing one,
+* without `--profile`, `add` and `gen` use `default`, while `list` and
+  `status` show every profile,
+* `current/` and `testing/` stay global: they hold the materialised
+  selection of the last `hm switch`.
+
+This lets two independent trees (for example the dotfiles and a
+system-update set) share one project, one store and one history while each
+one keeps its own paths, pending set, generations and selection.
 
 ### A generation is a complete snapshot
 
 When `hm gen` runs:
 
-1. Every **pending** path is captured fresh: its content is hashed and
-   stored.
-2. Every **other tracked path** carries the content of the parent
-   generation forward. If the path vanished in the meantime, it is
+1. Every **pending** path of the profile is captured fresh: its content is
+   hashed and stored.
+2. Every **other tracked path of the profile** carries the content of its
+   parent generation forward. If the path vanished in the meantime, it is
    dropped from the new generation.
 3. The parent of the new generation is the newest existing generation
-   (`ORDER BY created_at DESC, id DESC`). The history is linear.
+   **of the same profile** (`ORDER BY created_at DESC, id DESC`). The
+   history is linear per profile.
 
 The consequence is simple and predictable: a generation always describes
-the complete state of the tracked paths, and two generations can be
-compared without any hidden context.
+the complete state of the tracked paths of its profile, and two
+generations of the same profile can be compared without any hidden
+context.
 
 ### The transaction boundary
 
@@ -235,8 +257,9 @@ this command never guesses whether an object is still needed: `hm clean`
 reclaims it after the exact reference analysis. A failure of either
 statement rolls the transaction back and not one row is lost.
 
-The selected generation is refused, because `current/` and an
-argument-less `hm apply` must always resolve to a generation that exists.
+The selected generation is refused when any profile (or the global
+selection) points to it, because `current/` and an argument-less `hm
+apply` must always resolve to a generation that exists.
 
 ### Editing the metadata
 
@@ -340,7 +363,11 @@ code `8` instead of waiting forever.
 shell code never contains a second copy of a `CREATE TABLE` statement, it
 only applies the file.
 
-The version is stored in `PRAGMA user_version`. The current version is `1`.
+The version is stored in `PRAGMA user_version`. The current version is `2`.
+The step from `1` to `2` added the profiles; the numbered migration
+[`db/migrations/0002_profiles.sql`](../db/migrations/0002_profiles.sql)
+moves the existing data into the profile `default`, so a version 1 project
+keeps its state and its behaviour.
 
 Resolution order of the schema file:
 

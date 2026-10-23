@@ -4,12 +4,17 @@
 -- The shell code never contains a second copy of these statements, it only
 -- applies this file.
 --
--- Schema version 1.
+-- Schema version 2.
 --
 -- Design notes:
 --   * paths, content objects, generations and pending paths are four
 --     different concepts and live in four different tables.
 --   * a path is a location, it is not a content.
+--   * a profile is an independent namespace: the tracked paths, the pending
+--     set, the generations and the selection belong to a profile, the
+--     content store is shared.
+--   * a path may belong to several profiles, the membership lives in
+--     path_profiles.
 --   * a content object is identified by the SHA-256 hash of its bytes only.
 --   * permissions, ownership and timestamps belong to the generation entry,
 --     never to the shared content object.
@@ -26,6 +31,15 @@ CREATE TABLE IF NOT EXISTS schema_meta (
 );
 
 -- --------------------------------------------------------------------------
+-- Profiles
+-- --------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS profiles (
+    id         INTEGER PRIMARY KEY,
+    name       TEXT    NOT NULL UNIQUE,
+    created_at INTEGER NOT NULL
+);
+
+-- --------------------------------------------------------------------------
 -- Tracked paths
 -- --------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS paths (
@@ -35,11 +49,26 @@ CREATE TABLE IF NOT EXISTS paths (
     created_at INTEGER NOT NULL
 );
 
--- Paths that are selected for inclusion in the next generation.
+-- The membership of a path in a profile. A path can be tracked by several
+-- profiles, the content of the path is recorded in the generations.
+CREATE TABLE IF NOT EXISTS path_profiles (
+    path_id    INTEGER NOT NULL
+               REFERENCES paths(id) ON DELETE CASCADE,
+    profile_id INTEGER NOT NULL
+               REFERENCES profiles(id) ON DELETE CASCADE,
+    added_at   INTEGER NOT NULL,
+    PRIMARY KEY (path_id, profile_id)
+);
+
+-- Paths that are selected for inclusion in the next generation of a
+-- profile.
 CREATE TABLE IF NOT EXISTS pending_paths (
-    path_id  INTEGER PRIMARY KEY
-             REFERENCES paths(id) ON DELETE CASCADE,
-    added_at INTEGER NOT NULL
+    path_id    INTEGER NOT NULL
+               REFERENCES paths(id) ON DELETE CASCADE,
+    profile_id INTEGER NOT NULL
+               REFERENCES profiles(id) ON DELETE CASCADE,
+    added_at   INTEGER NOT NULL,
+    PRIMARY KEY (path_id, profile_id)
 );
 
 -- --------------------------------------------------------------------------
@@ -60,7 +89,8 @@ CREATE TABLE IF NOT EXISTS generations (
     name       TEXT,
     comment    TEXT,
     created_at INTEGER NOT NULL,
-    parent_id  INTEGER REFERENCES generations(id) ON DELETE SET NULL
+    parent_id  INTEGER REFERENCES generations(id) ON DELETE SET NULL,
+    profile_id INTEGER REFERENCES profiles(id) ON DELETE CASCADE
 );
 
 -- The recorded state of a generation. One row per path.
@@ -82,6 +112,10 @@ CREATE TABLE IF NOT EXISTS generation_entries (
 -- --------------------------------------------------------------------------
 -- Project state (selected generation and similar pointers)
 -- --------------------------------------------------------------------------
+--
+-- The global "selected_generation" key points to the generation that
+-- "hm apply" uses without an argument. Every profile also stores its own
+-- selection under "selected_generation:<profile>".
 CREATE TABLE IF NOT EXISTS state (
     key   TEXT PRIMARY KEY,
     value TEXT
@@ -91,12 +125,15 @@ CREATE TABLE IF NOT EXISTS state (
 -- Indexes
 -- --------------------------------------------------------------------------
 CREATE INDEX IF NOT EXISTS idx_paths_kind        ON paths(kind);
+CREATE INDEX IF NOT EXISTS idx_path_profiles_profile ON path_profiles(profile_id);
 CREATE INDEX IF NOT EXISTS idx_pending_added     ON pending_paths(added_at);
+CREATE INDEX IF NOT EXISTS idx_pending_profile   ON pending_paths(profile_id);
 CREATE INDEX IF NOT EXISTS idx_entries_file      ON generation_entries(file_id);
 CREATE INDEX IF NOT EXISTS idx_entries_path      ON generation_entries(path_id);
 CREATE INDEX IF NOT EXISTS idx_generations_created ON generations(created_at DESC, id DESC);
+CREATE INDEX IF NOT EXISTS idx_generations_profile ON generations(profile_id, created_at DESC, id DESC);
 
 -- --------------------------------------------------------------------------
 -- Schema version
 -- --------------------------------------------------------------------------
-PRAGMA user_version = 1;
+PRAGMA user_version = 2;

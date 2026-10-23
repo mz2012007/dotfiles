@@ -40,7 +40,7 @@ delete() {
   local generation=""
   local assume_yes=0
   local argument
-  local id selected row name_hex name created entries objects orphans
+  local id selected_count row name_hex name created entries objects orphans
 
   while [[ $# -gt 0 ]]; do
     argument="$1"
@@ -74,10 +74,10 @@ delete() {
   fi
 
   id="$(hm_sql_int "$generation")"
-  selected="$(hm_gen_selected)"
+  selected_count="$(hm_profile_selection_count "$id")"
 
-  if [[ -n "$selected" && "$id" -eq "$selected" ]]; then
-    hm_die "$HM_EX_VALIDATION" "The generation $generation is the selected generation, switch to another generation before deleting it."
+  if [[ "$selected_count" != "0" ]]; then
+    hm_die "$HM_EX_VALIDATION" "The generation $generation is the selected generation of a profile, switch to another generation before deleting it."
   fi
 
   if ! hm_db_rows "
@@ -109,13 +109,15 @@ delete() {
 
   hm_log_debug "Deleting the generation $generation."
 
-  printf '%sDelete preview:%s\n' "$HM_C_OUT_BOLD" "$HM_C_OUT_RESET"
+  printf '%sDelete preview:%s\n' "$HM_C_OUT_HEADING" "$HM_C_OUT_RESET"
   printf '\n'
-  printf '  %-11s %s%s%s\n' "Generation:" "$HM_C_OUT_CYAN" "$id" "$HM_C_OUT_RESET"
-  printf '  %-11s %s\n' "Name:" "${name:--}"
-  printf '  %-11s %s\n' "Created:" "$(hm_format_epoch "$created" || printf '%s' "$created")"
-  printf '  %-11s %s\n' "Entries:" "$entries"
-  printf '  %-11s %s\n' "Objects:" "$objects"
+  printf '  %s%-11s%s %s%s%s\n' "$HM_C_OUT_LABEL" "Generation:" "$HM_C_OUT_RESET" \
+    "$HM_C_OUT_CYAN" "$id" "$HM_C_OUT_RESET"
+  printf '  %s%-11s%s %s\n' "$HM_C_OUT_LABEL" "Name:" "$HM_C_OUT_RESET" "${name:--}"
+  printf '  %s%-11s%s %s\n' "$HM_C_OUT_LABEL" "Created:" "$HM_C_OUT_RESET" \
+    "$(hm_format_epoch "$created" || printf '%s' "$created")"
+  printf '  %s%-11s%s %s\n' "$HM_C_OUT_LABEL" "Entries:" "$HM_C_OUT_RESET" "$entries"
+  printf '  %s%-11s%s %s\n' "$HM_C_OUT_LABEL" "Objects:" "$HM_C_OUT_RESET" "$objects"
   printf '\n'
 
   if [[ "$orphans" -gt 0 ]]; then

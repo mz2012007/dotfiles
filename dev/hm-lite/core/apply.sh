@@ -29,9 +29,11 @@ Usage: hm apply [generation] [options]
 
 Write a generation to the live filesystem.
 
-Without an argument the selected generation is applied.
+Without an argument the selected generation is applied. With --profile and
+without an argument the selection of the profile is applied.
 
 Options:
+  --profile NAME Use the selection of the profile
   --dry-run      Show the preview only, change nothing
   --yes, -y      Do not ask for a confirmation
   -h, --help     Show this help
@@ -136,6 +138,7 @@ _apply_rollback() {
 # apply [GENERATION] - write a generation to the live filesystem.
 apply() {
   local generation=""
+  local profile=""
   local assume_yes=0
   local dry_run=0
   local argument
@@ -143,6 +146,15 @@ apply() {
   while [[ $# -gt 0 ]]; do
     argument="$1"
     case "$argument" in
+      --profile)
+        [[ $# -ge 2 ]] || hm_die "$HM_EX_USAGE" "--profile requires a value."
+        profile="$2"
+        shift 2
+        ;;
+      --profile=*)
+        profile="${argument#*=}"
+        shift
+        ;;
       --dry-run)
         dry_run=1
         shift
@@ -172,9 +184,13 @@ apply() {
   hm_require_initialized
   hm_lock_acquire exclusive
 
-  # --- Resolve the generation ---------------------------------------------
+  # --- Resolve the profile and the generation ------------------------------
+  if [[ -n "$profile" ]]; then
+    hm_profile_require "$profile" > /dev/null
+  fi
+
   if [[ -z "$generation" ]]; then
-    generation="$(hm_gen_selected)"
+    generation="$(hm_gen_selected "$profile")"
     if [[ -z "$generation" ]]; then
       hm_die "$HM_EX_STATE" "No generation is selected. Run 'hm switch <generation>' or name a generation."
     fi
@@ -182,6 +198,10 @@ apply() {
 
   if ! hm_gen_exists "$generation"; then
     hm_die "$HM_EX_STATE" "There is no generation with the id $generation."
+  fi
+
+  if [[ -n "$profile" && "$(hm_profile_of_generation "$generation")" != "$profile" ]]; then
+    hm_die "$HM_EX_VALIDATION" "The generation $generation does not belong to the profile $profile."
   fi
 
   local missing
@@ -299,7 +319,7 @@ apply() {
 
   # --- Preview -------------------------------------------------------------
   printf '%sApply preview for generation %s%s%s\n' \
-    "$HM_C_OUT_BOLD" "$HM_C_OUT_CYAN" "$generation" "$HM_C_OUT_RESET"
+    "$HM_C_OUT_HEADING" "$HM_C_OUT_CYAN" "$generation" "$HM_C_OUT_RESET"
   printf '\n'
 
   local encoded
@@ -467,11 +487,15 @@ apply() {
   done
 
   hm_log_success "Generation $generation was applied."
-  printf 'Created:   %s%s%s\n' "$HM_C_OUT_GREEN" "$create" "$HM_C_OUT_RESET"
-  printf 'Updated:   %s%s%s\n' "$HM_C_OUT_GREEN" "$update" "$HM_C_OUT_RESET"
-  printf 'Modes:     %s%s%s\n' "$HM_C_OUT_YELLOW" "$mode_change" "$HM_C_OUT_RESET"
-  printf 'Unchanged: %s\n' "$unchanged"
-  printf 'Backup:    %s%s%s\n' "$HM_C_OUT_CYAN" "$(hm_path_display "$backup")" "$HM_C_OUT_RESET"
+  printf '%sCreated:%s   %s%s%s\n' "$HM_C_OUT_LABEL" "$HM_C_OUT_RESET" \
+    "$HM_C_OUT_GREEN" "$create" "$HM_C_OUT_RESET"
+  printf '%sUpdated:%s   %s%s%s\n' "$HM_C_OUT_LABEL" "$HM_C_OUT_RESET" \
+    "$HM_C_OUT_GREEN" "$update" "$HM_C_OUT_RESET"
+  printf '%sModes:%s     %s%s%s\n' "$HM_C_OUT_LABEL" "$HM_C_OUT_RESET" \
+    "$HM_C_OUT_YELLOW" "$mode_change" "$HM_C_OUT_RESET"
+  printf '%sUnchanged:%s %s\n' "$HM_C_OUT_LABEL" "$HM_C_OUT_RESET" "$unchanged"
+  printf '%sBackup:%s    %s%s%s\n' "$HM_C_OUT_LABEL" "$HM_C_OUT_RESET" \
+    "$HM_C_OUT_CYAN" "$(hm_path_display "$backup")" "$HM_C_OUT_RESET"
 
   return 0
 }

@@ -67,6 +67,18 @@ __hm_generation_ids() {
     'SELECT id FROM generations ORDER BY created_at DESC, id DESC;' 2>/dev/null
 }
 
+# __hm_profile_names
+# Print the names of the profiles, in name order. A missing or unreadable
+# database is not an error, it produces no output.
+__hm_profile_names() {
+  local db
+  db=$(__hm_db_file) || return 0
+  [[ -f $db ]] || return 0
+
+  sqlite3 -readonly -noheader -list $db \
+    'SELECT name FROM profiles ORDER BY name;' 2>/dev/null
+}
+
 # __hm_tracked_paths
 # Print the paths that the project already tracks. The database is opened
 # read only, the file is never created and never modified.
@@ -104,7 +116,13 @@ __hm_backup_archives() {
 # Return 0 when the option consumes the word that follows it.
 _hm_is_value_option() {
   case $1:$2 in
-    gen:--name | gen:--comment | list:--generation)
+    gen:--name | gen:--comment | gen:--profile)
+      return 0
+      ;;
+    list:--generation | list:--profile)
+      return 0
+      ;;
+    add:--profile | status:--profile | apply:--profile)
       return 0
       ;;
     edit:--name | edit:--comment)
@@ -154,8 +172,15 @@ _hm_options() {
   local -a options
 
   case $1 in
-    init | add | status | show | switch | discard | backup)
+    init | show | switch | discard | backup)
       options=(
+        '-h:Show the usage of the command'
+        '--help:Show the usage of the command'
+      )
+      ;;
+    add | status)
+      options=(
+        '--profile:Profile to use'
         '-h:Show the usage of the command'
         '--help:Show the usage of the command'
       )
@@ -181,6 +206,7 @@ _hm_options() {
       ;;
     gen)
       options=(
+        '--profile:Profile to use'
         '--name:Name of the generation'
         '--comment:Comment of the generation'
         '--yes:Do not ask for a confirmation'
@@ -191,6 +217,7 @@ _hm_options() {
       ;;
     list)
       options=(
+        '--profile:Profile to show'
         '--generation:Identifier of the generation'
         '--pending:Show the paths that are queued for the next generation'
         '--paths:Show the tracked paths'
@@ -199,7 +226,17 @@ _hm_options() {
         '--help:Show the usage of the command'
       )
       ;;
-    apply | clean)
+    apply)
+      options=(
+        '--profile:Profile of the selection'
+        '--dry-run:Show what would be changed'
+        '--yes:Do not ask for a confirmation'
+        '-y:Do not ask for a confirmation'
+        '-h:Show the usage of the command'
+        '--help:Show the usage of the command'
+      )
+      ;;
+    clean)
       options=(
         '--dry-run:Show what would be changed'
         '--yes:Do not ask for a confirmation'
@@ -232,6 +269,11 @@ _hm_value() {
   case $1 in
     --generation)
       ids=(${(f)"$(__hm_generation_ids)"})
+      ids=(${ids:#})
+      (( ${#ids} )) && compadd -- $ids
+      ;;
+    --profile)
+      ids=(${(f)"$(__hm_profile_names)"})
       ids=(${ids:#})
       (( ${#ids} )) && compadd -- $ids
       ;;

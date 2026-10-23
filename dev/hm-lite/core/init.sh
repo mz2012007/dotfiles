@@ -131,6 +131,10 @@ init() {
   hm_init_write_config
   hm_init_database
 
+  # The default profile is the namespace of the commands that do not name a
+  # profile. It is created once and never rewritten.
+  hm_profile_ensure "$HM_DEFAULT_PROFILE" > /dev/null
+
   # Internal state records.
   hm_db_exec "INSERT INTO schema_meta (key, value) VALUES ('created_at', $(hm_sql_quote "$(hm_now_utc)"))
               ON CONFLICT(key) DO NOTHING;"
@@ -147,6 +151,6 @@ init() {
   printf 'Database:          %s%s%s\n' "$HM_C_OUT_CYAN" "$(hm_path_display "$(hm_db_file)")" "$HM_C_OUT_RESET"
   printf 'Content store:     %s%s%s\n' "$HM_C_OUT_CYAN" "$(hm_path_display "$HM_STORE_ROOT")" "$HM_C_OUT_RESET"
   printf '%s\n' ""
-  printf '%sNext step: hm add <file|directory...>%s\n' "$HM_C_OUT_BOLD" "$HM_C_OUT_RESET"
+  printf '%sNext step: hm add <file|directory...>%s\n' "$HM_C_OUT_HEADING" "$HM_C_OUT_RESET"
   return 0
 }

@@ -13,37 +13,72 @@
 # The file only defines functions. Sourcing it has no side effects.
 #
 
-# hm_gen_selected - print the id of the selected generation, if any.
+# hm_gen_selected [PROFILE] - print the id of the selected generation of
+# the profile, if any. Without a profile the global selection is read.
 # An empty result means that no generation was selected, a database error
 # is reported and never hidden behind an empty result.
 hm_gen_selected() {
-  local value
+  local profile="${1:-}" key value
 
-  value="$(hm_db_scalar "SELECT value FROM state WHERE key = 'selected_generation';")" ||
+  key="$(hm_profile_state_key "$profile")"
+  value="$(hm_db_scalar "SELECT value FROM state WHERE key = $(hm_sql_quote "$key");")" ||
     hm_die "$HM_EX_DB" "Cannot read the selected generation from the database."
 
   printf '%s\n' "$value"
 }
 
-# hm_gen_latest - print the id of the newest generation.
-# The order is created_at DESC, id DESC, the identifier alone is not an
-# order because it does not reflect the creation time.
-hm_gen_latest() {
-  local value
+# hm_gen_is_selected GENERATION_ID [PROFILE]
+# Return 0 when the generation is the selection of the profile. Without a
+# profile the global selection is compared.
+hm_gen_is_selected() {
+  local id selected
 
-  value="$(hm_db_scalar "SELECT id FROM generations ORDER BY created_at DESC, id DESC LIMIT 1;")" ||
-    hm_die "$HM_EX_DB" "Cannot read the generations from the database."
+  id="$(hm_sql_int "$1")"
+  selected="$(hm_gen_selected "${2:-}")"
+
+  [[ -n "$selected" && "$id" == "$selected" ]]
+}
+
+# hm_gen_latest [PROFILE] - print the id of the newest generation.
+# The order is created_at DESC, id DESC, the identifier alone is not an
+# order because it does not reflect the creation time. With a profile the
+# newest generation of that profile is returned.
+hm_gen_latest() {
+  local profile="${1:-}" value
+
+  if [[ -n "$profile" ]]; then
+    value="$(hm_db_scalar "
+      SELECT g.id
+        FROM generations g
+        JOIN profiles pr ON pr.id = g.profile_id
+       WHERE pr.name = $(hm_sql_quote "$profile")
+       ORDER BY g.created_at DESC, g.id DESC
+       LIMIT 1;")" ||
+      hm_die "$HM_EX_DB" "Cannot read the generations from the database."
+  else
+    value="$(hm_db_scalar "SELECT id FROM generations ORDER BY created_at DESC, id DESC LIMIT 1;")" ||
+      hm_die "$HM_EX_DB" "Cannot read the generations from the database."
+  fi
 
   printf '%s\n' "$value"
 }
 
-# hm_gen_set_selected GENERATION_ID
+# hm_gen_set_selected GENERATION_ID [PROFILE]
+# Record the selection. With a profile the selection of the profile is
+# written and the global selection follows it, so that "hm apply" without
+# an argument still applies the generation that was switched to last.
 hm_gen_set_selected() {
-  local id
+  local id profile="${2:-}" sql
   id="$(hm_sql_int "$1")"
 
-  hm_db_exec "INSERT INTO state (key, value) VALUES ('selected_generation', $(hm_sql_quote "$id"))
-              ON CONFLICT(key) DO UPDATE SET value = excluded.value;"
+  sql="INSERT INTO state (key, value) VALUES"
+  if [[ -n "$profile" ]]; then
+    sql+=" ($(hm_sql_quote "$(hm_profile_state_key "$profile")"), $(hm_sql_quote "$id")),"
+  fi
+  sql+=" ('selected_generation', $(hm_sql_quote "$id"))
+        ON CONFLICT(key) DO UPDATE SET value = excluded.value;"
+
+  hm_db_exec "$sql"
 }
 
 # hm_gen_exists GENERATION_ID

@@ -201,3 +201,4 @@ end
 # opencode
 fish_add_path /home/mz/.opencode/bin
 fish_add_path /home/mz/dev/hm-lite
+fish_add_path /home/mz/dev/update_system/

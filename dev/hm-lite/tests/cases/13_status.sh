@@ -12,6 +12,7 @@ TESTS=(
   test_status_reports_every_generation_with_its_size
   test_status_counts_shared_content_once_per_generation
   test_status_marks_the_selected_generation
+  test_status_shows_the_comment_of_a_generation
   test_status_reports_unreferenced_objects
   test_status_reports_missing_objects
   test_status_works_without_generations
@@ -138,6 +139,20 @@ test_status_marks_the_selected_generation() {
   assert_not_contains "$(_status_line first)" "*" "the other generation is not marked"
 }
 
+test_status_shows_the_comment_of_a_generation() {
+  _test_setup status_comment
+  printf 'a\n' > "$SRC_DIR/a.txt"
+
+  run_hm_input 'y\n' add "$SRC_DIR/a.txt"
+  run_hm_input 'y\n' gen --name "commented" --comment "before the upgrade"
+
+  run_hm status
+
+  assert_rc 0 "$HM_STATUS" "status succeeds"
+  assert_contains "$HM_OUTPUT" "COMMENT" "the comment column is printed"
+  assert_contains "$HM_OUTPUT" "before the upgrade" "the comment is printed"
+}
+
 test_status_reports_unreferenced_objects() {
   _status_fixture
 
@@ -259,7 +274,8 @@ test_status_colours_the_headings() {
   _status_run_colour always
 
   assert_rc 0 "$HM_STATUS" "status succeeds"
-  assert_contains "$HM_OUTPUT" $'\033[1m' "the headings are bold"
+  assert_contains "$HM_OUTPUT" $'\033[1;96m' "the headings are bold and bright cyan"
+  assert_contains "$HM_OUTPUT" $'\033[2m' "the labels are dim"
   assert_contains "$HM_OUTPUT" $'\033[0m' "the colour is reset"
 }
 

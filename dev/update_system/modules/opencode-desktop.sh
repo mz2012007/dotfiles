@@ -48,11 +48,11 @@ module_opencode-desktop_update() {
   local cache_fingerprint_file
 
   case "$(uname -m)" in
-    x86_64 | amd64) ;;
-    *)
-      fail "The official package URL is for Linux x64; unsupported architecture: $(uname -m)"
-      return 1
-      ;;
+  x86_64 | amd64) ;;
+  *)
+    fail "The official package URL is for Linux x64; unsupported architecture: $(uname -m)"
+    return 1
+    ;;
   esac
 
   for cmd in curl ar tar awk grep sed find; do
@@ -73,8 +73,8 @@ module_opencode-desktop_update() {
     installed_fingerprint=$(cat "$OPENCODE_DESKTOP_FINGERPRINT_FILE")
   fi
 
-  if [[ -n "$remote_fingerprint" && "$remote_fingerprint" == "$installed_fingerprint" && \
-        "$current" != "none" && "$current" != "unknown" ]]; then
+  if [[ -n "$remote_fingerprint" && "$remote_fingerprint" == "$installed_fingerprint" &&
+    "$current" != "none" && "$current" != "unknown" ]]; then
     ok "OpenCode Desktop is up to date ($current)"
     return 0
   fi
@@ -86,8 +86,8 @@ module_opencode-desktop_update() {
   deb_file="$OPENCODE_DESKTOP_CACHE/opencode-desktop-stable.deb"
   cache_fingerprint_file="$deb_file.fingerprint"
 
-  if [[ -n "$remote_fingerprint" && -s "$deb_file" && -r "$cache_fingerprint_file" && \
-        "$(cat "$cache_fingerprint_file")" == "$remote_fingerprint" ]]; then
+  if [[ -n "$remote_fingerprint" && -s "$deb_file" && -r "$cache_fingerprint_file" &&
+    "$(cat "$cache_fingerprint_file")" == "$remote_fingerprint" ]]; then
     echo "  Using cached package for the current stable build"
   else
     rm -f "$deb_file" "$cache_fingerprint_file" "$deb_file.part"
@@ -105,7 +105,7 @@ module_opencode-desktop_update() {
     fi
     mv "$deb_file.part" "$deb_file"
     if [[ -n "$remote_fingerprint" ]]; then
-      printf '%s' "$remote_fingerprint" > "$cache_fingerprint_file"
+      printf '%s' "$remote_fingerprint" >"$cache_fingerprint_file"
     fi
   fi
 
@@ -145,7 +145,7 @@ module_opencode-desktop_update() {
       exit 1
     }
     app_binary=""
-    for item in ai.opencode.desktop @opencode-aidesktop @opencode-aidesktop-electron OpenCode; do
+    for item in ai.opencode ai.opencode.desktop @opencode-aidesktop @opencode-aidesktop-electron OpenCode; do
       if [[ -x "$app_source/$item" ]]; then
         app_binary="$app_source/$item"
         break

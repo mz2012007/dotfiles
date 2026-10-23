@@ -76,21 +76,22 @@ the code under test to check its own work.
 | `tests/cases/01_init.sh` | The bootstrap: directories, configuration, schema, idempotence, the version. | 11 |
 | `tests/cases/02_add.sh` | The registration: discovery, symlink skipping, deduplication, the preview, the confirmation, hostile file names. | 15 |
 | `tests/cases/03_gen.sh` | The capture: hashing, the store, the transaction, the missing path, the carry forward. | 15 |
-| `tests/cases/04_list.sh` | The read only views and their error cases. | 12 |
+| `tests/cases/04_list.sh` | The read only views and their error cases, including the profile filter and column. | 13 |
 | `tests/cases/05_switch.sh` | `switch` and `discard`: the materialisation, the atomic rename, the recorded mode. | 13 |
 | `tests/cases/06_apply.sh` | The live write path: the classification, the backup, the manifest, the conflicts, the rollback. | 16 |
 | `tests/cases/07_backup.sh` | `backup` and `restore`: the archive, the manifest, the validation, the activation. | 11 |
 | `tests/cases/08_clean.sh` | The garbage collection: the reference analysis, the removal, the missing objects. | 10 |
-| `tests/cases/09_completion.sh` | The three completion files: the commands, the options per command, the argument ranges, the generation ids, the paths with spaces, the fail-safe behaviour without a database, the absence of side effects. | 18 |
+| `tests/cases/09_completion.sh` | The three completion files: the commands, the options per command, the argument ranges, the generation ids, the profile names, the paths with spaces, the fail-safe behaviour without a database, the absence of side effects. | 19 |
 | `tests/cases/10_show.sh` | `show`: the metadata block, the entry table, the selected marker, the missing objects, the usage and state errors, the read-only guarantee. | 12 |
 | `tests/cases/11_delete.sh` | `delete`: the preview, the confirmation, `--yes`/`-y`, the selected generation, the parent of the children, the orphan hand-off to `clean`, the rollback of a failing transaction. | 15 |
 | `tests/cases/12_color.sh` | The colours: the automatic detection on a terminal and on a pipe, `HM_COLOR`, `NO_COLOR`, the stream each palette follows, the coloured output of every command, the unchanged plain output. | 10 |
-| `tests/cases/13_status.sh` | `status`: the project overview, the store space and its classification (referenced, unreferenced, missing), the size of every generation with the shared content counted once, the selected marker, the empty project, the read-only guarantee, the usage and state errors, the colours of the dashboard. | 15 |
+| `tests/cases/13_status.sh` | `status`: the project overview, the profile, the store space and its classification (referenced, unreferenced, missing), the size of every generation with the shared content counted once, the name and the comment of every generation, the selected marker per profile, the profile filter, the empty project, the read-only guarantee, the usage and state errors, the colours of the dashboard. | 16 |
 | `tests/cases/14_edit.sh` | `edit`: setting, replacing and clearing the name and the comment, the preview, the confirmation, the visible change in `show`, the untouched entries and selection, the empty and conflicting values, the unknown generation, the failing transaction, the colours. | 20 |
 | `tests/cases/15_diff.sh` | `diff`: added, removed and changed paths, content, mode and type changes, `--all`, the summary, equal generations, several generations in order, the reversed order, the duplicate, unknown and usage errors, the read-only guarantee, the failing query, the colours. | 19 |
+| `tests/cases/16_profiles.sh` | The profiles: the default profile, the creation through `add --profile`, the shared path in two profiles, the isolated pending set and generations, the selection per profile, the profile columns and filters of `list`, `status`, `show` and `apply`, the refused delete of a generation selected in any profile, the unknown and invalid names, and the migration of a version 1 database. | 19 |
 
-**212 test cases**, plus the static analysis. The runner reports 213 checks
-when ShellCheck is missing and 214 when it is installed.
+**234 test cases**, plus the static analysis. The runner reports 235 checks
+when ShellCheck is missing and 236 when it is installed.
 
 ---
 
@@ -145,10 +146,17 @@ have an explicit test:
 * The completion never offers an option outside its command (`backup` has
   no `--yes`) and never offers an argument after a positional one that is
   already complete (`switch 1 <TAB>` offers nothing).
-* `hm delete` refuses the selected generation (exit `3`, nothing deleted),
-  clears the parent of its children and rolls both statements back when
-  the transaction fails (exit `5`, the generation and its entries are
-  still there).
+* `hm delete` refuses a generation selected in any profile (exit `3`,
+  nothing deleted), clears the parent of its children and rolls both
+  statements back when the transaction fails (exit `5`, the generation and
+  its entries are still there).
+* A profile is an independent namespace: two profiles can track the same
+  path, each one captures it into its own generation, `hm gen --profile`
+  clears only the pending set of that profile, and `hm switch` records a
+  selection per profile. `hm delete` still refuses a generation that any
+  profile selects.
+* An existing version 1 database is migrated into the profile `default`
+  and keeps its paths, its pending set, its generations and its selection.
 * The colours are decided per stream: a pipe gets no escape sequence, a
   terminal does, `HM_COLOR=always` and `HM_COLOR=never` win over the
   detection, and a non-empty `NO_COLOR` wins over everything. Stripping

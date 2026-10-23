@@ -246,7 +246,8 @@ test_edit_colours_the_preview() {
   _edit_run_colour always edit 1 --name "coloured" --yes
 
   assert_rc 0 "$HM_STATUS" "edit succeeds"
-  assert_contains "$HM_OUTPUT" $'\033[1m' "the heading is bold"
+  assert_contains "$HM_OUTPUT" $'\033[1;96m' "the heading is bold and bright cyan"
+  assert_contains "$HM_OUTPUT" $'\033[2m' "the labels are dim"
   assert_contains "$HM_OUTPUT" $'\033[0m' "the colour is reset"
 }
 

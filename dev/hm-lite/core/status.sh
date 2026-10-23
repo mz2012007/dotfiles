@@ -23,12 +23,13 @@
 # _status_usage
 _status_usage() {
   cat <<'EOF'
-Usage: hm status
+Usage: hm status [options]
 
-Show the project, the content store and every generation.
+Show the project, the content store and the generations.
 
 Options:
-  -h, --help     Show this help
+  --profile NAME  Show a single profile (default: every profile)
+  -h, --help      Show this help
 EOF
 }
 
@@ -107,17 +108,38 @@ _status_store_objects() {
   return 0
 }
 
-# _status_render - print the dashboard.
+# _status_render [PROFILE] - print the dashboard, restricted to a profile
+# when one is given.
 _status_render() {
+  local profile="${1:-}" where="" generation_where=""
   local row objects store_bytes referenced referenced_bytes
   local unreferenced unreferenced_bytes missing missing_bytes
   local generations paths_count pending_count selected store_root
-  local rows id name_hex name marker created entries entry_objects size
+  local rows id name_hex name comment_hex comment profile_name marker
+  local created entries entry_objects size
 
-  generations="$(_status_count "SELECT COUNT(*) FROM generations;")"
-  paths_count="$(_status_count "SELECT COUNT(*) FROM paths;")"
-  pending_count="$(_status_count "SELECT COUNT(*) FROM pending_paths;")"
-  selected="$(hm_gen_selected)"
+  if [[ -n "$profile" ]]; then
+    where="WHERE pr.name = $(hm_sql_quote "$profile")"
+    generation_where="WHERE pr.name = $(hm_sql_quote "$profile")"
+  fi
+
+  generations="$(_status_count "
+    SELECT COUNT(*)
+      FROM generations g
+      JOIN profiles pr ON pr.id = g.profile_id
+      $generation_where;")"
+  paths_count="$(_status_count "
+    SELECT COUNT(*)
+      FROM paths p
+      JOIN path_profiles x ON x.path_id = p.id
+      JOIN profiles pr ON pr.id = x.profile_id
+      $where;")"
+  pending_count="$(_status_count "
+    SELECT COUNT(*)
+      FROM pending_paths pp
+      JOIN profiles pr ON pr.id = pp.profile_id
+      $where;")"
+  selected="$(hm_gen_selected "$profile")"
 
   _status_store_objects row
   IFS="$HM_FIELD_SEP" read -r objects store_bytes referenced referenced_bytes \
@@ -125,41 +147,48 @@ _status_render() {
 
   store_root="$(hm_store_root)"
 
-  printf '%sHM-Lite status%s\n' "$HM_C_OUT_BOLD" "$HM_C_OUT_RESET"
+  printf '%sHM-Lite status%s\n' "$HM_C_OUT_HEADING" "$HM_C_OUT_RESET"
   printf '\n'
-  printf '  %-16s %s\n' "Project:" "$HM_DIR"
-  printf '  %-16s %s\n' "Generations:" "$generations"
-  if [[ -n "$selected" ]]; then
-    printf '  %-16s %s%s%s\n' "Selected:" "$HM_C_OUT_CYAN" "$selected" "$HM_C_OUT_RESET"
+  printf '  %s%-16s%s %s\n' "$HM_C_OUT_LABEL" "Project:" "$HM_C_OUT_RESET" "$HM_DIR"
+  if [[ -n "$profile" ]]; then
+    printf '  %s%-16s%s %s\n' "$HM_C_OUT_LABEL" "Profile:" "$HM_C_OUT_RESET" "$profile"
   else
-    printf '  %-16s %s\n' "Selected:" "-"
+    printf '  %s%-16s%s %s\n' "$HM_C_OUT_LABEL" "Profile:" "$HM_C_OUT_RESET" "all"
   fi
-  printf '  %-16s %s\n' "Tracked paths:" "$paths_count"
-  printf '  %-16s %s\n' "Pending paths:" "$pending_count"
+  printf '  %s%-16s%s %s\n' "$HM_C_OUT_LABEL" "Generations:" "$HM_C_OUT_RESET" "$generations"
+  if [[ -n "$selected" ]]; then
+    printf '  %s%-16s%s %s%s%s\n' "$HM_C_OUT_LABEL" "Selected:" "$HM_C_OUT_RESET" \
+      "$HM_C_OUT_CYAN" "$selected" "$HM_C_OUT_RESET"
+  else
+    printf '  %s%-16s%s %s\n' "$HM_C_OUT_LABEL" "Selected:" "$HM_C_OUT_RESET" "-"
+  fi
+  printf '  %s%-16s%s %s\n' "$HM_C_OUT_LABEL" "Tracked paths:" "$HM_C_OUT_RESET" "$paths_count"
+  printf '  %s%-16s%s %s\n' "$HM_C_OUT_LABEL" "Pending paths:" "$HM_C_OUT_RESET" "$pending_count"
   printf '\n'
 
-  printf '%sStore%s\n' "$HM_C_OUT_BOLD" "$HM_C_OUT_RESET"
+  printf '%sStore%s\n' "$HM_C_OUT_HEADING" "$HM_C_OUT_RESET"
   printf '\n'
-  printf '  %-16s %s\n' "Location:" "$store_root"
-  printf '  %-16s %s\n' "Objects:" "$objects"
-  printf '  %-16s %s (%s bytes)\n' "Size:" "$(hm_format_bytes "$store_bytes")" "$store_bytes"
-  printf '  %-16s %s object(s), %s (%s bytes)\n' "Referenced:" "$referenced" \
-    "$(hm_format_bytes "$referenced_bytes")" "$referenced_bytes"
+  printf '  %s%-16s%s %s\n' "$HM_C_OUT_LABEL" "Location:" "$HM_C_OUT_RESET" "$store_root"
+  printf '  %s%-16s%s %s\n' "$HM_C_OUT_LABEL" "Objects:" "$HM_C_OUT_RESET" "$objects"
+  printf '  %s%-16s%s %s (%s bytes)\n' "$HM_C_OUT_LABEL" "Size:" "$HM_C_OUT_RESET" \
+    "$(hm_format_bytes "$store_bytes")" "$store_bytes"
+  printf '  %s%-16s%s %s object(s), %s (%s bytes)\n' "$HM_C_OUT_LABEL" "Referenced:" "$HM_C_OUT_RESET" \
+    "$referenced" "$(hm_format_bytes "$referenced_bytes")" "$referenced_bytes"
 
   if (( unreferenced > 0 )); then
-    printf '  %-16s %s%s object(s), %s (%s bytes)%s\n' "Unreferenced:" "$HM_C_OUT_YELLOW" \
-      "$unreferenced" "$(hm_format_bytes "$unreferenced_bytes")" "$unreferenced_bytes" "$HM_C_OUT_RESET"
+    printf '  %s%-16s%s %s%s object(s), %s (%s bytes)%s\n' "$HM_C_OUT_LABEL" "Unreferenced:" "$HM_C_OUT_RESET" \
+      "$HM_C_OUT_YELLOW" "$unreferenced" "$(hm_format_bytes "$unreferenced_bytes")" "$unreferenced_bytes" "$HM_C_OUT_RESET"
   else
-    printf '  %-16s %s%s object(s), %s (%s bytes)%s\n' "Unreferenced:" "$HM_C_OUT_GREEN" \
-      "$unreferenced" "$(hm_format_bytes "$unreferenced_bytes")" "$unreferenced_bytes" "$HM_C_OUT_RESET"
+    printf '  %s%-16s%s %s%s object(s), %s (%s bytes)%s\n' "$HM_C_OUT_LABEL" "Unreferenced:" "$HM_C_OUT_RESET" \
+      "$HM_C_OUT_GREEN" "$unreferenced" "$(hm_format_bytes "$unreferenced_bytes")" "$unreferenced_bytes" "$HM_C_OUT_RESET"
   fi
 
   if (( missing > 0 )); then
-    printf '  %-16s %s%s object(s), %s (%s bytes)%s\n' "Missing:" "$HM_C_OUT_RED" \
-      "$missing" "$(hm_format_bytes "$missing_bytes")" "$missing_bytes" "$HM_C_OUT_RESET"
+    printf '  %s%-16s%s %s%s object(s), %s (%s bytes)%s\n' "$HM_C_OUT_LABEL" "Missing:" "$HM_C_OUT_RESET" \
+      "$HM_C_OUT_RED" "$missing" "$(hm_format_bytes "$missing_bytes")" "$missing_bytes" "$HM_C_OUT_RESET"
   else
-    printf '  %-16s %s%s object(s), %s (%s bytes)%s\n' "Missing:" "$HM_C_OUT_GREEN" \
-      "$missing" "$(hm_format_bytes "$missing_bytes")" "$missing_bytes" "$HM_C_OUT_RESET"
+    printf '  %s%-16s%s %s%s object(s), %s (%s bytes)%s\n' "$HM_C_OUT_LABEL" "Missing:" "$HM_C_OUT_RESET" \
+      "$HM_C_OUT_GREEN" "$missing" "$(hm_format_bytes "$missing_bytes")" "$missing_bytes" "$HM_C_OUT_RESET"
   fi
 
   if (( unreferenced > 0 )); then
@@ -168,14 +197,16 @@ _status_render() {
   fi
   printf '\n'
 
-  printf '%sGenerations%s\n' "$HM_C_OUT_BOLD" "$HM_C_OUT_RESET"
+  printf '%sGenerations%s\n' "$HM_C_OUT_HEADING" "$HM_C_OUT_RESET"
   printf '\n'
-  printf '%s%-6s %-3s %-21s %8s %8s %10s  %s%s\n' "$HM_C_OUT_BOLD" \
-    "ID" "SEL" "CREATED" "ENTRIES" "OBJECTS" "SIZE" "NAME" "$HM_C_OUT_RESET"
+  printf '%s%-6s %-3s %-16s %-21s %8s %8s %10s  %-20s %s%s\n' "$HM_C_OUT_HEADING" \
+    "ID" "SEL" "PROFILE" "CREATED" "ENTRIES" "OBJECTS" "SIZE" "NAME" "COMMENT" "$HM_C_OUT_RESET"
 
   if ! hm_db_rows "
     SELECT g.id,
            hex(COALESCE(g.name, '')),
+           hex(COALESCE(g.comment, '')),
+           pr.name,
            g.created_at,
            (SELECT COUNT(*) FROM generation_entries ge WHERE ge.generation_id = g.id),
            (SELECT COUNT(DISTINCT ge.file_id) FROM generation_entries ge WHERE ge.generation_id = g.id AND ge.file_id IS NOT NULL),
@@ -186,6 +217,8 @@ _status_render() {
                              WHERE ge.generation_id = g.id
                                AND ge.file_id IS NOT NULL))
       FROM generations g
+      JOIN profiles pr ON pr.id = g.profile_id
+      $generation_where
      ORDER BY g.created_at DESC, g.id DESC;" rows; then
     hm_die "$HM_EX_DB" "Cannot read the generations from the database."
   fi
@@ -196,18 +229,22 @@ _status_render() {
 
   while IFS= read -r row; do
     [[ -n "$row" ]] || continue
-    IFS="$HM_FIELD_SEP" read -r id name_hex created entries entry_objects size <<< "$row"
+    IFS="$HM_FIELD_SEP" read -r id name_hex comment_hex profile_name created entries \
+      entry_objects size <<< "$row"
 
     hm_hex_decode name "$name_hex"
+    hm_hex_decode comment "$comment_hex"
 
     marker=""
     if [[ -n "$selected" && "$id" -eq "$selected" ]]; then
       marker="*"
     fi
 
-    printf '%-6s %-3s %-21s %8s %8s %10s  %s\n' \
-      "$id" "$marker" "$(hm_format_epoch "$created" || printf '%s' "$created")" \
-      "$entries" "$entry_objects" "$(hm_format_bytes "$size")" "${name:-(unnamed)}"
+    printf '%-6s %-3s %-16s %-21s %8s %8s %10s  %-20s %s\n' \
+      "$id" "$marker" "$profile_name" \
+      "$(hm_format_epoch "$created" || printf '%s' "$created")" \
+      "$entries" "$entry_objects" "$(hm_format_bytes "$size")" \
+      "${name:-(unnamed)}" "${comment:-}"
   done <<< "$rows"
 
   if (( missing > 0 )); then
@@ -220,10 +257,20 @@ _status_render() {
 # status - print the dashboard of the project.
 status() {
   local argument
+  local profile=""
 
   while [[ $# -gt 0 ]]; do
     argument="$1"
     case "$argument" in
+      --profile)
+        [[ $# -ge 2 ]] || hm_die "$HM_EX_USAGE" "--profile requires a value."
+        profile="$2"
+        shift 2
+        ;;
+      --profile=*)
+        profile="${argument#*=}"
+        shift
+        ;;
       -h | --help)
         _status_usage
         return 0
@@ -240,8 +287,12 @@ status() {
   hm_require_initialized
   hm_lock_acquire shared
 
+  if [[ -n "$profile" ]]; then
+    hm_profile_require "$profile" > /dev/null
+  fi
+
   hm_log_debug "Collecting the project status."
-  _status_render
+  _status_render "$profile"
 
   return 0
 }
