@@ -305,6 +305,8 @@ complete -c hm -n '__hm_profile_has_subcommand list' -l help -s h -d 'Show the u
 complete -c hm -n '__hm_profile_has_subcommand show' -l help -s h -d 'Show the usage of profile show'
 complete -c hm -n '__hm_profile_has_subcommand use' -l help -s h -d 'Show the usage of profile use'
 complete -c hm -n '__hm_profile_has_subcommand rename' -l help -s h -d 'Show the usage of profile rename'
+complete -c hm -n '__hm_profile_has_subcommand delete' -l help -s h -d 'Show the usage of profile delete'
+complete -c hm -n '__hm_profile_has_subcommand rename' -l help -s h -d 'Show the usage of profile rename'
 complete -c hm -n '__hm_profile_has_subcommand delete; or __hm_profile_has_subcommand rename' -l yes -s y -d 'Do not ask for a confirmation'
 complete -c hm -n '__hm_profile_has_subcommand delete' -l force -d 'Delete the history as well'
 

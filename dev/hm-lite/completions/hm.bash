@@ -209,6 +209,9 @@ _hm_command_options() {
     clean)
       printf '%s\n' --dry-run --yes -y -h --help
       ;;
+    help)
+      printf '%s\n' -h --help
+      ;;
     *)
       return 1
       ;;
@@ -272,6 +275,9 @@ _hm_complete_option() {
   local entry
 
   case "$command:$profile_subcommand" in
+    profile:create|profile:add|profile:list|profile:show|profile:use)
+      entries=(-h --help)
+      ;;
     profile:delete)
       entries=(--force --yes -y -h --help)
       ;;

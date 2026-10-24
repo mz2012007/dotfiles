@@ -224,7 +224,7 @@ _hm_options() {
   local profile_subcommand="${2:-}"
 
   case $1 in
-    init | backup)
+    init | backup | help)
       options=(
         '-h:Show the usage of the command'
         '--help:Show the usage of the command'
@@ -239,6 +239,12 @@ _hm_options() {
       ;;
     profile)
       case $profile_subcommand in
+        create | add | list | show | use)
+          options=(
+            '-h:Show the usage of the command'
+            '--help:Show the usage of the command'
+          )
+          ;;
         delete)
           options=(
             '--force:Delete the history as well'
