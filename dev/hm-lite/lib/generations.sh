@@ -283,10 +283,10 @@ hm_profile_tree() {
     selected="$(hm_gen_selected "$p_name" 2>/dev/null || true)"
     current_dir="$(hm_profile_current_dir "$p_name" 2>/dev/null || printf '')"
     printf '%s%s%s  %s%s%s  %sselected:%s %s%s%s' \
-      "$HM_C_OUT_CYAN" "$p_name" "$HM_C_OUT_RESET" \
+      "$HM_C_OUT_MAGENTA" "$p_name" "$HM_C_OUT_RESET" \
       "$HM_C_OUT_DIM" "$p_root" "$HM_C_OUT_RESET" \
       "$HM_C_OUT_LABEL" "$HM_C_OUT_RESET" \
-      "$HM_C_OUT_CYAN" "${selected:--}" "$HM_C_OUT_RESET"
+      "$HM_C_OUT_GREEN" "${selected:--}" "$HM_C_OUT_RESET"
     if [[ -n "$current_dir" && -d "$current_dir" ]]; then
       printf '  %s[current]%s' "$HM_C_OUT_GREEN" "$HM_C_OUT_RESET"
     fi
@@ -339,20 +339,20 @@ hm_profile_tree() {
         branch="├──"
       fi
       if [[ "$style" == "status" ]]; then
-        printf '  %s%s%s %s%s%s %s%-6s%s %-21s %8s %8s %10s  %-20s %s\n' \
+        printf '  %s%s%s %s%s%s %s%-6s%s %-21s %8s %8s %10s  %-20s %s%s%s\n' \
           "$HM_C_OUT_DIM" "$branch" "$HM_C_OUT_RESET" \
           "$HM_C_OUT_GREEN" "$is_sel" "$HM_C_OUT_RESET" \
           "$HM_C_OUT_CYAN" "$gnum" "$HM_C_OUT_RESET" \
           "$(hm_format_epoch "$gcreated" || printf '%s' "$gcreated")" \
           "$gentries" "$gobjects" "$(hm_format_bytes "$gsize")" \
-          "${gname:-(unnamed)}" "${gcomment:-}"
+          "${gname:-(unnamed)}" "$HM_C_OUT_DIM" "${gcomment:-}" "$HM_C_OUT_RESET"
       else
-        printf '  %s%s%s %s%s%s %s%-6s%s %-21s %8s %8s  %s\n' \
+        printf '  %s%s%s %s%s%s %s%-6s%s %-21s %8s %8s  %s%s%s\n' \
           "$HM_C_OUT_DIM" "$branch" "$HM_C_OUT_RESET" \
           "$HM_C_OUT_GREEN" "$is_sel" "$HM_C_OUT_RESET" \
           "$HM_C_OUT_CYAN" "$gnum" "$HM_C_OUT_RESET" \
           "$(hm_format_epoch "$gcreated" || printf '%s' "$gcreated")" \
-          "$gentries" "$gobjects" "${gname:-(unnamed)}"
+          "$gentries" "$gobjects" "$HM_C_OUT_DIM" "${gname:-(unnamed)}" "$HM_C_OUT_RESET"
       fi
     done <<< "$grows"
   done <<< "$profiles"

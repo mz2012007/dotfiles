@@ -299,6 +299,12 @@ complete -c hm -n '__hm_profile_slot create 1' -a '(__fish_complete_directories)
 complete -c hm -n '__hm_profile_path_slot' -F -a '(__hm_tracked_paths)' -d 'Path to register'
 complete -c hm -n '__hm_profile_slot show 0; or __hm_profile_slot use 0; or __hm_profile_slot delete 0' -a '(__hm_profile_names)' -d 'Profile name'
 complete -c hm -n '__hm_profile_slot rename 0; or __hm_profile_slot rename 1' -a '(__hm_profile_names)' -d 'Profile name'
+complete -c hm -n '__hm_profile_has_subcommand create' -l help -s h -d 'Show the usage of profile create'
+complete -c hm -n '__hm_profile_has_subcommand add' -l help -s h -d 'Show the usage of profile add'
+complete -c hm -n '__hm_profile_has_subcommand list' -l help -s h -d 'Show the usage of profile list'
+complete -c hm -n '__hm_profile_has_subcommand show' -l help -s h -d 'Show the usage of profile show'
+complete -c hm -n '__hm_profile_has_subcommand use' -l help -s h -d 'Show the usage of profile use'
+complete -c hm -n '__hm_profile_has_subcommand rename' -l help -s h -d 'Show the usage of profile rename'
 complete -c hm -n '__hm_profile_has_subcommand delete; or __hm_profile_has_subcommand rename' -l yes -s y -d 'Do not ask for a confirmation'
 complete -c hm -n '__hm_profile_has_subcommand delete' -l force -d 'Delete the history as well'
 
@@ -370,6 +376,7 @@ complete -c hm -n '__hm_is_command apply; and __hm_positional_slot apply' -a '(_
 
 # discard
 complete -c hm -n '__hm_is_command discard' -l help -s h -d 'Show the usage of the command'
+complete -c hm -n '__hm_is_command discard' -l profile -r -f -a '(__hm_profile_names)' -d 'Profile of the current tree'
 
 # backup
 complete -c hm -n '__hm_is_command backup' -l help -s h -d 'Show the usage of the command'

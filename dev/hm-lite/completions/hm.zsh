@@ -168,7 +168,7 @@ _hm_is_value_option() {
     list:--generation | list:--profile)
       return 0
       ;;
-    add:--profile | status:--profile | apply:--profile)
+    add:--profile | status:--profile | apply:--profile | discard:--profile)
       return 0
       ;;
     show:--profile | diff:--profile | switch:--profile | delete:--profile)
@@ -224,8 +224,15 @@ _hm_options() {
   local profile_subcommand="${2:-}"
 
   case $1 in
-    init | discard | backup)
+    init | backup)
       options=(
+        '-h:Show the usage of the command'
+        '--help:Show the usage of the command'
+      )
+      ;;
+    discard)
+      options=(
+        '--profile:Profile of the current tree'
         '-h:Show the usage of the command'
         '--help:Show the usage of the command'
       )
