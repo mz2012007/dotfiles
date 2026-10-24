@@ -190,7 +190,7 @@ bind \cq $HOME/.config/tmux/templates/template2
 
 if status is-login; and tty | string match -qr '^/dev/tty[0-9]+$'; and not pgrep -x Hyprland >/dev/null
 
-    exec dbus-run-session start-hyprland
+    #    exec dbus-run-session start-hyprland
 end
 
 if status is-login; and tty | string match -qr '^/dev/tty[0-9]+$'
@@ -198,7 +198,12 @@ if status is-login; and tty | string match -qr '^/dev/tty[0-9]+$'
     setfont -d
 end
 
+if status is-interactive
+    set -gx GPG_TTY (tty)
+end
+
 # opencode
 fish_add_path /home/mz/.opencode/bin
-fish_add_path /home/mz/dev/hm-lite
+#fish_add_path /home/mz/dev/hm-lite
+fish_add_path /home/mz/hm-lite-last/
 fish_add_path /home/mz/dev/update_system/

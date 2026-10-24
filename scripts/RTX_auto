@@ -1,0 +1,15 @@
+#/usr/bin/env bash
+
+for dev in 0000:01:00.0 0000:01:00.1; do
+    echo auto | sudo tee "/sys/bus/pci/devices/$dev/power/control"
+done
+
+ sleep 5
+
+for dev in 0000:01:00.0 0000:01:00.1; do
+    echo "=== $dev ==="
+    printf 'Control: '
+    cat "/sys/bus/pci/devices/$dev/power/control"
+    printf 'Status: '
+    cat "/sys/bus/pci/devices/$dev/power/runtime_status"
+done

@@ -2698,12 +2698,20 @@ sudo virsh -c qemu:///system autostart --disable win11
 
 /etc/udev/rules.d/70-nvidia.rules
 
-
+OLLAMA_HOST=0.0.0.0 ollama serve
 ollama ps
 ollama show --modelfile qwen3.5:9b > Modelfile.qwen3.5-gpu
 ollama create qwen3.5-gpu -f Modelfile.qwen3.5-gpu
 ollama launch claude --model qwen3.5-gpu
 
+docker run -d \
+               -p 3000:8080 \
+               --add-host=host.docker.internal:host-gateway \
+               -v open-webui:/app/backend/data \
+               -e OLLAMA_BASE_URL=http://host.docker.internal:11434 \
+               --name open-webui \
+               --restart always \
+               ghcr.io/open-webui/open-webui:main
 
 
 sudo xbps-install -S base-devel git meson ninja glm hyprland-devel
@@ -2729,3 +2737,296 @@ winapps-setup --user --add-apps
 
 sudo lshw -C memory
 sudo dmidecode --type memory
+sudo dmidecode -s system-serial-number
+
+
+sudo xbps-install -S v4l-utils
+v4l2-ctl --list-devices
+sudo xbps-install -S v4l-utils mpv
+
+for dev in /dev/video*; do
+    echo "===== $dev ====="
+    v4l2-ctl -d "$dev" --info
+    v4l2-ctl -d "$dev" --list-formats-ext
+done
+#obs on dgpu
+prime-run obs
+
+
+sudo env PATH=/usr/bin:/usr/sbin:/bin:/sbin \
+    dkms autoinstall -k 7.2.11_1
+
+
+
+sudo xbps-install -S mesa-vulkan-radeon
+
+
+
+sudo fuser -v /dev/nvidia-uvm
+
+
+--------
+cd ~/Downloads/nvidia/NVIDIA-Linux-x86_64-620.70.06/kernel
+
+--
+cp nvidia/nv-clk.c nvidia/nv-clk.c.orig
+
+python3 - <<'PY'
+from pathlib import Path
+
+path = Path("nvidia/nv-clk.c")
+source = path.read_text()
+
+old = """#include <soc/tegra/bpmp-abi.h>
+#include <soc/tegra/bpmp.h>"""
+
+new = """#if IS_ENABLED(CONFIG_TEGRA_BPMP)
+#include <soc/tegra/bpmp-abi.h>
+#include <soc/tegra/bpmp.h>
+#endif // IS_ENABLED(CONFIG_TEGRA_BPMP)"""
+
+if source.count(old) != 1:
+    raise SystemExit("Expected include block not found exactly once")
+
+path.write_text(source.replace(old, new))
+print("Patch applied successfully")
+PY
+
+--
+
+diff -u nvidia/nv-clk.c.orig nvidia/nv-clk.c
+--
+
+make -j"$(nproc)" \
+    SYSSRC="/lib/modules/$(uname -r)/build" \
+    SYSOUT="/lib/modules/$(uname -r)/build" \
+    NV_KERNEL_MODULES="nvidia"
+--
+sudo install -D -m 0644 nvidia.ko \
+    "/lib/modules/$(uname -r)/kernel/drivers/video/nvidia.ko"
+
+sudo depmod -a "$(uname -r)"
+--
+modinfo nvidia | grep -E '^(filename|version|vermagic):'
+--
+KVER="$(uname -r)"
+MODDIR="/lib/modules/$KVER/kernel/drivers/video"
+
+echo "=== Loaded driver ==="
+cat /sys/module/nvidia/version
+
+echo "=== Newly built module ==="
+modinfo -F version ./nvidia.ko
+
+echo "=== Installed uncompressed module ==="
+modinfo -F version "$MODDIR/nvidia.ko"
+
+echo "=== Existing compressed module ==="
+modinfo -F version "$MODDIR/nvidia.ko.zst" 2>/dev/null
+
+echo "=== NVIDIA modules on disk ==="
+find "/lib/modules/$KVER" -type f \
+    \( -name 'nvidia*.ko' -o -name 'nvidia*.ko.zst' \) -print
+--
+
+cd ~/Downloads/nvidia/NVIDIA-Linux-x86_64-620.70.06/kernel
+
+make -j"$(nproc)" \
+    SYSSRC="/lib/modules/$(uname -r)/build" \
+    SYSOUT="/lib/modules/$(uname -r)/build"
+--
+find . -maxdepth 3 -type f -name '*.ko' -print
+--
+find . -maxdepth 3 -type f -name '*.ko' -exec sh -c '
+    for module do
+        printf "%-25s %s\n" "$(basename "$module")" "$(modinfo -F version "$module")"
+    done
+' sh {} +
+--
+KVER="$(uname -r)"
+MODDIR="/lib/modules/$KVER/kernel/drivers/video"
+
+for module in nvidia nvidia-uvm nvidia-modeset nvidia-drm nvidia-peermem; do
+    sudo install -m 0644 "$module.ko" "$MODDIR/$module.ko"
+done
+
+sudo depmod -a "$KVER"
+--
+for module in nvidia nvidia-uvm nvidia-modeset nvidia-drm nvidia-peermem; do
+    printf "%-20s " "$module"
+    modinfo -F version "$module"
+done
+--
+nvidia-smi
+cat /sys/module/nvidia/version
+
+ldconfig -p | grep -E 'libcuda.so.1|libnvidia-ml.so.1'
+--
+KVER="$(uname -r)"
+
+for module in nvidia nvidia-uvm nvidia-modeset nvidia-drm nvidia-peermem; do
+    echo "=== $module ==="
+    modinfo -n "$module"
+    modinfo -F version "$module"
+done
+
+echo "=== Installed module files ==="
+ls -lh /lib/modules/"$KVER"/kernel/drivers/video/nvidia*
+--
+KVER="$(uname -r)"
+MODDIR="/lib/modules/$KVER/kernel/drivers/video"
+
+sudo rm "$MODDIR/nvidia.ko.zst"
+sudo rm "$MODDIR/nvidia-uvm.ko.zst"
+sudo rm "$MODDIR/nvidia-modeset.ko.zst"
+sudo rm "$MODDIR/nvidia-drm.ko.zst"
+
+sudo depmod -a "$KVER"
+--
+for module in nvidia nvidia-uvm nvidia-modeset nvidia-drm nvidia-peermem; do
+    echo "=== $module ==="
+    modinfo -n "$module"
+    modinfo -F version "$module"
+done
+--
+cd ~/Downloads/nvidia
+
+./NVIDIA-Linux-x86_64-620.70.06.run --advanced-options \
+    | grep -E -A 3 -- '--no-kernel-modules|--no-drm|--no-questions|--silent'
+--
+echo "=== NVIDIA package dependencies ==="
+
+for pkg in \
+    nvidia-595.112.07_2 \
+    nvidia-dkms-595.112.07_2 \
+    nvidia-firmware-595.112.07_2 \
+    nvidia-libs-595.112.07_2 \
+    nvidia-gtklibs-595.112.07_2
+do
+    echo "=== $pkg ==="
+    xbps-query -x "$pkg"
+done
+--
+sudo ./NVIDIA-Linux-x86_64-620.70.06.run \
+    --no-kernel-modules \
+    --no-questions
+--
+
+#######
+sh NVIDIA-Linux-x86_64-620.70.06.run --extract-only
+--
+find NVIDIA-Linux-x86_64-620.70.06 -maxdepth 3 \
+                        \( -iname '*open*' -o -iname '*kernel*' -o -name 'Makefile' \) \
+                        -print
+--
+cd ~/Downloads/nvidia/NVIDIA-Linux-x86_64-620.70.06/kernel-open
+
+make -j"$(nproc)" \
+    SYSSRC="/lib/modules/$(uname -r)/build" \
+    SYSOUT="/lib/modules/$(uname -r)/build"
+--
+
+#######
+cd ~/Downloads/nvidia
+
+sh NVIDIA-Linux-x86_64-620.70.06.run --extract-only
+
+cd NVIDIA-Linux-x86_64-620.70.06
+---
+cd kernel-open
+
+cp nvidia/nv-clk.c nvidia/nv-clk.c.orig
+
+python3 - <<'PY'
+from pathlib import Path
+
+path = Path("nvidia/nv-clk.c")
+source = path.read_text()
+
+old = """#include <soc/tegra/bpmp-abi.h>
+#include <soc/tegra/bpmp.h>"""
+
+new = """#if IS_ENABLED(CONFIG_TEGRA_BPMP)
+#include <soc/tegra/bpmp-abi.h>
+#include <soc/tegra/bpmp.h>
+#endif // IS_ENABLED(CONFIG_TEGRA_BPMP)"""
+
+if source.count(old) != 1:
+    raise SystemExit("Expected include block not found exactly once")
+
+path.write_text(source.replace(old, new))
+print("Patch applied successfully")
+PY
+
+diff -u nvidia/nv-clk.c.orig nvidia/nv-clk.c
+-----
+cd ~/Downloads/nvidia/NVIDIA-Linux-x86_64-620.70.06/kernel-open
+make -j"$(nproc)" \
+    SYSSRC="/lib/modules/$(uname -r)/build" \
+    SYSOUT="/lib/modules/$(uname -r)/build"
+----
+find . -maxdepth 3 -type f -name '*.ko' -exec sh -c '
+    for module do
+        printf "%-25s %s\n" "$(basename "$module")" "$(modinfo -F version "$module")"
+    done
+' sh {} +
+----
+KVER="$(uname -r)"
+MODDIR="/lib/modules/$KVER/kernel/drivers/video"
+
+for module in nvidia nvidia-uvm nvidia-modeset nvidia-drm nvidia-peermem; do
+    sudo install -D -m 0644 "$module.ko" "$MODDIR/$module.ko"
+done
+
+sudo depmod -a "$KVER"
+-----
+for module in nvidia nvidia-uvm nvidia-modeset nvidia-drm nvidia-peermem; do
+    echo "=== $module ==="
+    modinfo -n "$module"
+    modinfo -F version "$module"
+done
+-----
+sudo modprobe nvidia
+sudo modprobe nvidia-uvm
+sudo modprobe nvidia-modeset
+sudo modprobe nvidia-drm
+-----
+cd ~/Downloads/nvidia
+
+sudo ./NVIDIA-Linux-x86_64-620.70.06.run \
+    --no-kernel-modules \
+    --no-questions
+-----
+-------
+
+
+
+
+sudo dracut --force --regenerate-all
+----
+sudo reboot
+----
+uname -r
+
+nvidia-smi
+
+cat /sys/module/nvidia/version
+
+for module in nvidia nvidia-uvm nvidia-modeset nvidia-drm nvidia-peermem; do
+    echo "=== $module ==="
+    modinfo -F version "$module"
+    modinfo -n "$module"
+done
+---
+
+
+
+ sudo dmidecode -s system-product-name
+         sudo dmidecode -s baseboard-product-name
+         sudo dmidecode -s system-version
+GIGABYTE GAMING A16 3VH
+GIGABYTE GAMING A16 3VH
+-CF
+
+
+git log --oneline --graph --decorate --all -20

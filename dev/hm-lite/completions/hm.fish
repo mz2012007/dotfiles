@@ -351,7 +351,11 @@ complete -c hm -n '__hm_is_command show; and __hm_positional_slot show' -a '(__h
 complete -c hm -n '__hm_is_command diff' -l help -s h -d 'Show the usage of the command'
 complete -c hm -n '__hm_is_command diff' -l profile -r -f -a '(__hm_profile_names)' -d 'Profile of the generations'
 complete -c hm -n '__hm_is_command diff' -l all -d 'Show the entries that did not change'
-complete -c hm -n '__hm_is_command diff' -a '(__hm_generation_ids)' -d 'Identifier of the generation'
+complete -c hm -n '__hm_is_command diff' -n 'not __fish_seen_subcommand_from details' -a 'details' -d 'Show detailed per-entry comparison'
+complete -c hm -n '__hm_is_command diff' -n '__fish_seen_subcommand_from details' -l profile -r -f -a '(__hm_profile_names)' -d 'Profile of the generations'
+complete -c hm -n '__hm_is_command diff' -n '__fish_seen_subcommand_from details' -l help -s h -d 'Show the usage of the command'
+complete -c hm -n '__hm_is_command diff' -n 'not __fish_seen_subcommand_from details' -a '(__hm_generation_ids)' -d 'Identifier of the generation'
+complete -c hm -n '__hm_is_command diff' -n '__fish_seen_subcommand_from details' -a '(__hm_generation_ids)' -d 'Identifier of the generation'
 
 # edit
 complete -c hm -n '__hm_is_command edit' -l help -s h -d 'Show the usage of the command'

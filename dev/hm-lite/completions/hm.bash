@@ -183,7 +183,7 @@ _hm_command_options() {
       printf '%s\n' --profile= -h --help
       ;;
     diff)
-      printf '%s\n' --profile= --all -h --help
+      printf '%s\n' --profile= --all details -h --help
       ;;
     edit)
       printf '%s\n' --profile= --name= --comment= --clear-name --clear-comment --yes -y -h --help
@@ -283,6 +283,9 @@ _hm_complete_option() {
       ;;
     profile:rename)
       entries=(--yes -y -h --help)
+      ;;
+    diff:details)
+      entries=(--profile= -h --help)
       ;;
     *)
       mapfile -t entries < <(_hm_command_options "$command")

@@ -28,11 +28,15 @@
 _diff_usage() {
   cat <<'EOF'
 Usage: hm diff [--profile NAME] <generation> <generation> [<generation>...]
+       hm diff details [--profile NAME] <generation> <generation>
 
 Compare the entries of two or more generations.
 
 The generations are compared in the given order, every consecutive pair is
 one comparison.
+
+Subcommands:
+  details        Show detailed per-entry comparison between two generations
 
 Options:
   --profile NAME Resolve the local numbers in the profile
@@ -172,6 +176,85 @@ _diff_pair() {
     "$unchanged"
 }
 
+# _diff_pair_details FROM TO
+# Print detailed per-entry comparison between two generations.
+_diff_pair_details() {
+  local from="$1" to="$2"
+  local -A old=() new=()
+  local keys encoded path old_record new_record
+  local o_type o_hash o_mode o_uid o_gid o_size
+  local n_type n_hash n_mode n_uid n_gid n_size
+  local added=0 removed=0 changed=0 unchanged=0 from_number to_number
+
+  _diff_load "$from" old
+  _diff_load "$to" new
+
+  from_number="$(hm_gen_number "$from")"
+  to_number="$(hm_gen_number "$to")"
+
+  keys="$(printf '%s\n' "${!old[@]}" "${!new[@]}" | sort -u)"
+
+  printf '%sHM-Lite diff --details%s\n' "$HM_C_OUT_HEADING" "$HM_C_OUT_RESET"
+  printf 'Generation %s%s%s -> %s%s%s\n' \
+    "$HM_C_OUT_CYAN" "$from_number" "$HM_C_OUT_RESET" \
+    "$HM_C_OUT_CYAN" "$to_number" "$HM_C_OUT_RESET"
+  printf '\n'
+
+  printf '%s%-48s %-12s %-12s %-10s %-12s %s%s\n' "$HM_C_OUT_HEADING" \
+    "PATH" "TYPE" "MODE" "OWNER" "SIZE" "HASH" "$HM_C_OUT_RESET"
+  printf '\n'
+
+  while IFS= read -r encoded; do
+    [[ -n "$encoded" ]] || continue
+
+    old_record="${old[$encoded]:-}"
+    new_record="${new[$encoded]:-}"
+    hm_hex_decode path "$encoded"
+    local_display="$(hm_path_display "$path")"
+
+    if [[ -z "$old_record" ]]; then
+      IFS="$HM_FIELD_SEP" read -r n_type n_hash n_mode n_uid n_gid _n_mtime n_size <<< "$new_record"
+      added=$((added + 1))
+      printf '  %s+ %s%s\n' "$HM_C_OUT_GREEN" "$local_display" "$HM_C_OUT_RESET"
+      printf '    %s%-12s %-12s %s:%s %-12s %s\n' \
+        "$HM_C_OUT_DIM" "$n_type" "$(_diff_mode "$n_mode")" "$n_uid" "$n_gid" \
+        "$n_size" "${n_hash:0:12}$HM_C_OUT_RESET"
+      continue
+    fi
+
+    if [[ -z "$new_record" ]]; then
+      IFS="$HM_FIELD_SEP" read -r o_type o_hash o_mode o_uid o_gid _o_mtime o_size <<< "$old_record"
+      removed=$((removed + 1))
+      printf '  %s- %s%s\n' "$HM_C_OUT_RED" "$local_display" "$HM_C_OUT_RESET"
+      printf '    %s%-12s %-12s %s:%s %-12s %s\n' \
+        "$HM_C_OUT_DIM" "$o_type" "$(_diff_mode "$o_mode")" "$o_uid" "$o_gid" \
+        "$o_size" "${o_hash:0:12}$HM_C_OUT_RESET"
+      continue
+    fi
+
+    IFS="$HM_FIELD_SEP" read -r o_type o_hash o_mode o_uid o_gid _o_mtime o_size <<< "$old_record"
+    IFS="$HM_FIELD_SEP" read -r n_type n_hash n_mode n_uid n_gid _n_mtime n_size <<< "$new_record"
+
+    if [[ "$o_type" != "$n_type" || "$o_hash" != "$n_hash" || "$o_mode" != "$n_mode" || "$o_uid" != "$n_uid" || "$o_gid" != "$n_gid" || "$o_size" != "$n_size" ]]; then
+      changed=$((changed + 1))
+      printf '  %s~ %s%s\n' "$HM_C_OUT_YELLOW" "$local_display" "$HM_C_OUT_RESET"
+      printf '    %s%-12s %-12s %s:%s -> %s:%s %-12s -> %-12s %s\n' \
+        "$HM_C_OUT_DIM" "$n_type" "$(_diff_mode "$n_mode")" "$o_uid" "$o_gid" "$n_uid" "$n_gid" \
+        "$n_size" "$o_size" "${n_hash:0:12}$HM_C_OUT_RESET"
+    else
+      unchanged=$((unchanged + 1))
+      printf '  %s= %s%s\n' "$HM_C_OUT_DIM" "$local_display" "$HM_C_OUT_RESET"
+    fi
+  done <<< "$keys"
+
+  printf '\n'
+  printf '  %s%d added%s, %s%d removed%s, %s%d changed%s, %d unchanged\n' \
+    "$HM_C_OUT_GREEN" "$added" "$HM_C_OUT_RESET" \
+    "$HM_C_OUT_RED" "$removed" "$HM_C_OUT_RESET" \
+    "$HM_C_OUT_YELLOW" "$changed" "$HM_C_OUT_RESET" \
+    "$unchanged"
+}
+
 # --- The command -----------------------------------------------------------
 
 # diff GENERATION... - compare the entries of the given generations.
@@ -180,6 +263,62 @@ diff() {
   local profile_arg="" profile
   local -a generations=()
   local argument id index duplicate
+
+  if [[ "${1:-}" == "details" ]]; then
+    shift
+    local -a args=()
+    while [[ $# -gt 0 ]]; do
+      argument="$1"
+      case "$argument" in
+        --profile)
+          [[ $# -ge 2 ]] || hm_die "$HM_EX_USAGE" "--profile requires a value."
+          profile_arg="$2"
+          shift 2
+          ;;
+        --profile=*)
+          profile_arg="${argument#*=}"
+          shift
+          ;;
+        -h | --help)
+          _diff_usage
+          return 0
+          ;;
+        -*)
+          hm_die "$HM_EX_USAGE" "Unknown option for 'hm diff': $argument"
+          ;;
+        *)
+          args+=("$argument")
+          shift
+          ;;
+      esac
+    done
+
+    if [[ ${#args[@]} -lt 2 ]]; then
+      hm_die "$HM_EX_USAGE" "Usage: hm diff details [--profile NAME] <generation> <generation>"
+    fi
+    if [[ ${#args[@]} -gt 2 ]]; then
+      hm_die "$HM_EX_USAGE" "Usage: hm diff details [--profile NAME] <generation> <generation>"
+    fi
+
+    hm_require_initialized
+    hm_lock_acquire shared
+
+    profile="$(hm_profile_context_name "$profile_arg")" || exit $?
+    hm_profile_require "$profile" > /dev/null
+
+    id="$(hm_gen_require "$profile" "${args[0]}")" || exit $?
+    args[0]="$((10#$id))"
+    id="$(hm_gen_require "$profile" "${args[1]}")" || exit $?
+    args[1]="$((10#$id))"
+
+    if [[ "${args[0]}" == "${args[1]}" ]]; then
+      hm_die "$HM_EX_USAGE" "The generations to compare must be distinct."
+    fi
+
+    hm_log_debug "Comparing the generations: ${args[*]}."
+    _diff_pair_details "${args[0]}" "${args[1]}"
+    return 0
+  fi
 
   while [[ $# -gt 0 ]]; do
     argument="$1"

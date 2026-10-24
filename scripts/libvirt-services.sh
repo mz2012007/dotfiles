@@ -5,8 +5,6 @@ SERVICE_DIR="/etc/sv"
 RUN_DIR="/var/service"
 
 SERVICES=(
-  libvirtd
-  libvirt-generic
   virtinterfaced
   virtlockd
   virtlogd
@@ -19,7 +17,6 @@ SERVICES=(
   virtsecretd
   virtstoraged
   virtvboxd
-  virtxend
 )
 
 if ((EUID != 0)); then

@@ -285,12 +285,24 @@ _hm_options() {
       )
       ;;
     diff)
-      options=(
-        '--profile:Profile to use'
-        '--all:Show the entries that did not change'
-        '-h:Show the usage of the command'
-        '--help:Show the usage of the command'
-      )
+      case $profile_subcommand in
+        details)
+          options=(
+            '--profile:Profile to use'
+            '-h:Show the usage of the command'
+            '--help:Show the usage of the command'
+          )
+          ;;
+        *)
+          options=(
+            'details:Show detailed per-entry comparison'
+            '--profile:Profile to use'
+            '--all:Show the entries that did not change'
+            '-h:Show the usage of the command'
+            '--help:Show the usage of the command'
+          )
+          ;;
+      esac
       ;;
     edit)
       options=(

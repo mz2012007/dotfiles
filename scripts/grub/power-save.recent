@@ -39,3 +39,4 @@ gigabytectl:fan-mode	gaming
 /sys/class/drm/card0/device/power_dpm_force_performance_level	low
 /sys/class/drm/card0-eDP-1/amdgpu/panel_power_savings	4
 /sys/class/drm/card0/device/power_dpm_state	performance
+/sys/class/drm/card0-eDP-2/amdgpu/panel_power_savings	0

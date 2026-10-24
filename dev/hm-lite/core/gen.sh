@@ -156,7 +156,8 @@ gen() {
   done <<< "$rows"
 
   if [[ ${#pend_paths[@]} -eq 0 ]]; then
-    hm_log_info "There are no pending paths in the profile $profile, nothing to capture."
+    hm_log_info "Nothing changed, no new generation created in the profile $profile."
+    printf '%sNothing changed, no new generation created.%s\n' "$HM_C_OUT_GREEN" "$HM_C_OUT_RESET"
     return 0
   fi
 

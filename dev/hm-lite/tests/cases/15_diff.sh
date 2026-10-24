@@ -26,6 +26,7 @@ TESTS=(
   test_diff_fails_when_a_query_fails
   test_diff_colours_the_markers
   test_diff_has_no_colour_in_a_pipe
+  test_diff_details_shows_per_entry_details
 )
 
 # _diff_fixture - three generations.
@@ -289,3 +290,22 @@ test_diff_has_no_colour_in_a_pipe() {
   assert_rc 0 "$HM_STATUS" "diff succeeds"
   assert_not_contains "$HM_OUTPUT" $'\033[' "no escape sequence is written to a pipe"
 }
+
+test_diff_details_shows_per_entry_details() {
+  _diff_fixture
+
+  run_hm diff details 1 2
+
+  assert_rc 0 "$HM_STATUS" "diff details succeeds"
+  assert_contains "$HM_OUTPUT" "PATH" "the details table has a path column"
+  assert_contains "$HM_OUTPUT" "TYPE" "the details table has a type column"
+  assert_contains "$HM_OUTPUT" "MODE" "the details table has a mode column"
+  assert_contains "$HM_OUTPUT" "OWNER" "the details table has an owner column"
+  assert_contains "$HM_OUTPUT" "SIZE" "the details table has a size column"
+  assert_contains "$HM_OUTPUT" "HASH" "the details table has a hash column"
+  assert_contains "$HM_OUTPUT" "+ $SRC_DIR/c.txt" "added paths are marked"
+  assert_contains "$HM_OUTPUT" "- $SRC_DIR/d.txt" "removed paths are marked"
+  assert_contains "$HM_OUTPUT" "~ $SRC_DIR/b.txt" "changed paths are marked"
+  assert_contains "$HM_OUTPUT" "= $SRC_DIR/a.txt" "unchanged paths are shown"
+}
+

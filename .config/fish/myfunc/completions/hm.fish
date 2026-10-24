@@ -49,18 +49,86 @@ function __hm_db_file
     echo $dir/db.sqlite
 end
 
+# __hm_context_profile
+# Print the profile that scopes a command: HM_PROFILE, the active profile,
+# then the default profile.
+function __hm_context_profile
+    if set -q HM_PROFILE; and test -n "$HM_PROFILE"
+        echo $HM_PROFILE
+        return 0
+    end
+
+    set -l db (__hm_db_file)
+    or begin
+        echo default
+        return 0
+    end
+
+    if test -f $db
+        set -l active (sqlite3 -readonly -noheader -list $db \
+            "SELECT value FROM state WHERE key = 'active_profile';" 2>/dev/null)
+        if test -n "$active"
+            echo $active
+            return 0
+        end
+    end
+
+    echo default
+end
+
 # __hm_generation_ids
-# Print the identifiers of the known generations, newest first. A missing or
-# unreadable database is not an error, it produces no output. The database is
-# opened read only, the file is never created and never modified.
+# Print the local generation numbers of the effective profile, newest first.
+# An explicit --profile on the command line wins. A missing or unreadable
+# database is not an error, it produces no output. The database is opened
+# read only, the file is never created and never modified.
 function __hm_generation_ids
     set -l db (__hm_db_file)
     or return 0
 
     test -f $db; or return 0
 
+    set -l profile (__hm_context_profile)
+    set -l tokens (commandline -opc)
+    set -l count (count $tokens)
+
+    for index in (seq 1 $count)
+        set -l token $tokens[$index]
+        switch "$token"
+            case --profile
+                set -l next (math $index + 1)
+                if test $next -le $count
+                    set profile $tokens[$next]
+                end
+            case '--profile=*'
+                set profile (string replace -- '--profile=' '' "$token")
+        end
+    end
+
+    set -l rows (sqlite3 -readonly -noheader -list $db \
+        'SELECT pr.name || char(9) || g.number
+           FROM generations g
+           JOIN profiles pr ON pr.id = g.profile_id
+          ORDER BY g.created_at DESC, g.id DESC;' 2>/dev/null)
+
+    for row in $rows
+        set -l parts (string split \t -- $row)
+        if test (count $parts) -ge 2; and test "$parts[1]" = "$profile"
+            echo $parts[2]
+        end
+    end
+end
+
+# __hm_profile_names
+# Print the names of the profiles, in name order. A missing or unreadable
+# database is not an error, it produces no output.
+function __hm_profile_names
+    set -l db (__hm_db_file)
+    or return 0
+
+    test -f $db; or return 0
+
     sqlite3 -readonly -noheader -list $db \
-        'SELECT id FROM generations ORDER BY created_at DESC, id DESC;' 2>/dev/null
+        'SELECT name FROM profiles ORDER BY name;' 2>/dev/null
 end
 
 # __hm_tracked_paths
@@ -89,6 +157,76 @@ function __hm_backup_archives
     end
 end
 
+# __hm_is_command COMMAND
+# Return 0 when COMMAND is the first subcommand of hm on the current line.
+# Unlike __fish_seen_subcommand_from this also checks the position, so the
+# arguments of "hm profile add" do not trigger the completions of "hm add".
+function __hm_is_command
+    set -l tokens (commandline -opc)
+    test (count $tokens) -ge 2; or return 1
+    test "$tokens[1]" = hm; or return 1
+    test "$tokens[2]" = "$argv[1]"
+end
+
+# __hm_profile_has_subcommand SUBCOMMAND
+# Return 0 when the line is "hm profile SUBCOMMAND ...".
+function __hm_profile_has_subcommand
+    set -l tokens (commandline -opc)
+    test (count $tokens) -ge 3; or return 1
+    test "$tokens[1]" = hm; or return 1
+    test "$tokens[2]" = profile; or return 1
+    test "$tokens[3]" = "$argv[1]"
+end
+
+# __hm_profile_subcommand_slot
+# Return 0 when the next word is the profile subcommand.
+function __hm_profile_subcommand_slot
+    set -l tokens (commandline -opc)
+    test (count $tokens) -eq 2; or return 1
+    test "$tokens[1]" = hm; or return 1
+    test "$tokens[2]" = profile
+end
+
+# __hm_profile_slot SUBCOMMAND COUNT
+# Return 0 when COUNT positional arguments follow the profile subcommand.
+# Flags and the help option are ignored, so "profile delete --force <TAB>"
+# still completes the profile name.
+function __hm_profile_slot
+    set -l expected $argv[1]
+    set -l wanted $argv[2]
+    set -l tokens (commandline -opc)
+
+    test (count $tokens) -ge 3; or return 1
+    test "$tokens[1]" = hm; or return 1
+    test "$tokens[2]" = profile; or return 1
+    test "$tokens[3]" = "$expected"; or return 1
+
+    set -l count 0
+    for token in $tokens[4..-1]
+        switch "$token"
+            case -h --help
+                return 1
+            case '-*'
+                continue
+            case '*'
+                set count (math $count + 1)
+        end
+    end
+
+    test $count -eq $wanted
+end
+
+# __hm_profile_path_slot
+# Return 0 for a path after "hm profile add <name>".
+function __hm_profile_path_slot
+    set -l tokens (commandline -opc)
+
+    test (count $tokens) -ge 4; or return 1
+    test "$tokens[1]" = hm; or return 1
+    test "$tokens[2]" = profile; or return 1
+    test "$tokens[3]" = add; or return 1
+end
+
 # ---------------------------------------------------------------------------
 # The command surface
 # ---------------------------------------------------------------------------
@@ -96,7 +234,7 @@ end
 # __hm_positional_slot SUBCOMMAND
 # Return 0 when the current token is the first positional argument of the
 # subcommand. Options that are already typed are ignored, so
-# "hm apply --dry-run <TAB>" still offers the generation identifiers.
+# "hm apply --dry-run <TAB>" still offers the local generation numbers.
 function __hm_positional_slot
     set -l expected $argv[1]
     set -l tokens (commandline -opc)
@@ -117,7 +255,7 @@ function __hm_positional_slot
         switch "$token"
             case -h --help
                 return 1
-            case --name --comment --generation
+            case --name --comment --generation --profile
                 # The option consumes the next word.
                 set skip 1
             case '-*'
@@ -135,6 +273,7 @@ end
 complete -c hm -f
 
 complete -c hm -n '__fish_use_subcommand' -a init -d 'Initialize the HM-Lite project directory'
+complete -c hm -n '__fish_use_subcommand' -a profile -d 'Manage profiles and the active context'
 complete -c hm -n '__fish_use_subcommand' -a add -d 'Register paths for the next generation'
 complete -c hm -n '__fish_use_subcommand' -a gen -d 'Create a generation from the pending paths'
 complete -c hm -n '__fish_use_subcommand' -a list -d 'Show generations, entries and pending paths'
@@ -153,74 +292,107 @@ complete -c hm -n '__fish_use_subcommand' -a help -d 'Show the usage of HM-Lite'
 complete -c hm -n '__fish_use_subcommand' -l help -s h -d 'Show the usage of HM-Lite'
 complete -c hm -n '__fish_use_subcommand' -l version -d 'Show the version of HM-Lite'
 
+# profile
+complete -c hm -n '__hm_is_command profile' -l help -s h -d 'Show the usage of the profile command'
+complete -c hm -n '__hm_profile_subcommand_slot' -a 'create add list show use rename delete help' -d 'Profile subcommand'
+complete -c hm -n '__hm_profile_slot create 1' -a '(__fish_complete_directories)' -d 'Root directory'
+complete -c hm -n '__hm_profile_path_slot' -F -a '(__hm_tracked_paths)' -d 'Path to register'
+complete -c hm -n '__hm_profile_slot show 0; or __hm_profile_slot use 0; or __hm_profile_slot delete 0' -a '(__hm_profile_names)' -d 'Profile name'
+complete -c hm -n '__hm_profile_slot rename 0; or __hm_profile_slot rename 1' -a '(__hm_profile_names)' -d 'Profile name'
+complete -c hm -n '__hm_profile_has_subcommand create' -l help -s h -d 'Show the usage of profile create'
+complete -c hm -n '__hm_profile_has_subcommand add' -l help -s h -d 'Show the usage of profile add'
+complete -c hm -n '__hm_profile_has_subcommand list' -l help -s h -d 'Show the usage of profile list'
+complete -c hm -n '__hm_profile_has_subcommand show' -l help -s h -d 'Show the usage of profile show'
+complete -c hm -n '__hm_profile_has_subcommand use' -l help -s h -d 'Show the usage of profile use'
+complete -c hm -n '__hm_profile_has_subcommand rename' -l help -s h -d 'Show the usage of profile rename'
+complete -c hm -n '__hm_profile_has_subcommand delete' -l help -s h -d 'Show the usage of profile delete'
+complete -c hm -n '__hm_profile_has_subcommand rename' -l help -s h -d 'Show the usage of profile rename'
+complete -c hm -n '__hm_profile_has_subcommand delete; or __hm_profile_has_subcommand rename' -l yes -s y -d 'Do not ask for a confirmation'
+complete -c hm -n '__hm_profile_has_subcommand delete' -l force -d 'Delete the history as well'
+
 # init
-complete -c hm -n '__fish_seen_subcommand_from init' -l help -s h -d 'Show the usage of the command'
+complete -c hm -n '__hm_is_command init' -l help -s h -d 'Show the usage of the command'
 
 # add
-complete -c hm -n '__fish_seen_subcommand_from add' -l help -s h -d 'Show the usage of the command'
-complete -c hm -n '__fish_seen_subcommand_from add' -F -a '(__hm_tracked_paths)' -d 'Path that the project tracks'
+complete -c hm -n '__hm_is_command add' -l help -s h -d 'Show the usage of the command'
+complete -c hm -n '__hm_is_command add' -l profile -r -f -a '(__hm_profile_names)' -d 'Profile of the paths'
+complete -c hm -n '__hm_is_command add' -F -a '(__hm_tracked_paths)' -d 'Path that the project tracks'
 
 # gen
-complete -c hm -n '__fish_seen_subcommand_from gen' -l help -s h -d 'Show the usage of the command'
-complete -c hm -n '__fish_seen_subcommand_from gen' -l name -r -f -d 'Name of the generation'
-complete -c hm -n '__fish_seen_subcommand_from gen' -l comment -r -f -d 'Comment of the generation'
-complete -c hm -n '__fish_seen_subcommand_from gen' -l yes -s y -d 'Do not ask for a confirmation'
+complete -c hm -n '__hm_is_command gen' -l help -s h -d 'Show the usage of the command'
+complete -c hm -n '__hm_is_command gen' -l profile -r -f -a '(__hm_profile_names)' -d 'Profile of the generation'
+complete -c hm -n '__hm_is_command gen' -l name -r -f -d 'Name of the generation'
+complete -c hm -n '__hm_is_command gen' -l comment -r -f -d 'Comment of the generation'
+complete -c hm -n '__hm_is_command gen' -l yes -s y -d 'Do not ask for a confirmation'
 
 # list
-complete -c hm -n '__fish_seen_subcommand_from list' -l help -s h -d 'Show the usage of the command'
-complete -c hm -n '__fish_seen_subcommand_from list' -l generation -r -f -a '(__hm_generation_ids)' -d 'Identifier of the generation'
-complete -c hm -n '__fish_seen_subcommand_from list' -l pending -d 'Show the paths that are queued for the next generation'
-complete -c hm -n '__fish_seen_subcommand_from list' -l paths -d 'Show the tracked paths'
-complete -c hm -n '__fish_seen_subcommand_from list' -l store -d 'Show the statistics of the content store'
+complete -c hm -n '__hm_is_command list' -l help -s h -d 'Show the usage of the command'
+complete -c hm -n '__hm_is_command list' -l profile -r -f -a '(__hm_profile_names)' -d 'Profile to show'
+complete -c hm -n '__hm_is_command list' -l generation -r -f -a '(__hm_generation_ids)' -d 'Identifier of the generation'
+complete -c hm -n '__hm_is_command list' -l pending -d 'Show the paths that are queued for the next generation'
+complete -c hm -n '__hm_is_command list' -l paths -d 'Show the tracked paths'
+complete -c hm -n '__hm_is_command list' -l store -d 'Show the statistics of the content store'
 
 # switch
-complete -c hm -n '__fish_seen_subcommand_from switch' -l help -s h -d 'Show the usage of the command'
-complete -c hm -n '__fish_seen_subcommand_from switch; and __hm_positional_slot switch' -a '(__hm_generation_ids)' -d 'Identifier of the generation'
+complete -c hm -n '__hm_is_command switch' -l help -s h -d 'Show the usage of the command'
+complete -c hm -n '__hm_is_command switch' -l profile -r -f -a '(__hm_profile_names)' -d 'Profile of the generation'
+complete -c hm -n '__hm_is_command switch; and __hm_positional_slot switch' -a '(__hm_generation_ids)' -d 'Identifier of the generation'
 
 # status
-complete -c hm -n '__fish_seen_subcommand_from status' -l help -s h -d 'Show the usage of the command'
+complete -c hm -n '__hm_is_command status' -l help -s h -d 'Show the usage of the command'
+complete -c hm -n '__hm_is_command status' -l profile -r -f -a '(__hm_profile_names)' -d 'Profile to show'
 
 # show
-complete -c hm -n '__fish_seen_subcommand_from show' -l help -s h -d 'Show the usage of the command'
-complete -c hm -n '__fish_seen_subcommand_from show; and __hm_positional_slot show' -a '(__hm_generation_ids)' -d 'Identifier of the generation'
+complete -c hm -n '__hm_is_command show' -l help -s h -d 'Show the usage of the command'
+complete -c hm -n '__hm_is_command show' -l profile -r -f -a '(__hm_profile_names)' -d 'Profile of the generation'
+complete -c hm -n '__hm_is_command show; and __hm_positional_slot show' -a '(__hm_generation_ids)' -d 'Identifier of the generation'
 
 # diff
-complete -c hm -n '__fish_seen_subcommand_from diff' -l help -s h -d 'Show the usage of the command'
-complete -c hm -n '__fish_seen_subcommand_from diff' -l all -d 'Show the entries that did not change'
-complete -c hm -n '__fish_seen_subcommand_from diff' -a '(__hm_generation_ids)' -d 'Identifier of the generation'
+complete -c hm -n '__hm_is_command diff' -l help -s h -d 'Show the usage of the command'
+complete -c hm -n '__hm_is_command diff' -l profile -r -f -a '(__hm_profile_names)' -d 'Profile of the generations'
+complete -c hm -n '__hm_is_command diff' -l all -d 'Show the entries that did not change'
+complete -c hm -n '__hm_is_command diff' -n 'not __fish_seen_subcommand_from details' -a 'details' -d 'Show detailed per-entry comparison'
+complete -c hm -n '__hm_is_command diff' -n '__fish_seen_subcommand_from details' -l profile -r -f -a '(__hm_profile_names)' -d 'Profile of the generations'
+complete -c hm -n '__hm_is_command diff' -n '__fish_seen_subcommand_from details' -l help -s h -d 'Show the usage of the command'
+complete -c hm -n '__hm_is_command diff' -n 'not __fish_seen_subcommand_from details' -a '(__hm_generation_ids)' -d 'Identifier of the generation'
+complete -c hm -n '__hm_is_command diff' -n '__fish_seen_subcommand_from details' -a '(__hm_generation_ids)' -d 'Identifier of the generation'
 
 # edit
-complete -c hm -n '__fish_seen_subcommand_from edit' -l help -s h -d 'Show the usage of the command'
-complete -c hm -n '__fish_seen_subcommand_from edit' -l name -r -f -d 'Name of the generation'
-complete -c hm -n '__fish_seen_subcommand_from edit' -l comment -r -f -d 'Comment of the generation'
-complete -c hm -n '__fish_seen_subcommand_from edit' -l clear-name -d 'Remove the name of the generation'
-complete -c hm -n '__fish_seen_subcommand_from edit' -l clear-comment -d 'Remove the comment of the generation'
-complete -c hm -n '__fish_seen_subcommand_from edit' -l yes -s y -d 'Do not ask for a confirmation'
-complete -c hm -n '__fish_seen_subcommand_from edit; and __hm_positional_slot edit' -a '(__hm_generation_ids)' -d 'Identifier of the generation'
+complete -c hm -n '__hm_is_command edit' -l help -s h -d 'Show the usage of the command'
+complete -c hm -n '__hm_is_command edit' -l profile -r -f -a '(__hm_profile_names)' -d 'Profile of the generation'
+complete -c hm -n '__hm_is_command edit' -l name -r -f -d 'Name of the generation'
+complete -c hm -n '__hm_is_command edit' -l comment -r -f -d 'Comment of the generation'
+complete -c hm -n '__hm_is_command edit' -l clear-name -d 'Remove the name of the generation'
+complete -c hm -n '__hm_is_command edit' -l clear-comment -d 'Remove the comment of the generation'
+complete -c hm -n '__hm_is_command edit' -l yes -s y -d 'Do not ask for a confirmation'
+complete -c hm -n '__hm_is_command edit; and __hm_positional_slot edit' -a '(__hm_generation_ids)' -d 'Identifier of the generation'
 
 # delete
-complete -c hm -n '__fish_seen_subcommand_from delete' -l help -s h -d 'Show the usage of the command'
-complete -c hm -n '__fish_seen_subcommand_from delete' -l yes -s y -d 'Do not ask for a confirmation'
-complete -c hm -n '__fish_seen_subcommand_from delete; and __hm_positional_slot delete' -a '(__hm_generation_ids)' -d 'Identifier of the generation'
+complete -c hm -n '__hm_is_command delete' -l help -s h -d 'Show the usage of the command'
+complete -c hm -n '__hm_is_command delete' -l profile -r -f -a '(__hm_profile_names)' -d 'Profile of the generation'
+complete -c hm -n '__hm_is_command delete' -l yes -s y -d 'Do not ask for a confirmation'
+complete -c hm -n '__hm_is_command delete; and __hm_positional_slot delete' -a '(__hm_generation_ids)' -d 'Identifier of the generation'
 
 # apply
-complete -c hm -n '__fish_seen_subcommand_from apply' -l help -s h -d 'Show the usage of the command'
-complete -c hm -n '__fish_seen_subcommand_from apply' -l dry-run -d 'Show what would be written'
-complete -c hm -n '__fish_seen_subcommand_from apply' -l yes -s y -d 'Do not ask for a confirmation'
-complete -c hm -n '__fish_seen_subcommand_from apply; and __hm_positional_slot apply' -a '(__hm_generation_ids)' -d 'Identifier of the generation'
+complete -c hm -n '__hm_is_command apply' -l help -s h -d 'Show the usage of the command'
+complete -c hm -n '__hm_is_command apply' -l profile -r -f -a '(__hm_profile_names)' -d 'Profile of the selection'
+complete -c hm -n '__hm_is_command apply' -l dry-run -d 'Show what would be written'
+complete -c hm -n '__hm_is_command apply' -l yes -s y -d 'Do not ask for a confirmation'
+complete -c hm -n '__hm_is_command apply; and __hm_positional_slot apply' -a '(__hm_generation_ids)' -d 'Identifier of the generation'
 
 # discard
-complete -c hm -n '__fish_seen_subcommand_from discard' -l help -s h -d 'Show the usage of the command'
+complete -c hm -n '__hm_is_command discard' -l help -s h -d 'Show the usage of the command'
+complete -c hm -n '__hm_is_command discard' -l profile -r -f -a '(__hm_profile_names)' -d 'Profile of the current tree'
 
 # backup
-complete -c hm -n '__fish_seen_subcommand_from backup' -l help -s h -d 'Show the usage of the command'
+complete -c hm -n '__hm_is_command backup' -l help -s h -d 'Show the usage of the command'
 
 # restore
-complete -c hm -n '__fish_seen_subcommand_from restore' -l help -s h -d 'Show the usage of the command'
-complete -c hm -n '__fish_seen_subcommand_from restore' -l yes -s y -d 'Do not ask for a confirmation'
-complete -c hm -n '__fish_seen_subcommand_from restore; and __hm_positional_slot restore' -F -a '(__hm_backup_archives)' -d 'Backup archive of the project'
+complete -c hm -n '__hm_is_command restore' -l help -s h -d 'Show the usage of the command'
+complete -c hm -n '__hm_is_command restore' -l yes -s y -d 'Do not ask for a confirmation'
+complete -c hm -n '__hm_is_command restore; and __hm_positional_slot restore' -F -a '(__hm_backup_archives)' -d 'Backup archive of the project'
 
 # clean
-complete -c hm -n '__fish_seen_subcommand_from clean' -l help -s h -d 'Show the usage of the command'
-complete -c hm -n '__fish_seen_subcommand_from clean' -l dry-run -d 'Show what would be removed'
-complete -c hm -n '__fish_seen_subcommand_from clean' -l yes -s y -d 'Do not ask for a confirmation'
+complete -c hm -n '__hm_is_command clean' -l help -s h -d 'Show the usage of the command'
+complete -c hm -n '__hm_is_command clean' -l dry-run -d 'Show what would be removed'
+complete -c hm -n '__hm_is_command clean' -l yes -s y -d 'Do not ask for a confirmation'

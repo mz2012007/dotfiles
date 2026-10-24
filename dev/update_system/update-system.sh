@@ -19,6 +19,9 @@ MODULES=(
   "dust"
   "artcraft"
   "opencode-desktop"
+  "vscode"
+  "claude-desktop"
+  "localsend"
 )
 
 # ============ Dispatcher ============

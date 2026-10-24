@@ -115,6 +115,10 @@ sound_pipewire=(
   wireplumber
 )
 
+mail=(
+  Thunderbird
+)
+
 blutouth=(
   bluez
   blueman

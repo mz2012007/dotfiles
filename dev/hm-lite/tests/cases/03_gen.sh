@@ -106,7 +106,8 @@ test_gen_without_pending_paths_does_nothing() {
   run_hm gen
 
   assert_rc 0 "$HM_STATUS" "gen succeeds without pending paths"
-  assert_contains "$HM_OUTPUT" "no pending paths" "the command explains the situation"
+  assert_contains "$HM_OUTPUT" "Nothing changed" "the command explains the situation"
+  assert_contains "$HM_OUTPUT" "no new generation" "no new generation is created"
   assert_sql "0" "SELECT COUNT(*) FROM generations;" "no generation was created"
 }
 

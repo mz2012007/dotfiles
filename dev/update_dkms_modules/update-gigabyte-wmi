@@ -1,0 +1,243 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+
+readonly MODULE="aorus-laptop"
+readonly REPO="${GIGABYTE_WMI_REPO:-$HOME/gigabyte-laptop-wmi}"
+readonly SAFE_PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+TEMP_DIR=""
+VERSION=""
+KERNELS=()
+
+log() {
+    printf '\n[%s] %s\n' "$(date '+%H:%M:%S')" "$*"
+}
+
+die() {
+    printf '\n[ERROR] %s\n' "$*" >&2
+    exit 1
+}
+
+cleanup() {
+    [[ -n "$TEMP_DIR" && -d "$TEMP_DIR" ]] && rm -rf -- "$TEMP_DIR"
+}
+
+trap cleanup EXIT
+
+root_cmd() {
+    sudo env PATH="$SAFE_PATH" "$@"
+}
+
+require_commands() {
+    local command
+
+    for command in git dkms make tar sed awk grep sort; do
+        command -v "$command" >/dev/null 2>&1 ||
+            die "Required command not found: $command"
+    done
+
+    [[ -d "$REPO/.git" ]] ||
+        die "Git repository not found: $REPO"
+
+    sudo -v
+}
+
+check_repository() {
+    log "Checking repository state"
+
+    if [[ -n "$(git -C "$REPO" status --porcelain)" ]]; then
+        git -C "$REPO" status --short
+        die "Repository has local changes. Commit or restore them first."
+    fi
+}
+
+update_repository() {
+    log "Updating Git repository"
+
+    git -C "$REPO" pull --ff-only
+
+    VERSION="$(git -C "$REPO" describe --tags --always)"
+
+    [[ -n "$VERSION" ]] ||
+        die "Could not determine package version"
+
+    log "Source version: $VERSION"
+}
+
+detect_kernels() {
+    local directory
+    local kernel
+
+    log "Detecting installed kernels"
+
+    for directory in /lib/modules/*; do
+        [[ -d "$directory" ]] || continue
+
+        kernel="${directory##*/}"
+
+        [[ -f "$directory/build/Makefile" ]] ||
+            die "Missing kernel headers for $kernel"
+
+        KERNELS+=("$kernel")
+    done
+
+    ((${#KERNELS[@]} > 0)) ||
+        die "No installed kernels with headers found"
+
+    printf 'Target kernels:\n'
+
+    printf '  %s\n' "${KERNELS[@]}"
+}
+
+prepare_tarball() {
+    log "Preparing DKMS source archive"
+
+    TEMP_DIR="$(mktemp -d)"
+
+    local staging="$TEMP_DIR/source"
+
+    mkdir -p "$staging"
+
+    for file in Makefile aorus-laptop.c dkms.conf; do
+        [[ -f "$REPO/$file" ]] ||
+            die "Missing source file: $file"
+
+        cp "$REPO/$file" "$staging/$file"
+    done
+
+    sed -i \
+        "s/@PKGVER@/$VERSION/g" \
+        "$staging/dkms.conf"
+
+    grep -Fq "PACKAGE_VERSION=\"$VERSION\"" "$staging/dkms.conf" ||
+        die "Failed to configure DKMS package version"
+
+    tar -czf "$TEMP_DIR/driver.tar.gz" \
+        -C "$staging" \
+        Makefile aorus-laptop.c dkms.conf
+
+    log "Archive created successfully"
+}
+
+register_module() {
+    log "Registering DKMS module"
+
+    local status
+
+    status="$(root_cmd dkms status)"
+
+    if grep -Fq "$MODULE/$VERSION," <<< "$status"; then
+        log "Version already registered: $VERSION"
+    else
+        root_cmd dkms ldtarball "$TEMP_DIR/driver.tar.gz"
+    fi
+}
+
+install_module() {
+    local kernel
+
+    log "Building and installing module"
+
+    for kernel in "${KERNELS[@]}"; do
+        log "Installing for kernel $kernel"
+
+        root_cmd dkms install \
+            -m "$MODULE" \
+            -v "$VERSION" \
+            -k "$kernel"
+    done
+}
+
+verify_installation() {
+    log "Verifying DKMS installation"
+
+    local status
+    local kernel
+
+    status="$(root_cmd dkms status)"
+
+    for kernel in "${KERNELS[@]}"; do
+        if ! grep -Fq \
+            "$MODULE/$VERSION, $kernel," <<< "$status" ||
+            ! grep -F \
+            "$MODULE/$VERSION, $kernel," <<< "$status" |
+            grep -q ': installed'; then
+
+            die "Verification failed for kernel $kernel"
+        fi
+    done
+
+    log "All target kernels have the new module installed"
+}
+
+install_module_config() {
+    log "Installing automatic module loading configuration"
+
+    [[ -f "$REPO/aorus-laptop.conf" ]] ||
+        die "Missing aorus-laptop.conf"
+
+    root_cmd install -D -m 644 \
+        "$REPO/aorus-laptop.conf" \
+        /etc/modules-load.d/aorus-laptop.conf
+}
+
+remove_old_versions() {
+    log "Removing obsolete DKMS versions"
+
+    local status
+    local old_version
+
+    status="$(root_cmd dkms status)"
+
+    while IFS= read -r old_version; do
+        [[ -n "$old_version" ]] || continue
+        [[ "$old_version" == "$VERSION" ]] && continue
+
+        log "Removing old version: $old_version"
+
+        root_cmd dkms remove \
+            -m "$MODULE" \
+            -v "$old_version" \
+            --all
+
+    done < <(
+        awk -F'[/,]' -v module="$MODULE" '
+            $1 == module { print $2 }
+        ' <<< "$status" | sort -u
+    )
+}
+
+refresh_modules() {
+    log "Refreshing module dependencies"
+
+    local kernel
+
+    for kernel in "${KERNELS[@]}"; do
+        root_cmd depmod -a "$kernel"
+    done
+}
+
+main() {
+    require_commands
+    check_repository
+    update_repository
+    detect_kernels
+    prepare_tarball
+    register_module
+    install_module
+    verify_installation
+    install_module_config
+    remove_old_versions
+    refresh_modules
+
+    log "Update completed successfully"
+
+    printf '\nVersion: %s\n' "$VERSION"
+    printf 'Kernels:\n'
+    printf '  %s\n' "${KERNELS[@]}"
+
+    printf '\nReboot is required to load the updated module.\n'
+}
+
+main "$@"

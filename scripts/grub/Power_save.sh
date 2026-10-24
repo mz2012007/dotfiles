@@ -165,7 +165,7 @@ CPU_GOVERNOR=""
 AMD_PSTATE=""
 CPU_BOOST=""
 GPU_DPM=""
-GPU_DPM_STATE=""
+#GPU_DPM_STATE=""
 PANEL_SAVINGS=""
 SCHED_NAME=""
 SCHED_MODE=""
@@ -184,7 +184,7 @@ reset_profile_vars() {
   AMD_PSTATE=""
   CPU_BOOST=""
   GPU_DPM=""
-  GPU_DPM_STATE=""
+  #  GPU_DPM_STATE=""
   PANEL_SAVINGS=""
   SCHED_NAME=""
   SCHED_MODE=""
@@ -262,8 +262,8 @@ Gpu() {
   section "iGPU"
   [[ -n "$GPU_DPM" ]] &&
     write_glob "/sys/class/drm/card*/device/power_dpm_force_performance_level" "$GPU_DPM"
-  [[ -n "$GPU_DPM_STATE" ]] &&
-    write_glob "/sys/class/drm/card*/device/power_dpm_state" "$GPU_DPM_STATE"
+  #[[ -n "$GPU_DPM_STATE" ]] &&
+  #  write_glob "/sys/class/drm/card*/device/power_dpm_state" "$GPU_DPM_STATE"
   [[ -n "$PANEL_SAVINGS" ]] &&
     write_glob "/sys/class/drm/*/amdgpu/panel_power_savings" "$PANEL_SAVINGS"
 }
@@ -432,7 +432,7 @@ profile_target_for_path() {
   */amd_pstate/status) echo "$AMD_PSTATE" ;;
   */cpufreq/boost) echo "$CPU_BOOST" ;;
   */power_dpm_force_performance_level) echo "$GPU_DPM" ;;
-  */power_dpm_state) echo "$GPU_DPM_STATE" ;;
+    # */power_dpm_state) echo "$GPU_DPM_STATE" ;;
   */panel_power_savings) echo "$PANEL_SAVINGS" ;;
   *) echo "" ;;
   esac
