@@ -74,14 +74,14 @@ export LS_COLORS='no=00:fi=00:di=00;34:ln=01;36:pi=40;33:so=01;35:do=01;35:bd=40
 #export GREP_OPTIONS='--color=auto' #deprecated
 
 # Check if ripgrep is installed
-if command -v rg &>/dev/null; then
-  # Alias grep to rg if ripgrep is installed
-  alias grep='rg'
-else
-  # Alias grep to /usr/bin/grep with GREP_OPTIONS if ripgrep is not installed
-  alias grep="/usr/bin/grep $GREP_OPTIONS"
-fi
-unset GREP_OPTIONS
+#if command -v rg &>/dev/null; then
+# Alias grep to rg if ripgrep is installed
+#  alias grep='rg'
+#else
+# Alias grep to /usr/bin/grep with GREP_OPTIONS if ripgrep is not installed
+#  alias grep="/usr/bin/grep $GREP_OPTIONS"
+#fi
+#unset GREP_OPTIONS
 
 # Color for manpages in less makes manpages a little easier to read
 export LESS_TERMCAP_mb=$'\E[01;31m'
@@ -419,12 +419,12 @@ distribution() {
   echo $dtype
 }
 
-DISTRIBUTION=$(distribution)
-if [ "$DISTRIBUTION" = "redhat" ] || [ "$DISTRIBUTION" = "arch" ]; then
-  alias cat='bat'
-else
-  alias cat='batcat'
-fi
+#DISTRIBUTION=$(distribution)
+#if [ "$DISTRIBUTION" = "redhat" ] || [ "$DISTRIBUTION" = "arch" ]; then
+#  alias cat='bat'
+#else
+#  alias cat='batcat'
+#fi
 
 # Show the current version of the operating system
 ver() {

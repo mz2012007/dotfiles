@@ -34,6 +34,8 @@ set -gx HISTTIMEFORMAT "%F %T"
 set -g fish_autosuggestion_enabled 1
 set -g fish_color_autosuggestion brblack
 
+set -Ux LIBVIRT_DEFAULT_URI 'qemu:///system'
+
 set -gx CLICOLOR 1
 
 set fzf_history_time_format %d-%m-%y
@@ -79,7 +81,8 @@ set -Ux STARSHIP_CONFIG $HOME/.config/starship/starship.toml
 fzf --fish | source
 
 # Add directories to fish_user_paths if not already present
-set -l new_paths $HOME/.config/tmux/templets/bin $HOME/.local/bin $HOME/scripts $HOME/dotfiles/.config/dwm/dwmblocks/patches
+set -l new_paths $HOME/.config/tmux/templets/bin $HOME/.local/bin $HOME/scripts $HOME/dotfiles/.config/dwm/dwmblocks/patches \
+    $HOME/scripts/grub/
 
 for p in $new_paths
     if not contains $p $fish_user_paths
@@ -171,7 +174,7 @@ bind \ct trash
 
 bind \cf tp
 
-bind \cq $HOME/.config/tmux/templates/template1
+bind \cq $HOME/.config/tmux/templates/template2
 
 #____________________________________________________________________________#
 
@@ -181,3 +184,16 @@ bind \cq $HOME/.config/tmux/templates/template1
 #if test -e /home/(whoami)/.nix-profile/etc/profile.d/nix.sh
 #    source /home/(whoami)/.nix-profile/etc/profile.d/nix.sh
 #end 
+
+if status is-login; and tty | string match -qr '^/dev/tty[0-9]+$'; and not pgrep -x Hyprland >/dev/null
+
+    exec dbus-run-session start-hyprland
+end
+
+if status is-login; and tty | string match -qr '^/dev/tty[0-9]+$'
+
+    setfont -d
+end
+
+# opencode
+fish_add_path /home/mz/.opencode/bin

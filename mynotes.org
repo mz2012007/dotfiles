@@ -18,6 +18,10 @@
   - [[#globbing][GLOBBING]]
   - [[#functions][FUNCTIONS]]
 - [[#dates][DATES]]
+- [[#apps][APPS]]
+  - [[#herdr][herdr]]
+  - [[#claude][claude]]
+  - [[#gemini][gemini]]
 
 * GIT'S PROJECTS
 All git's projects ,I care about.
@@ -496,6 +500,7 @@ easytag (gui)
 pipewire alsa-pipewire pipewire-devel  wayland-pipewire-idle-inhibit
 xbps-install -S dumb_runtime_dir
 xbps-install -S rtkit
+sudo xbps-install libspa-bluetooth
 
 xdg-desktop-portal
 mkdir $XDG_CONFIG_HOME/autostart
@@ -524,6 +529,8 @@ speaker-test -D hw:0,0 -c 2
 pacmd list-cards
 pactl list sinks short
 
+pgrep -a pipewire
+pgrep -a wireplumber
 
 ##fix pipewire
 pkill pipewire
@@ -533,6 +540,14 @@ pkill pipewire-pulse
 pipewire &
 wireplumber &
 pipewire-pulse &
+
+
+wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.5
+find /usr/share/sounds -type f -name '*.wav' | head
+pw-play /path/to/file.wav
+speaker-test -D front:Generic_1 -t wav -c 2
+speaker-test -t wav -c 2
+
 
 ##fix pulseaudio
 pulseaudio -k 
@@ -738,6 +753,8 @@ lsof /mnt/usb
 
 bluetooth ==> bluez blueman
 sudo modprobe -r btusb && sudo modprobe btusb
+sudo rfkill unblock bluetooth
+sudo usermod -aG bluetooth $USER
 bluetoothctl
 power on
 agent on 
@@ -1291,6 +1308,7 @@ find -L $HOME -type l -exec sudo rm -v {} +
 flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 
                    [ logs ]
+rsyslog
 /var/log/messages 
 /var/log/auth.log
 tail -f /var/log/messages | ccze -A | grep "ERROR"
@@ -1700,6 +1718,13 @@ echo 'add_dracutmodules+=" resume "' | sudo tee /etc/dracut.conf.d/resume.conf
 echo 'kernel_cmdline="resume=UUID=379f14be-6231-4c1c-8de5-73b47536a08b resume_offset=4126720"' | sudo tee -a /etc/dracut.conf.d/resume.conf
 
 ########################################################
+
+grep -E 'VmRSS|VmSwap|VmLck|VmPin' /proc/24775/status
+grep -E '^(Rss|Pss|Swap|SwapPss):' /proc/24775/smaps_rollup
+
+
+
+
 # ========= 1) zram =========
 lsmod | grep zram
 sudo swapoff -a
@@ -1712,7 +1737,7 @@ sudo modprobe -r zram
 sudo modprobe zram
 echo zram | sudo tee /etc/modules-load.d/zram.conf
 echo 3G | sudo tee /sys/block/zram0/disksize    #1.5*ram
-echo lz4 | sudo tee /sys/block/zram0/comp_algorithm
+echo zstd lz4 | sudo tee /sys/block/zram0/comp_algorithm
 sudo mkswap /dev/zram0
 sudo swapon /dev/zram0 -p 100
 
@@ -1720,6 +1745,36 @@ swapon --show
 zramctl
 
 ##echo $(( $(grep MemTotal /proc/meminfo | awk '{print $2}') * 1024 )) | sudo tee /sys/block/zram0/disksize
+
+
+
+
+
+
+
+
+# 1. إيقاف الـ swap الحالي
+sudo swapoff /dev/zram0
+
+# 2. إعادة ضبط الجهاز (مسح الإعدادات القديمة)
+sudo zramctl -r /dev/zram0
+
+# 3. إنشاء zram جديد بحجم ضعف الرامات (مثلاً لو عندك 4 جيجا رام، الحجم هيبقى 8 جيجا)
+# الأمر ده بيقرا حجم الرامات تلقائيًا ويضربه في 2
+sudo zramctl /dev/zram0 --algorithm zstd --size "$(($(grep -Po 'MemTotal:\s*\K\d+' /proc/meminfo) * 2))KiB"
+
+# 4. تجهيز الجهاز كـ swap وتفعيله
+sudo mkswap -U clear /dev/zram0
+sudo swapon --discard --priority 100 /dev/zram0
+
+# اعرض الاستهلاك الحالي للرام
+free -h
+
+# اعرض تفاصيل zram
+zramctl
+cat /sys/block/zram0/mm_stat
+# مثال: املأ جزء من الرام بمتغير مؤقت
+stress-ng --vm 2 --vm-bytes 12G --timeout 60s
 
 # ========= 2) swapfile (for hibernation) =========
 
@@ -1791,7 +1846,13 @@ vm.dirty_expire_centisecs = 3000
 vm.page-cluster = 0
 sudo sysctl --system
 
+       [ prave ]
+printf "repository=https://github.com/sofijacom/void-package/releases/latest/download/\n" | sudo tee /etc/xbps.d/sofijacom-void-repository.conf
+sudo xbps-install -S brave-browser
+
+
 		   [ browser in ram ]
+
 mkdir -p /dev/shm/chromium-profile
 cp -a ~/.config/chromium/*  /dev/shm/chromium-profile/
 mv  ~/.config/chromium ~/.config/chromium.bak
@@ -1919,4 +1980,740 @@ rofi -show -theme ~/.config/rofi/dmenu.rasi
 export PATH="$HOME/.nix-profile/bin:$PATH"
 export PATH="$HOME/my\ config/myroot/myhome/.config:$PATH"
 
-             
+
+* APPS
+
+** herdr
+#+begin_src bash
+chmod +x herdr-linux-x86_64
+mv herdr-linux-x86_64 ~/.local/bin/herdr
+#update
+herdr update
+#channel
+herdr channel set stable #preview
+herdr server stop
+herdr session stop <name>
+herdr session attach <name>
+#To opt into experimental live server handoff for supported running sessions
+herdr update --handoff
+
+#+end_src
+
+** claude
+#+begin_src bash
+#install
+curl -fsSL https://claude.ai/install.sh | bash #latest 
+curl -fsSL https://claude.ai/install.sh | bash -s stable #stable
+sudo npm install -g @anthropic-ai/claude-code@2.1.112
+
+#fuller health check
+claude doctor
+
+#update
+claude update
+
+#Uninstalling 
+rm -f ~/.local/bin/claude
+rm -rf ~/.local/share/claude
+sudo npm uninstall -g @anthropic-ai/claude-code
+
+#Add PATH to shell
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
+source ~/.bashrc
+
+#+end_src
+
+
+** gemini
+#+begin_src bash
+#install
+curl -fsSL https://antigravity.google/cli/install.sh | bash
+
+#+end_src
+
+
+######
+for x in /sys/class/drm/card*-*/status; do printf '%-35s ' "$x"; command cat "$x"; done
+sudo fuser -v /dev/nvidia*
+sudo lsof /dev/nvidia* 2>/dev/null
+hyprctl monitors -j
+G
+nvidia-smi --query-gpu=name,pstate,power.draw --format=csv
+cat /sys/bus/pci/devices/0000:01:00.0/power/runtime_status
+nvidia-smi
+cat /proc/driver/nvidia/gpus/0000:01:00.0/power
+for d in /sys/bus/pci/devices/0000:01:00.0 /sys/bus/pci/devices/0000:65:00.0; do echo "=== $d ==="; printf 'runtime_status: '; command cat "$d/power/runtime_status"; printf 'runtime_control: '; command cat "$d/power/control"; done
+
+
+
+
+/etc/tlp.conf
+sudo tlp-stat -s
+sudo tlp-stat -p
+sudo tlp-stat -c
+
+
+
+cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_driver
+cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_available_governors
+cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
+
+cat /sys/devices/system/cpu/cpu0/cpufreq/energy_performance_preference
+cat /sys/devices/system/cpu/cpu0/cpufreq/energy_performance_available_preferences
+
+sudo sh -c 'echo power > /sys/devices/system/cpu/cpu0/cpufreq/energy_performance_preference'
+
+cat /sys/class/drm/card1/device/power_dpm_force_performance_level 2>/dev/null
+cat /sys/class/drm/card1/device/power_dpm_state 2>/dev/null
+cat /sys/class/drm/card1/device/pp_dpm_sclk 2>/dev/null
+nvidia-smi --query-gpu=clocks.current.graphics,clocks.current.memory,pstate,power.draw --format=csv
+nvidia-smi
+cat /sys/bus/pci/devices/0000:01:00.0/power/control
+cat /sys/bus/pci/devices/0000:01:00.0/power/runtime_status
+cat /sys/bus/pci/devices/0000:01:00.0/power/runtime_suspended_time
+cat /sys/bus/pci/devices/0000:01:00.0/power/runtime_active_time
+cat /sys/class/drm/card1/device/gpu_busy_percent 2>/dev/null
+cat /sys/class/drm/card1/device/mem_busy_percent 2>/dev/null
+cat /sys/class/drm/card1/device/power/runtime_status 2>/dev/null
+sudo powertop
+sudo powertop --calibrate
+sudo powertop --time=120 --html=report.html
+cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_driver
+
+echo '1' | sudo tee /sys/module/snd_hda_intel/parameters/power_save
+
+mkdir -p ~/acpi-debug
+cd ~/acpi-debug
+
+sudo acpidump -o acpidump.dat
+acpixtract -a acpidump.dat
+iasl -d dsdt.dat
+
+for f in ssdt*.dat; do
+    iasl -d "$f"
+done
+
+rg -n -i '_PR3|_PR0|_PR1|_PR2|_OFF|_ON|_PS0|_PS1|_PS2|_PS3|nvidia|nvda|gpu|dgpu|mux|hybrid|discrete' *.dsl > acpi-gpu-search.txt
+
+wc -l acpi-gpu-search.txt
+
+less acpi-gpu-search.txt
+
+PCI0
+ └── GPP0
+      ├── PEGP
+      │    └── NVIDIA / PCIe graphics
+      │
+      └── PG00
+           ├── _ON
+           └── _OFF
+
+dsdt.dsl
+ssdt23.dsl
+ssdt9.dsl
+sed -n '7980,8060p' dsdt.dsl | wl-copy
+sed -n '9040,9120p' dsdt.dsl | wl-copy
+sed -n '9380,9450p' dsdt.dsl | wl-copy
+sed -n '540,770p' ssdt23.dsl | wl-copy
+sed -n '1030,1070p' ssdt9.dsl | wl-copy
+rg -n -B 20 -A 60 'M047' *.dsl | wl-copy
+rg -n -B 20 -A 60 'DisplayMux' *.dsl | wl-copy
+
+
+
+
+
+sudo update-initramfs -u
+sudo nano /etc/grub.d/40_custom
+menuentry "Linux — NVIDIA OFF" {
+    insmod gzio
+    insmod part_gpt
+    insmod ext2
+    search --no-floppy --fs-uuid --set=root <UUID-here>
+    linux /boot/vmlinuz-linux root=UUID=<UUID-here> rw module_blacklist=nvidia,nvidia_drm,nvidia_modeset,nvidia_uvm
+    initrd /boot/initramfs-linux.img
+}
+sudo update-grub
+lsblk -f
+
+
+
+sudo mkdir -p /usr/lib/dracut/modules.d/95nvidia-off
+sudo vim /usr/lib/dracut/modules.d/95nvidia-off/module-setup.sh
+#!/bin/bash
+
+check() {
+    return 0
+}
+
+depends() {
+    return 0
+}
+
+install() {
+    inst_multiple modprobe
+    inst_hook pre-mount 95 "$moddir/nvidia-off.sh"
+}
+
+sudo vim /usr/lib/dracut/modules.d/95nvidia-off/nvidia-off.sh
+#!/bin/sh
+
+# حمّل acpi_call
+modprobe acpi_call 2>/dev/null
+
+# لو الموديول اتحمّل، نفّذ _EJ0 عشان تطفي NVIDIA وتقفل عليها
+if [ -e /proc/acpi/call ]; then
+    echo '\_SB.PCI0.GPP0.PEGP._EJ0 1' > /proc/acpi/call
+    # سجّل النتيجة في dmesg عشان تتأكد
+    cat /proc/acpi/call > /dev/kmsg 2>/dev/null
+fi
+
+sudo chmod +x /usr/lib/dracut/modules.d/95nvidia-off/module-setup.sh
+sudo chmod +x /usr/lib/dracut/modules.d/95nvidia-off/nvidia-off.sh
+sudo vim /etc/dracut.conf.d/nvidia-off.conf
+add_dracutmodules+=" nvidia-off "
+force_drivers+=" acpi_call "
+
+sudo dracut --force
+
+sudo vim /etc/grub.d/40_custom
+menuentry "Linux — NVIDIA OFF" {
+    load_video
+    insmod gzio
+    insmod part_gpt
+    insmod ext2
+
+    # لو عندك /boot منفصل، غيّر الـ search
+    search --no-floppy --fs-uuid --set=root <UUID-ROOT>
+
+    linux /boot/vmlinuz-linux root=UUID=<UUID-ROOT> rw module_blacklist=nvidia,nvidia_drm,nvidia_modeset,nvidia_uvm
+    initrd /boot/initramfs-linux.img
+}
+lsblk -f <UUID-ROOT>
+
+sudo update-grub
+
+sudo vim /etc/modprobe.d/nvidia-off.conf
+blacklist nvidia
+blacklist nvidia_drm
+blacklist nvidia_modeset
+blacklist nvidia_uvm
+
+sudo vim /usr/local/bin/powersave-mode.sh
+#!/bin/bash
+# Power Save Mode Script for Void Linux
+# يحسّن استهلاك الطاقة بدون كسر الوظائف
+
+set -e
+
+echo "=== Power Save Mode ==="
+
+# 1. AMD GPU panel power saving
+for f in /sys/class/drm/*/amdgpu/panel_power_savings; do
+    [ -w "$f" ] && echo 2 > "$f" && echo "  panel_power_savings=2"
+done
+
+# 2. PCIe ASPM
+for f in /sys/bus/pci/devices/*/power/control; do
+    [ -w "$f" ] && echo auto > "$f" 2>/dev/null
+done
+
+# 3. USB autosuspend
+for f in /sys/bus/usb/devices/*/power/control; do
+    [ -w "$f" ] && echo auto > "$f" 2>/dev/null
+done
+
+# 4. SATA ALPM (لو SATA موجود)
+for f in /sys/class/scsi_host/host*/link_power_management_policy; do
+    [ -w "$f" ] && echo "med_power_with_dipm" > "$f" 2>/dev/null
+done
+
+# 5. NMI watchdog off
+echo 0 > /proc/sys/kernel/nmi_watchdog 2>/dev/null || true
+
+# 6. VM writeback tuning
+echo 1500 > /proc/sys/vm/dirty_writeback_centisecs
+echo 50 > /proc/sys/vm/dirty_ratio
+
+# 7. Autogroup scheduling off
+echo 0 > /proc/sys/kernel/sched_autogroup_enabled
+
+# 8. Network qdisc
+echo fq > /proc/sys/net/core/default_qdisc
+
+# 9. Audio codec power save
+echo 1 > /sys/module/snd_hda_intel/parameters/power_save 2>/dev/null || true
+for f in /sys/bus/pci/devices/*/power/control; do
+    case "$(dirname "$f" | xargs basename)" in
+        *audio*|*Audio*)
+            [ -w "$f" ] && echo auto > "$f"
+            ;;
+    esac
+done
+
+# 10. Bluetooth power save
+for f in /sys/class/bluetooth/hci*/device/power/control; do
+    [ -w "$f" ] && echo auto > "$f" 2>/dev/null
+done
+
+# 11. Wi-Fi power save
+for iface in $(ls /sys/class/net/ | grep -E '^wl'); do
+    iw dev "$iface" set power_save on 2>/dev/null && echo "  wifi $iface power_save=on"
+done
+
+# 12. CPU governor
+for f in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do
+    [ -w "$f" ] && echo powersave > "$f" 2>/dev/null
+done
+
+# 13. Energy Performance Preference
+for f in /sys/devices/system/cpu/cpu*/cpufreq/energy_performance_preference; do
+    [ -w "$f" ] && echo power > "$f" 2>/dev/null
+done
+
+echo "=== Done ==="
+
+sudo chmod +x /usr/local/bin/powersave-mode.sh
+
+sudo mkdir -p /etc/sv/powersave
+sudo vim /etc/sv/powersave/run
+
+#!/bin/sh
+exec 2>&1
+
+# انتظر شوية لحد ما كل الأجهزة تتهيأ
+sleep 5
+
+# شغّل الـ script
+/usr/local/bin/powersave-mode.sh
+
+# اقفل الخدمة (هي run-once)
+exec chpst -b powersave pause
+
+sudo chmod +x /etc/sv/powersave/run
+
+vim ~/bin/powersave-toggle.sh
+
+#!/bin/bash
+
+if [ ! -f /tmp/powersave.state ]; then
+    echo "on" > /tmp/powersave.state
+fi
+
+STATE=$(cat /tmp/powersave.state)
+
+case "$1" in
+    on|"")
+        if [ "$STATE" = "off" ]; then
+            /usr/local/bin/powersave-mode.sh
+            echo "on" > /tmp/powersave.state
+            notify-send "Power Save" "✅ Mode ON" 2>/dev/null
+        else
+            echo "Already ON"
+        fi
+        ;;
+    off)
+        # رجّع الإعدادات للوضع العادي
+        echo performance > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor 2>/dev/null
+        for f in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do
+            [ -w "$f" ] && echo performance > "$f" 2>/dev/null
+        done
+        echo on > /sys/bus/usb/devices/*/power/control 2>/dev/null
+        echo "off" > /tmp/powersave.state
+        notify-send "Power Save" "❌ Mode OFF" 2>/dev/null
+        ;;
+    status)
+        echo "Power Save: $STATE"
+        ;;
+    *)
+        echo "Usage: $0 {on|off|status}"
+        ;;
+esac
+
+chmod +x ~/bin/powersave-toggle.sh
+
+sudo tlp-stat -s
+sudo tlp-stat -p
+sudo tlp-stat -g
+
+GRUB_CMDLINE_LINUX_DEFAULT="amdgpu.runpm=-2 pcie_aspm.policy=powersupersave \
+amdgpu.ppfeaturemask=0xffffffff amdgpu.ppfeaturemask=0xffffffff
+sudo update-grub
+sudo reboot
+
+powerprofilesctl configure-action amdgpu_dpm --enable
+
+echo "low" | sudo tee /sys/class/drm/card0/device/power_dpm_force_performance_level
+
+cat /sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq 
+echo 2000000 | sudo tee /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq
+
+echo 0 | sudo tee /sys/devices/system/cpu/cpu0/cpufreq/boost
+
+echo power | sudo tee /sys/devices/system/cpu/cpu0/cpufreq/energy_performance_preference
+
+for i in /sys/class/drm/*/amdgpu/panel_power_savings; do
+    echo '2' | sudo tee "$i"
+done
+
+for i in /sys/devices/system/cpu/cpu*/cpufreq/energy_performance_preference; do
+    echo 'power' | sudo tee "$i"
+done
+
+for d in /dev/dri/*; do
+    echo "=== $d ==="
+    sudo lsof "$d" 2>/dev/null
+done
+
+sudo lsof /dev/dri/card0 2>/dev/null
+sudo lsof /dev/dri/renderD129 2>/dev/null
+sudo lsof /dev/nvidia* 2>/dev/null
+
+echo 1 > /sys/bus/pci/devices/[device-id]/remove
+exec-once echo 1 > /sys/bus/pci/rescan
+
+
+
+printf '%s\n' '\_SB.PCI0.GPP0.PEGP._EJ0 1' | sudo tee /proc/acpi/call
+printf '%s\n' '\_SB.PCI0.AMW0.WMBD 0 0x51 4' | sudo tee /proc/acpi/call
+
+#block electric
+printf '%s\n' '\_SB.PCI0.AMW0.WMBD 0 0x51 3' | sudo tee /proc/acpi/call
+
+#
+printf '%s\n' '\_SB.PCI0.GPP0.PEGP._EJ0 1' | sudo tee /proc/acpi/call
+
+#return
+echo 1 > /sys/bus/pci/rescan 2>/dev/null
+printf '%s\n' '1' | sudo tee /sys/bus/pci/rescan
+
+printf '%s\n' '\_SB.PCI0.AMW0.WMBD 0 0x51 4' | sudo tee /proc/acpi/call
+modprobe nvidia
+modprobe nvidia_modeset
+modprobe nvidia_drm
+modprobe nvidia_uvm
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#!/bin/sh
+# /usr/local/bin/nvidia-off-safe.sh
+# إطفاء NVIDIA بشكل آمن — زي ما Windows بيعمل
+
+LOG() { echo "[nvidia-off] $*" | tee /dev/kmsg; }
+
+# ─── 1) تحقق: هل فيه عملية بتستخدم الكارت؟ ──────────
+if command -v nvidia-smi >/dev/null 2>&1; then
+    PROCS=$(nvidia-smi --query-compute-apps=pid,process_name --format=csv,noheader 2>/dev/null)
+    if [ -n "$PROCS" ]; then
+        LOG "❌ فيه عمليات شغالة على NVIDIA:"
+        LOG "$PROCS"
+        LOG "❌ الإطفاء ملغي — اقفل البرامج دي الأول"
+        exit 1
+    fi
+fi
+
+# ─── 2) تحقق: مفيش ملف مفتوح على /dev/nvidia* ──────
+OPEN_FILES=$(lsof /dev/nvidia* 2>/dev/null | tail -n +2)
+if [ -n "$OPEN_FILES" ]; then
+    LOG "❌ فيه ملفات مفتوحة على /dev/nvidia*:"
+    LOG "$OPEN_FILES"
+    LOG "❌ الإطفاء ملغي"
+    exit 1
+fi
+
+# ─── 3) نشيل الـ nvidia modules بالترتيب الصح ──────
+LOG "إزالة nvidia_uvm..."
+modprobe -r nvidia_uvm 2>/dev/null
+
+LOG "إزالة nvidia_drm..."
+modprobe -r nvidia_drm 2>/dev/null
+
+LOG "إزالة nvidia_modeset..."
+modprobe -r nvidia_modeset 2>/dev/null
+
+LOG "إزالة nvidia..."
+modprobe -r nvidia 2>/dev/null
+
+# ─── 4) نتأكد إنهم اتشالوا ──────────────────────────
+if lsmod | grep -q "^nvidia"; then
+    LOG "❌ فشل إزالة nvidia modules:"
+    lsmod | grep nvidia | tee /dev/kmsg
+    exit 1
+fi
+
+LOG "✅ كل nvidia modules اتشالت"
+
+# ─── 5) نعمل eject ──────────────────────────────────
+LOG "قطع الكهرباء عن NVIDIA..."
+printf '%s\n' '\_SB.PCI0.GPP0.PEGP._EJ0 1' > /proc/acpi/call
+RESULT=$(cat /proc/acpi/call)
+LOG "نتيجة _EJ0: $RESULT"
+
+# ─── 6) نتحقق ────────────────────────────────────────
+sleep 1
+if [ "$(cat /sys/bus/pci/devices/0000:01:00.0/power/runtime_status 2>/dev/null)" = "active" ]; then
+    LOG "⚠️ الكارت لسه active — نجرب نشيله من PCI bus"
+    echo 1 > /sys/bus/pci/devices/0000:01:00.0/remove 2>/dev/null
+fi
+
+LOG "✅ تم إطفاء NVIDIA"
+
+
+
+
+
+
+
+
+
+
+
+#!/bin/sh
+# /usr/local/bin/nvidia-on-safe.sh
+
+LOG() { echo "[nvidia-on] $*" | tee /dev/kmsg; }
+
+LOG "إعادة NVIDIA..."
+
+# 1) نرجع الكارت للـ PCI bus
+echo 1 > /sys/bus/pci/rescan 2>/dev/null
+
+# 2) نفتح WMOF
+printf '%s\n' '\_SB.PCI0.AMW0.WMBD 0 0x51 4' > /proc/acpi/call
+RESULT=$(cat /proc/acpi/call)
+LOG "نتيجة WMBD(4): $RESULT"
+
+# 3) نستنى
+sleep 2
+
+# 4) نحمّل الـ nvidia modules
+modprobe nvidia
+modprobe nvidia_modeset
+modprobe nvidia_drm
+modprobe nvidia_uvm
+
+# 5) نتحقق
+sleep 2
+if nvidia-smi >/dev/null 2>&1; then
+    LOG "✅ NVIDIA رجعت وشغالة"
+else
+    LOG "❌ NVIDIA فشلت ترجع — محتاج cold boot"
+    exit 1
+fi
+
+
+
+
+
+
+
+
+
+
+
+
+
+#!/bin/sh
+# /usr/local/bin/nvidia-power-watcher.sh
+# بيراقب حالة الشاحن و يطفي/يشغل NVIDIA زي Windows
+
+LOG() { echo "[nvidia-watcher] $*" | tee /dev/kmsg; }
+
+# نستنى الـ init يكمل
+sleep 10
+
+# نحمّل acpi_call
+modprobe acpi_call 2>/dev/null
+
+LAST_AC=""
+
+# نقرأ الحالة الابتدائية
+AC_ONLINE=$(cat /sys/class/power_supply/ACAD/online 2>/dev/null)
+LAST_AC=$AC_ONLINE
+
+LOG "بدأ المراقبة — AC=$AC_ONLINE"
+
+while true; do
+    AC_ONLINE=$(cat /sys/class/power_supply/ACAD/online 2>/dev/null)
+    
+    if [ "$AC_ONLINE" != "$LAST_AC" ]; then
+        if [ "$AC_ONLINE" = "0" ]; then
+            LOG "🔌 الشاحن اتفصل — نطفي NVIDIA"
+            /usr/local/bin/nvidia-off-safe.sh
+            
+        elif [ "$AC_ONLINE" = "1" ]; then
+            LOG "🔌 الشاحن رجع — نشغّل NVIDIA"
+            /usr/local/bin/nvidia-on-safe.sh
+        fi
+        
+        LAST_AC=$AC_ONLINE
+    fi
+    
+    sleep 5
+done
+
+
+[sxc]
+sxc
+sudo scxctl switch --sched scx_lavd --mode powersave
+scxctl switch --mode powersave
+sudo scxctl switch --sched scx_lavd --mode Gaming
+
+[gigabyte fan]
+sudo xbps-install -S base-devel git dkms cargo
+git clone https://github.com/tangalbert919/gigabyte-laptop-wmi.git
+#./autogen.sh && ./configure --prefix=/usr --sysconfdir=/etc && make && sudo make install
+sudo cp aorus-laptop.conf /etc/modules-load.d/
+sudo dkms install ./
+dkms status
+sudo cargo install gigabytectl --root /usr/local
+sudo modprobe aorus_laptop
+
+Heat    Silent  Balanced  Gaming	Performance
+< 40	  0   	  0	        60	    100
+40-45 	0	      40	      90    	130
+45-50 	30  	  70	      120   	160
+50-55 	60    	100     	150   	185
+55-60 	90    	130     	175   	205
+60-65 	120   	160     	200   	225
+65-70 	150   	185     	220   	240
+70-75	  180   	210     	240   	255
+75-80 	210   	230      	250   	255
+80-85 	240   	245 	    255   	255
+> 85  	255   	255     	255   	255
+
+
+
+
+sudo ./ryzenadj \
+  --stapm-limit=5000 \
+  --fast-limit=5000 \
+  --slow-limit=5000
+
+sudo ./ryzenadj -i
+
+libinput-gestures
+eudev-libudev-devel
+https://github.com/proycon/lisgd.git
+sudo xbps-install -S libX11-devel
+sudo xbps-install -S base-devel git cmake extra-cmake-modules ninja pkg-config yaml-cpp-devel libevdev-devel cli11
+
+
+
+
+
+mkdir -p ~/.local/share/applications
+cp /usr/share/applications/brave-browser.desktop ~/.local/share/applications/
+vim ~/.local/share/applications/brave-browser.desktop
+
+
+sudo install -Dm644 /path/to/ryzen_smu.ko \
+    /lib/modules/$(uname -r)/extra/ryzen_smu.ko
+sudo depmod -a
+sudo modprobe ryzen_smu
+
+
+
+
+lsb_release -a
+
+
+sudo xbps-install -S wine wine-gecko wine-mono winetricks winetricks vcrun2022
+
+
+sudo xbps-install -S virt-manager virt-manager-tools spice-vdagent virt-viewer qemu
+
+sudo xbps-install -S psmisc lsof
+sudo fuser -v "/home/mz/Downloads/[Windows X-Lite] Optimum 11 26H1 Pro v2/[Windows X-Lite] Optimum 11 26H1 Pro v2.iso"
+sudo lsof "/home/mz/Downloads/[Windows X-Lite] Optimum 11 26H1 Pro v2/[Windows X-Lite] Optimum 11 26H1 Pro v2.iso"
+
+
+
+qemu-img create -f qcow2 Win11_Atomic.qcow2 100G
+lsblk -dpo name,serial /dev/nvme0n1
+sudo usermod -aG kvm,libvirt mz
+
+sudo mount -t virtiofs shared-folder-name-on-guest /path/to/mount/on/guest
+
+######win_in virt
+sudo xbps-install -S edk2-ovmf swtpm
+
+sudo powertop --calibrate
+sudo powertop
+sudo powertop --auto-tune-dump > powertop-tune.sh
+
+python3 -m venv ~/zenmaster-env
+source ~/zenmaster-env/bin/activate.fish
+pip install zenmaster
+sudo zenmaster --info
+
+
+
+curl -fsSL https://raw.githubusercontent.com/HorizonUnix/ZenTune/main/install.sh | bash
+sudo /opt/zentune/venv/bin/python3 /opt/zentune/src/Assets/daemon/daemon.py
+zentune
+
+
+sudo mkdir -p /etc/elogind/system-sleep
+sudo vim /etc/elogind/system-sleep/resume-hook
+sudo chmod 755 /etc/elogind/system-sleep/resume-hook
+
+
+sudo vim /etc/grub.d/40_custom
+sudo update-grub
+sudo vim /etc/modprobe.d/vfio.conf
+sudo install -d /etc/modprobe.d
+sudo dracut --force
+
+
+
+sudo virsh -c qemu:///system list --autostart --all
+sudo virsh -c qemu:///system start win11
+sudo virsh -c qemu:///system autostart --disable win11
+
+
+/etc/udev/rules.d/70-nvidia.rules
+
+
+ollama ps
+ollama show --modelfile qwen3.5:9b > Modelfile.qwen3.5-gpu
+ollama create qwen3.5-gpu -f Modelfile.qwen3.5-gpu
+ollama launch claude --model qwen3.5-gpu
+
+
+
+sudo xbps-install -S base-devel git meson ninja glm hyprland-devel
+git clone https://github.com/horriblename/hyprgrass.git
+
+
+ls -la /etc/xbps.d/
+cat /etc/xbps.d/*.conf 2>/dev/null | grep -v "^#"
+
+
+sudo xbps-install -S satty slurp grim
+
+sudo virsh -c qemu:///system domstate win11
+         sudo virsh -c qemu:///system domifaddr win11
+         sudo virsh -c qemu:///system net-list --all
+         ip route get 192.168.122.11
+         ip -br addr
+
+tail -n 80 ~/.local/share/winapps/winapps.log
+
+winapps-setup --user --add-apps
+
+
+sudo lshw -C memory
+sudo dmidecode --type memory

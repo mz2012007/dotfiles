@@ -1,0 +1,7 @@
+/home/mz/dev/hypr-edge-gestures/build/CMakeFiles/hypr-edge-gestures.dir
+/home/mz/dev/hypr-edge-gestures/build/CMakeFiles/edit_cache.dir
+/home/mz/dev/hypr-edge-gestures/build/CMakeFiles/rebuild_cache.dir
+/home/mz/dev/hypr-edge-gestures/build/CMakeFiles/list_install_components.dir
+/home/mz/dev/hypr-edge-gestures/build/CMakeFiles/install.dir
+/home/mz/dev/hypr-edge-gestures/build/CMakeFiles/install/local.dir
+/home/mz/dev/hypr-edge-gestures/build/CMakeFiles/install/strip.dir

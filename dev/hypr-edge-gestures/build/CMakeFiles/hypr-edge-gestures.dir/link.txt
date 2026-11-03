@@ -1,0 +1,1 @@
+/usr/bin/c++  -O2 -Wall -O3 -DNDEBUG -Wl,--dependency-file=CMakeFiles/hypr-edge-gestures.dir/link.d "CMakeFiles/hypr-edge-gestures.dir/src/main.cpp.o" "CMakeFiles/hypr-edge-gestures.dir/src/evdev_reader.cpp.o" "CMakeFiles/hypr-edge-gestures.dir/src/gesture_detector.cpp.o" "CMakeFiles/hypr-edge-gestures.dir/src/config.cpp.o" -o hypr-edge-gestures

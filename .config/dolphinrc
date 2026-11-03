@@ -1,6 +1,12 @@
+[FoldersPanel]
+HiddenFilesShown=true
+
 [General]
 Version=202
 ViewPropsTimestamp=2026,1,18,22,22,27.379
+
+[IconsMode]
+PreviewSize=96
 
 [KFileDialog Settings]
 Places Icons Auto-resize=false
@@ -9,5 +15,8 @@ Places Icons Static Size=22
 [MainWindow]
 MenuBar=Disabled
 
+[PreviewSettings]
+Plugins=audiothumbnail,comicbookthumbnail,cursorthumbnail,djvuthumbnail,ebookthumbnail,exrthumbnail,directorythumbnail,imagethumbnail,jpegthumbnail,kraorathumbnail,windowsexethumbnail,windowsimagethumbnail,opendocumentthumbnail,gdk-pixbuf-thumbnailer,librsvg,svgthumbnail,textthumbnail
+
 [UiSettings]
-ColorScheme=BreezeLight
+ColorScheme=BreezeDark

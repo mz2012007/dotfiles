@@ -1,3 +1,4 @@
+;; -*- lexical-binding: t; -*-
 (add-to-list 'load-path "~/.config/emacs/scripts/")
 
 (require 'elpaca-setup)  ;; The Elpaca Package Manager
@@ -236,7 +237,7 @@
 
   (set-face-attribute 'default nil
     :font "JetBrains Mono"
-    :height 110
+    :height 120
     :weight 'medium)
   (set-face-attribute 'variable-pitch nil
     :font "JetBrains Mono"
@@ -274,11 +275,11 @@
 
 (use-package nerd-icons
   :ensure t
-  ;; :custom
-  ;; The Nerd Font you want to use in GUI
-  ;; "Symbols Nerd Font Mono" is the default and is recommended
-  ;; but you can use any other Nerd Font if you want
-  ;; (nerd-icons-font-family "Symbols Nerd Font Mono")
+  :custom
+   ;;The Nerd Font you want to use in GUI
+   ;;"Symbols Nerd Font Mono" is the default and is recommended
+   ;;but you can use any other Nerd Font if you want
+   (nerd-icons-font-family "Symbols Nerd Font Mono")
   )
 
 (use-package general
@@ -601,9 +602,6 @@
 )
 
 (global-set-key [escape] 'keyboard-escape-quit)
-
-(use-package nerd-icons :ensure t)
-
 
 (use-package doom-modeline
   :ensure t

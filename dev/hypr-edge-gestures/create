@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+cd ~/dev/hypr-edge-gestures/
+cmake --build build -j$(nproc)
+sudo cmake --install build

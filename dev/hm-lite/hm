@@ -1,0 +1,198 @@
+#!/usr/bin/env bash
+#
+# hm - HM-Lite command line interface.
+#
+# HM-Lite is a generation based file and configuration management system.
+# It registers filesystem paths, stores unique file contents in a content
+# addressable store and records historical states as generations.
+#
+# The dispatcher is responsible for:
+#   * resolving the runtime directory (HM_DIR) and the code directory
+#   * validating the requested command
+#   * loading shared libraries and the optional configuration file
+#   * loading the command module and invoking it
+#
+# The dispatcher never performs command work itself and never sources a
+# configuration file that does not exist, so `hm init` works on a machine
+# where nothing has been installed yet.
+#
+set -euo pipefail
+
+HM_VERSION="0.1.0"
+
+# ---------------------------------------------------------------------------
+# Runtime and code directories
+# ---------------------------------------------------------------------------
+
+# Runtime project directory. Holds every piece of mutable state.
+if [[ -z "${HM_DIR:-}" ]]; then
+  HM_DIR="$HOME/.config/hm-lite"
+fi
+
+# Resolve the directory that holds the HM-Lite code (this script, core/,
+# lib/ and db/schema.sql). The script may be reached through a symlink,
+# therefore the link is resolved first.
+hm_resolve_code_dir() {
+  local src dir resolved
+  src="${BASH_SOURCE[0]}"
+  if command -v readlink >/dev/null 2>&1; then
+    resolved="$(readlink -f -- "$src" 2>/dev/null || true)"
+    if [[ -n "$resolved" ]]; then
+      src="$resolved"
+    fi
+  fi
+  dir="$(cd -- "$(dirname -- "$src")" && pwd -P)" || return 1
+  printf '%s\n' "$dir"
+}
+
+if [[ -z "${HM_CODE_DIR:-}" ]]; then
+  HM_CODE_DIR="$(hm_resolve_code_dir)" || {
+    printf '[ERROR] Unable to resolve the HM-Lite code directory.\n' >&2
+    exit 1
+  }
+fi
+
+if [[ ! -d "$HM_CODE_DIR" ]]; then
+  printf '[ERROR] HM-Lite code directory not found: %s\n' "$HM_CODE_DIR" >&2
+  exit 1
+fi
+
+# ---------------------------------------------------------------------------
+# Library loading
+# ---------------------------------------------------------------------------
+
+HM_LIBS=(
+  common
+  logging
+  paths
+  database
+  hashing
+  storage
+  generations
+  validation
+  locking
+)
+
+hm_load_libs() {
+  local lib file
+  for lib in "${HM_LIBS[@]}"; do
+    file="$HM_CODE_DIR/lib/$lib.sh"
+    if [[ ! -f "$file" ]]; then
+      printf '[ERROR] Missing HM-Lite library: %s\n' "$file" >&2
+      exit 1
+    fi
+    # shellcheck source=/dev/null
+    source "$file" || {
+      printf '[ERROR] Failed to load HM-Lite library: %s\n' "$file" >&2
+      exit 1
+    }
+  done
+}
+
+# ---------------------------------------------------------------------------
+# Usage
+# ---------------------------------------------------------------------------
+
+hm_usage() {
+  cat <<'EOF'
+Usage: hm <command> [arguments...]
+
+Commands:
+  init                     Initialize an HM-Lite project directory
+  add <file|dir...>        Register paths for the next generation
+  gen [options]            Create a generation from the pending paths
+  list [options]           Show generations, entries and pending paths
+  switch <generation>      Select a generation and materialize it in current/
+  apply [options]          Apply a generation to the tracked live paths
+  discard [options]        Reset the testing workspace from current/
+  backup [options]         Create a consistent backup of the project state
+  restore <backup>         Restore a previously created backup
+  clean [options]          Remove content objects that are no longer referenced
+
+Options:
+  -h, --help               Show this help
+      --version            Show the HM-Lite version
+
+Environment:
+  HM_DIR                   Runtime project directory (default: ~/.config/hm-lite)
+  HM_CODE_DIR              Directory holding the HM-Lite code
+EOF
+}
+
+# ---------------------------------------------------------------------------
+# Command table
+# ---------------------------------------------------------------------------
+
+HM_COMMANDS=(init add gen list switch apply discard backup restore clean)
+
+hm_is_command() {
+  local candidate="$1" known
+  for known in "${HM_COMMANDS[@]}"; do
+    if [[ "$candidate" == "$known" ]]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
+# ---------------------------------------------------------------------------
+# Entry point
+# ---------------------------------------------------------------------------
+
+main() {
+  local cmd module
+
+  if [[ $# -eq 0 ]]; then
+    hm_usage >&2
+    exit 2
+  fi
+
+  cmd="$1"
+  shift
+
+  case "$cmd" in
+    -h | --help | help)
+      hm_usage
+      exit 0
+      ;;
+    --version)
+      printf 'hm %s\n' "$HM_VERSION"
+      exit 0
+      ;;
+  esac
+
+  if ! hm_is_command "$cmd"; then
+    printf '[ERROR] Unknown command: %s\n\n' "$cmd" >&2
+    hm_usage >&2
+    exit 2
+  fi
+
+  hm_load_libs
+
+  # Derive every runtime path from the project directory. This only
+  # computes values, it never touches the filesystem.
+  hm_runtime_init
+
+  # The configuration file is optional. `hm init` must work without it and
+  # a missing or malformed file must never abort a command silently.
+  hm_config_load "$HM_CONFIG_FILE" || true
+
+  # Colour palette and log defaults depend on the configuration.
+  hm_log_init
+
+  module="$HM_CODE_DIR/core/$cmd.sh"
+  if [[ ! -f "$module" ]]; then
+    printf '[ERROR] Command module not found: %s\n' "$module" >&2
+    exit 1
+  fi
+
+  # shellcheck source=/dev/null
+  source "$module" || {
+    printf '[ERROR] Failed to load command module: %s\n' "$module" >&2
+    exit 1
+  }
+
+  "$cmd" "$@"
+}
+
+main "$@"

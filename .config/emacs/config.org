@@ -399,7 +399,7 @@ Defining the various fonts that Emacs will use.
 #+begin_src emacs-lisp
   (set-face-attribute 'default nil
     :font "JetBrains Mono"
-    :height 110
+    :height 120
     :weight 'medium)
   (set-face-attribute 'variable-pitch nil
     :font "JetBrains Mono"
@@ -448,11 +448,11 @@ You can use the bindings CTRL plus =/- for zooming in/out.  You can also use CTR
 #+begin_src emacs-lisp
 (use-package nerd-icons
   :ensure t
-  ;; :custom
-  ;; The Nerd Font you want to use in GUI
-  ;; "Symbols Nerd Font Mono" is the default and is recommended
-  ;; but you can use any other Nerd Font if you want
-  ;; (nerd-icons-font-family "Symbols Nerd Font Mono")
+  :custom
+   ;;The Nerd Font you want to use in GUI
+   ;;"Symbols Nerd Font Mono" is the default and is recommended
+   ;;but you can use any other Nerd Font if you want
+   (nerd-icons-font-family "Symbols Nerd Font Mono")
   )
 #+end_src
 
@@ -833,9 +833,6 @@ By default, Emacs requires you to hit ESC three times to escape quit the minibuf
 The modeline is the bottom status bar that appears in Emacs windows.  While you can create your own custom modeline, why go to the trouble when Doom Emacs already has a nice modeline package available.  For more information on what is available to configure in the Doom modeline, check out: [[https://github.com/seagle0128/doom-modeline][Doom Modeline]]
 
 #+begin_src emacs-lisp
-(use-package nerd-icons :ensure t)
-
-
 (use-package doom-modeline
   :ensure t
   :after nerd-icons

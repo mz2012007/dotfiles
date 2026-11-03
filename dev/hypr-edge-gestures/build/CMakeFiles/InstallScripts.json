@@ -1,0 +1,7 @@
+{
+	"InstallScripts" : 
+	[
+		"/home/mz/dev/hypr-edge-gestures/build/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

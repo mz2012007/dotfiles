@@ -40,11 +40,11 @@ alias diskspace='du -S | sort -n -r | more' #diskspace
 #                    custom                            #
 #######################################################
 # grep / ripgrep
-if type -q rg
-    alias grep="rg"
-else
-    alias grep="/usr/bin/grep --color=auto"
-end
+#if type -q rg
+#    alias grep="rg"
+#else
+#    alias grep="/usr/bin/grep --color=auto"
+#end
 
 ######################################################################
 # Directory Abbreviations

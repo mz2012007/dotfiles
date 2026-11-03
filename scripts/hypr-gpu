@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+
+AMD="/dev/dri/by-path/pci-0000:65:00.0-card"
+NVIDIA="/dev/dri/by-path/pci-0000:01:00.0-card"
+
+usage() {
+	printf '%s\n' \
+		"Usage: hypr-gpu {amd|nvidia|both|status}"
+	exit 1
+}
+
+[ -e "$AMD" ] || {
+	echo "AMD GPU not found: $AMD"
+	exit 1
+}
+
+[ -e "$NVIDIA" ] || {
+	echo "NVIDIA GPU not found: $NVIDIA"
+	exit 1
+}
+
+case "$1" in
+
+	amd)
+		export AQ_DRM_DEVICES="$AMD"
+		echo "Hyprland GPU: AMD 780M"
+		echo "AQ_DRM_DEVICES=$AQ_DRM_DEVICES"
+		;;
+
+	nvidia)
+		export AQ_DRM_DEVICES="$NVIDIA"
+		echo "Hyprland GPU: NVIDIA RTX 5060"
+		echo "AQ_DRM_DEVICES=$AQ_DRM_DEVICES"
+		;;
+
+	both)
+		export AQ_DRM_DEVICES="$NVIDIA:$AMD"
+		echo "Hyprland GPUs: NVIDIA RTX 5060 + AMD 780M"
+		echo "Primary: NVIDIA"
+		echo "AQ_DRM_DEVICES=$AQ_DRM_DEVICES"
+		;;
+
+	status)
+		echo "AMD:"
+		printf '  %s -> ' "$AMD"
+		readlink "$AMD"
+
+		echo "NVIDIA:"
+		printf '  %s -> ' "$NVIDIA"
+		readlink "$NVIDIA"
+
+		echo
+		echo "NVIDIA Runtime:"
+		printf '  control: '
+		cat /sys/bus/pci/devices/0000:01:00.0/power/control
+
+		printf '  status:  '
+		cat /sys/bus/pci/devices/0000:01:00.0/power/runtime_status
+		exit 0
+		;;
+
+	*)
+		usage
+		;;
+
+esac
+
+exec Hyprland

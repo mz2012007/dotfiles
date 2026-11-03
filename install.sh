@@ -360,7 +360,6 @@ PIPX_APP() {
   fi
 }
 
-
 # user directories
 MK_USER_DIRS() {
   home_dirs=(
@@ -686,7 +685,7 @@ PRIVACY() {
 }
 
 # Script to configure Plymouth + dracut + GRUB
-PLYMOUTH () {
+PLYMOUTH() {
   echo "2️⃣ Setting default Plymouth theme..."
   if ! command -v plymouth-set-default-theme >/dev/null 2>&1; then
     error "plymouth not installed; skipping plymouth/grub steps"

@@ -1,3 +1,5 @@
+;; -*- lexical-binding: t; -*-
+;; -*- lexical-binding: t; -*-
  ;;; -*- lexical-binding: t -*-
 (custom-set-variables
  ;; custom-set-variables was added by Custom.

@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+
+GPU="/sys/bus/pci/devices/0000:01:00.0/power/control"
+STATUS="/sys/bus/pci/devices/0000:01:00.0/power/runtime_status"
+
+usage() {
+  printf '%s\n' \
+    "Usage: gpu {on|off|toggle|status}"
+  exit 1
+}
+
+[ -e "$GPU" ] || {
+  echo "NVIDIA GPU not found."
+  exit 1
+}
+
+case "$1" in
+on)
+  echo on | sudo tee "$GPU" >/dev/null
+  echo "NVIDIA RTX 5060: ON"
+  ;;
+
+off)
+  echo auto | sudo tee "$GPU" >/dev/null
+  echo "NVIDIA RTX 5060: AUTO / power saving"
+  ;;
+
+toggle)
+  case "$(cat "$GPU")" in
+  on)
+    echo auto | sudo tee "$GPU" >/dev/null
+    echo "NVIDIA RTX 5060: AUTO / power saving"
+    ;;
+  auto)
+    echo on | sudo tee "$GPU" >/dev/null
+    echo "NVIDIA RTX 5060: ON"
+    ;;
+  *)
+    echo "Unknown power state: $(cat "$GPU")"
+    exit 1
+    ;;
+  esac
+  ;;
+
+status)
+  printf 'Control: '
+  cat "$GPU"
+
+  printf 'Runtime: '
+  cat "$STATUS"
+
+  printf '\nNVIDIA-SMI:\n'
+  nvidia-smi --query-gpu=name,pstate,power.draw,utilization.gpu --format=csv,noheader
+  ;;
+
+*)
+  usage
+  ;;
+esac

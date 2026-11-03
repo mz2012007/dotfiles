@@ -1,0 +1,1529 @@
+
+---
+events:
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/usr/share/cmake-4.2/Modules/CMakeDetermineSystem.cmake:12 (find_program)"
+      - "CMakeLists.txt:2 (project)"
+    mode: "program"
+    variable: "CMAKE_UNAME"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: true
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "uname"
+    candidate_directories:
+      - "/home/mz/scripts/grub/"
+      - "/root/dotfiles/.config/dwm/dwmblocks/patches/"
+      - "/root/scripts/"
+      - "/root/.local/bin/"
+      - "/root/.config/tmux/templets/bin/"
+      - "/home/mz/dotfiles/.config/dwm/dwmblocks/patches/"
+      - "/home/mz/scripts/"
+      - "/home/mz/.local/bin/"
+      - "/home/mz/.config/tmux/templets/bin/"
+      - "/home/mohamedzaki/dotfiles/.config/dwm/dwmblocks/patches/"
+      - "/home/mohamedzaki/scripts/"
+      - "/home/mohamedzaki/.local/bin/"
+      - "/home/mohamedzaki/.config/tmux/templets/bin/"
+      - "/usr/local/sbin/"
+      - "/usr/local/bin/"
+      - "/usr/bin/"
+      - "/usr/sbin/"
+      - "/sbin/"
+      - "/bin/"
+    searched_directories:
+      - "/home/mz/scripts/grub/uname"
+      - "/root/dotfiles/.config/dwm/dwmblocks/patches/uname"
+      - "/root/scripts/uname"
+      - "/root/.local/bin/uname"
+      - "/root/.config/tmux/templets/bin/uname"
+      - "/home/mz/dotfiles/.config/dwm/dwmblocks/patches/uname"
+      - "/home/mz/scripts/uname"
+      - "/home/mz/.local/bin/uname"
+      - "/home/mz/.config/tmux/templets/bin/uname"
+      - "/home/mohamedzaki/dotfiles/.config/dwm/dwmblocks/patches/uname"
+      - "/home/mohamedzaki/scripts/uname"
+      - "/home/mohamedzaki/.local/bin/uname"
+      - "/home/mohamedzaki/.config/tmux/templets/bin/uname"
+      - "/usr/local/sbin/uname"
+      - "/usr/local/bin/uname"
+    found: "/usr/bin/uname"
+    search_context:
+      ENV{PATH}:
+        - "/home/mz/scripts/grub/"
+        - "/root/dotfiles/.config/dwm/dwmblocks/patches"
+        - "/root/scripts"
+        - "/root/.local/bin"
+        - "/root/.config/tmux/templets/bin"
+        - "/home/mz/dotfiles/.config/dwm/dwmblocks/patches"
+        - "/home/mz/scripts"
+        - "/home/mz/.local/bin"
+        - "/home/mz/.config/tmux/templets/bin"
+        - "/home/mohamedzaki/dotfiles/.config/dwm/dwmblocks/patches"
+        - "/home/mohamedzaki/scripts"
+        - "/home/mohamedzaki/.local/bin"
+        - "/home/mohamedzaki/.config/tmux/templets/bin"
+        - "/usr/local/sbin"
+        - "/usr/local/bin"
+        - "/usr/bin"
+        - "/usr/sbin"
+        - "/sbin"
+        - "/bin"
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/usr/share/cmake-4.2/Modules/CMakeDetermineSystem.cmake:212 (message)"
+      - "CMakeLists.txt:2 (project)"
+    message: |
+      The system is: Linux - 7.2.3_1 - x86_64
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/usr/share/cmake-4.2/Modules/CMakeUnixFindMake.cmake:5 (find_program)"
+      - "CMakeLists.txt:2 (project)"
+    mode: "program"
+    variable: "CMAKE_MAKE_PROGRAM"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: true
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "gmake"
+      - "make"
+      - "smake"
+    candidate_directories:
+      - "/home/mz/scripts/grub/"
+      - "/root/dotfiles/.config/dwm/dwmblocks/patches/"
+      - "/root/scripts/"
+      - "/root/.local/bin/"
+      - "/root/.config/tmux/templets/bin/"
+      - "/home/mz/dotfiles/.config/dwm/dwmblocks/patches/"
+      - "/home/mz/scripts/"
+      - "/home/mz/.local/bin/"
+      - "/home/mz/.config/tmux/templets/bin/"
+      - "/home/mohamedzaki/dotfiles/.config/dwm/dwmblocks/patches/"
+      - "/home/mohamedzaki/scripts/"
+      - "/home/mohamedzaki/.local/bin/"
+      - "/home/mohamedzaki/.config/tmux/templets/bin/"
+      - "/usr/local/sbin/"
+      - "/usr/local/bin/"
+      - "/usr/bin/"
+      - "/usr/sbin/"
+      - "/sbin/"
+      - "/bin/"
+    searched_directories:
+      - "/home/mz/scripts/grub/gmake"
+      - "/root/dotfiles/.config/dwm/dwmblocks/patches/gmake"
+      - "/root/scripts/gmake"
+      - "/root/.local/bin/gmake"
+      - "/root/.config/tmux/templets/bin/gmake"
+      - "/home/mz/dotfiles/.config/dwm/dwmblocks/patches/gmake"
+      - "/home/mz/scripts/gmake"
+      - "/home/mz/.local/bin/gmake"
+      - "/home/mz/.config/tmux/templets/bin/gmake"
+      - "/home/mohamedzaki/dotfiles/.config/dwm/dwmblocks/patches/gmake"
+      - "/home/mohamedzaki/scripts/gmake"
+      - "/home/mohamedzaki/.local/bin/gmake"
+      - "/home/mohamedzaki/.config/tmux/templets/bin/gmake"
+      - "/usr/local/sbin/gmake"
+      - "/usr/local/bin/gmake"
+      - "/usr/bin/gmake"
+      - "/usr/sbin/gmake"
+      - "/sbin/gmake"
+      - "/bin/gmake"
+      - "/home/mz/scripts/grub/make"
+      - "/root/dotfiles/.config/dwm/dwmblocks/patches/make"
+      - "/root/scripts/make"
+      - "/root/.local/bin/make"
+      - "/root/.config/tmux/templets/bin/make"
+      - "/home/mz/dotfiles/.config/dwm/dwmblocks/patches/make"
+      - "/home/mz/scripts/make"
+      - "/home/mz/.local/bin/make"
+      - "/home/mz/.config/tmux/templets/bin/make"
+      - "/home/mohamedzaki/dotfiles/.config/dwm/dwmblocks/patches/make"
+      - "/home/mohamedzaki/scripts/make"
+      - "/home/mohamedzaki/.local/bin/make"
+      - "/home/mohamedzaki/.config/tmux/templets/bin/make"
+      - "/usr/local/sbin/make"
+      - "/usr/local/bin/make"
+    found: "/usr/bin/make"
+    search_context:
+      ENV{PATH}:
+        - "/home/mz/scripts/grub/"
+        - "/root/dotfiles/.config/dwm/dwmblocks/patches"
+        - "/root/scripts"
+        - "/root/.local/bin"
+        - "/root/.config/tmux/templets/bin"
+        - "/home/mz/dotfiles/.config/dwm/dwmblocks/patches"
+        - "/home/mz/scripts"
+        - "/home/mz/.local/bin"
+        - "/home/mz/.config/tmux/templets/bin"
+        - "/home/mohamedzaki/dotfiles/.config/dwm/dwmblocks/patches"
+        - "/home/mohamedzaki/scripts"
+        - "/home/mohamedzaki/.local/bin"
+        - "/home/mohamedzaki/.config/tmux/templets/bin"
+        - "/usr/local/sbin"
+        - "/usr/local/bin"
+        - "/usr/bin"
+        - "/usr/sbin"
+        - "/sbin"
+        - "/bin"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/usr/share/cmake-4.2/Modules/CMakeDetermineCompiler.cmake:73 (find_program)"
+      - "/usr/share/cmake-4.2/Modules/CMakeDetermineCXXCompiler.cmake:69 (_cmake_find_compiler)"
+      - "CMakeLists.txt:2 (project)"
+    mode: "program"
+    variable: "CMAKE_CXX_COMPILER"
+    description: "CXX compiler"
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: true
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "c++"
+      - "CC"
+      - "g++"
+      - "aCC"
+      - "cl"
+      - "bcc"
+      - "xlC"
+      - "icpx"
+      - "icx"
+      - "clang++"
+    candidate_directories:
+      - "/home/mz/scripts/grub/"
+      - "/root/dotfiles/.config/dwm/dwmblocks/patches/"
+      - "/root/scripts/"
+      - "/root/.local/bin/"
+      - "/root/.config/tmux/templets/bin/"
+      - "/home/mz/dotfiles/.config/dwm/dwmblocks/patches/"
+      - "/home/mz/scripts/"
+      - "/home/mz/.local/bin/"
+      - "/home/mz/.config/tmux/templets/bin/"
+      - "/home/mohamedzaki/dotfiles/.config/dwm/dwmblocks/patches/"
+      - "/home/mohamedzaki/scripts/"
+      - "/home/mohamedzaki/.local/bin/"
+      - "/home/mohamedzaki/.config/tmux/templets/bin/"
+      - "/usr/local/sbin/"
+      - "/usr/local/bin/"
+      - "/usr/bin/"
+      - "/usr/sbin/"
+      - "/sbin/"
+      - "/bin/"
+    searched_directories:
+      - "/home/mz/scripts/grub/c++"
+      - "/root/dotfiles/.config/dwm/dwmblocks/patches/c++"
+      - "/root/scripts/c++"
+      - "/root/.local/bin/c++"
+      - "/root/.config/tmux/templets/bin/c++"
+      - "/home/mz/dotfiles/.config/dwm/dwmblocks/patches/c++"
+      - "/home/mz/scripts/c++"
+      - "/home/mz/.local/bin/c++"
+      - "/home/mz/.config/tmux/templets/bin/c++"
+      - "/home/mohamedzaki/dotfiles/.config/dwm/dwmblocks/patches/c++"
+      - "/home/mohamedzaki/scripts/c++"
+      - "/home/mohamedzaki/.local/bin/c++"
+      - "/home/mohamedzaki/.config/tmux/templets/bin/c++"
+      - "/usr/local/sbin/c++"
+      - "/usr/local/bin/c++"
+    found: "/usr/bin/c++"
+    search_context:
+      ENV{PATH}:
+        - "/home/mz/scripts/grub/"
+        - "/root/dotfiles/.config/dwm/dwmblocks/patches"
+        - "/root/scripts"
+        - "/root/.local/bin"
+        - "/root/.config/tmux/templets/bin"
+        - "/home/mz/dotfiles/.config/dwm/dwmblocks/patches"
+        - "/home/mz/scripts"
+        - "/home/mz/.local/bin"
+        - "/home/mz/.config/tmux/templets/bin"
+        - "/home/mohamedzaki/dotfiles/.config/dwm/dwmblocks/patches"
+        - "/home/mohamedzaki/scripts"
+        - "/home/mohamedzaki/.local/bin"
+        - "/home/mohamedzaki/.config/tmux/templets/bin"
+        - "/usr/local/sbin"
+        - "/usr/local/bin"
+        - "/usr/bin"
+        - "/usr/sbin"
+        - "/sbin"
+        - "/bin"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/usr/share/cmake-4.2/Modules/CMakeDetermineCompilerId.cmake:462 (find_file)"
+      - "/usr/share/cmake-4.2/Modules/CMakeDetermineCompilerId.cmake:500 (CMAKE_DETERMINE_COMPILER_ID_WRITE)"
+      - "/usr/share/cmake-4.2/Modules/CMakeDetermineCompilerId.cmake:8 (CMAKE_DETERMINE_COMPILER_ID_BUILD)"
+      - "/usr/share/cmake-4.2/Modules/CMakeDetermineCompilerId.cmake:64 (__determine_compiler_id_test)"
+      - "/usr/share/cmake-4.2/Modules/CMakeDetermineCXXCompiler.cmake:125 (CMAKE_DETERMINE_COMPILER_ID)"
+      - "CMakeLists.txt:2 (project)"
+    mode: "file"
+    variable: "src_in"
+    description: "Path to a file."
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: true
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "CMakeCXXCompilerId.cpp.in"
+    candidate_directories:
+      - "/usr/share/cmake-4.2/Modules/"
+    found: "/usr/share/cmake-4.2/Modules/CMakeCXXCompilerId.cpp.in"
+    search_context:
+      ENV{PATH}:
+        - "/home/mz/scripts/grub/"
+        - "/root/dotfiles/.config/dwm/dwmblocks/patches"
+        - "/root/scripts"
+        - "/root/.local/bin"
+        - "/root/.config/tmux/templets/bin"
+        - "/home/mz/dotfiles/.config/dwm/dwmblocks/patches"
+        - "/home/mz/scripts"
+        - "/home/mz/.local/bin"
+        - "/home/mz/.config/tmux/templets/bin"
+        - "/home/mohamedzaki/dotfiles/.config/dwm/dwmblocks/patches"
+        - "/home/mohamedzaki/scripts"
+        - "/home/mohamedzaki/.local/bin"
+        - "/home/mohamedzaki/.config/tmux/templets/bin"
+        - "/usr/local/sbin"
+        - "/usr/local/bin"
+        - "/usr/bin"
+        - "/usr/sbin"
+        - "/sbin"
+        - "/bin"
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/usr/share/cmake-4.2/Modules/CMakeDetermineCompilerId.cmake:17 (message)"
+      - "/usr/share/cmake-4.2/Modules/CMakeDetermineCompilerId.cmake:64 (__determine_compiler_id_test)"
+      - "/usr/share/cmake-4.2/Modules/CMakeDetermineCXXCompiler.cmake:125 (CMAKE_DETERMINE_COMPILER_ID)"
+      - "CMakeLists.txt:2 (project)"
+    message: |
+      Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" succeeded.
+      Compiler: /usr/bin/c++ 
+      Build flags: 
+      Id flags:  
+      
+      The output was:
+      0
+      
+      
+      Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "a.out"
+      
+      The CXX compiler identification is GNU, found in:
+        /home/mz/dev/hypr-edge-gestures/build/CMakeFiles/4.2.2/CompilerIdCXX/a.out
+      
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/usr/share/cmake-4.2/Modules/CMakeFindBinUtils.cmake:243 (find_program)"
+      - "/usr/share/cmake-4.2/Modules/CMakeDetermineCXXCompiler.cmake:206 (include)"
+      - "CMakeLists.txt:2 (project)"
+    mode: "program"
+    variable: "CMAKE_AR"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: false
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "ar"
+    candidate_directories:
+      - "/usr/bin/"
+      - "/home/mz/scripts/grub/"
+      - "/root/dotfiles/.config/dwm/dwmblocks/patches/"
+      - "/root/scripts/"
+      - "/root/.local/bin/"
+      - "/root/.config/tmux/templets/bin/"
+      - "/home/mz/dotfiles/.config/dwm/dwmblocks/patches/"
+      - "/home/mz/scripts/"
+      - "/home/mz/.local/bin/"
+      - "/home/mz/.config/tmux/templets/bin/"
+      - "/home/mohamedzaki/dotfiles/.config/dwm/dwmblocks/patches/"
+      - "/home/mohamedzaki/scripts/"
+      - "/home/mohamedzaki/.local/bin/"
+      - "/home/mohamedzaki/.config/tmux/templets/bin/"
+      - "/usr/local/sbin/"
+      - "/usr/local/bin/"
+      - "/usr/sbin/"
+      - "/sbin/"
+      - "/bin/"
+    found: "/usr/bin/ar"
+    search_context:
+      ENV{PATH}:
+        - "/home/mz/scripts/grub/"
+        - "/root/dotfiles/.config/dwm/dwmblocks/patches"
+        - "/root/scripts"
+        - "/root/.local/bin"
+        - "/root/.config/tmux/templets/bin"
+        - "/home/mz/dotfiles/.config/dwm/dwmblocks/patches"
+        - "/home/mz/scripts"
+        - "/home/mz/.local/bin"
+        - "/home/mz/.config/tmux/templets/bin"
+        - "/home/mohamedzaki/dotfiles/.config/dwm/dwmblocks/patches"
+        - "/home/mohamedzaki/scripts"
+        - "/home/mohamedzaki/.local/bin"
+        - "/home/mohamedzaki/.config/tmux/templets/bin"
+        - "/usr/local/sbin"
+        - "/usr/local/bin"
+        - "/usr/bin"
+        - "/usr/sbin"
+        - "/sbin"
+        - "/bin"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/usr/share/cmake-4.2/Modules/CMakeFindBinUtils.cmake:243 (find_program)"
+      - "/usr/share/cmake-4.2/Modules/CMakeDetermineCXXCompiler.cmake:206 (include)"
+      - "CMakeLists.txt:2 (project)"
+    mode: "program"
+    variable: "CMAKE_RANLIB"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: false
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "ranlib"
+    candidate_directories:
+      - "/usr/bin/"
+      - "/home/mz/scripts/grub/"
+      - "/root/dotfiles/.config/dwm/dwmblocks/patches/"
+      - "/root/scripts/"
+      - "/root/.local/bin/"
+      - "/root/.config/tmux/templets/bin/"
+      - "/home/mz/dotfiles/.config/dwm/dwmblocks/patches/"
+      - "/home/mz/scripts/"
+      - "/home/mz/.local/bin/"
+      - "/home/mz/.config/tmux/templets/bin/"
+      - "/home/mohamedzaki/dotfiles/.config/dwm/dwmblocks/patches/"
+      - "/home/mohamedzaki/scripts/"
+      - "/home/mohamedzaki/.local/bin/"
+      - "/home/mohamedzaki/.config/tmux/templets/bin/"
+      - "/usr/local/sbin/"
+      - "/usr/local/bin/"
+      - "/usr/sbin/"
+      - "/sbin/"
+      - "/bin/"
+    found: "/usr/bin/ranlib"
+    search_context:
+      ENV{PATH}:
+        - "/home/mz/scripts/grub/"
+        - "/root/dotfiles/.config/dwm/dwmblocks/patches"
+        - "/root/scripts"
+        - "/root/.local/bin"
+        - "/root/.config/tmux/templets/bin"
+        - "/home/mz/dotfiles/.config/dwm/dwmblocks/patches"
+        - "/home/mz/scripts"
+        - "/home/mz/.local/bin"
+        - "/home/mz/.config/tmux/templets/bin"
+        - "/home/mohamedzaki/dotfiles/.config/dwm/dwmblocks/patches"
+        - "/home/mohamedzaki/scripts"
+        - "/home/mohamedzaki/.local/bin"
+        - "/home/mohamedzaki/.config/tmux/templets/bin"
+        - "/usr/local/sbin"
+        - "/usr/local/bin"
+        - "/usr/bin"
+        - "/usr/sbin"
+        - "/sbin"
+        - "/bin"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/usr/share/cmake-4.2/Modules/CMakeFindBinUtils.cmake:243 (find_program)"
+      - "/usr/share/cmake-4.2/Modules/CMakeDetermineCXXCompiler.cmake:206 (include)"
+      - "CMakeLists.txt:2 (project)"
+    mode: "program"
+    variable: "CMAKE_STRIP"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: false
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "strip"
+    candidate_directories:
+      - "/usr/bin/"
+      - "/home/mz/scripts/grub/"
+      - "/root/dotfiles/.config/dwm/dwmblocks/patches/"
+      - "/root/scripts/"
+      - "/root/.local/bin/"
+      - "/root/.config/tmux/templets/bin/"
+      - "/home/mz/dotfiles/.config/dwm/dwmblocks/patches/"
+      - "/home/mz/scripts/"
+      - "/home/mz/.local/bin/"
+      - "/home/mz/.config/tmux/templets/bin/"
+      - "/home/mohamedzaki/dotfiles/.config/dwm/dwmblocks/patches/"
+      - "/home/mohamedzaki/scripts/"
+      - "/home/mohamedzaki/.local/bin/"
+      - "/home/mohamedzaki/.config/tmux/templets/bin/"
+      - "/usr/local/sbin/"
+      - "/usr/local/bin/"
+      - "/usr/sbin/"
+      - "/sbin/"
+      - "/bin/"
+    found: "/usr/bin/strip"
+    search_context:
+      ENV{PATH}:
+        - "/home/mz/scripts/grub/"
+        - "/root/dotfiles/.config/dwm/dwmblocks/patches"
+        - "/root/scripts"
+        - "/root/.local/bin"
+        - "/root/.config/tmux/templets/bin"
+        - "/home/mz/dotfiles/.config/dwm/dwmblocks/patches"
+        - "/home/mz/scripts"
+        - "/home/mz/.local/bin"
+        - "/home/mz/.config/tmux/templets/bin"
+        - "/home/mohamedzaki/dotfiles/.config/dwm/dwmblocks/patches"
+        - "/home/mohamedzaki/scripts"
+        - "/home/mohamedzaki/.local/bin"
+        - "/home/mohamedzaki/.config/tmux/templets/bin"
+        - "/usr/local/sbin"
+        - "/usr/local/bin"
+        - "/usr/bin"
+        - "/usr/sbin"
+        - "/sbin"
+        - "/bin"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/usr/share/cmake-4.2/Modules/CMakeFindBinUtils.cmake:243 (find_program)"
+      - "/usr/share/cmake-4.2/Modules/CMakeDetermineCXXCompiler.cmake:206 (include)"
+      - "CMakeLists.txt:2 (project)"
+    mode: "program"
+    variable: "CMAKE_LINKER"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: false
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "ld"
+    candidate_directories:
+      - "/usr/bin/"
+      - "/home/mz/scripts/grub/"
+      - "/root/dotfiles/.config/dwm/dwmblocks/patches/"
+      - "/root/scripts/"
+      - "/root/.local/bin/"
+      - "/root/.config/tmux/templets/bin/"
+      - "/home/mz/dotfiles/.config/dwm/dwmblocks/patches/"
+      - "/home/mz/scripts/"
+      - "/home/mz/.local/bin/"
+      - "/home/mz/.config/tmux/templets/bin/"
+      - "/home/mohamedzaki/dotfiles/.config/dwm/dwmblocks/patches/"
+      - "/home/mohamedzaki/scripts/"
+      - "/home/mohamedzaki/.local/bin/"
+      - "/home/mohamedzaki/.config/tmux/templets/bin/"
+      - "/usr/local/sbin/"
+      - "/usr/local/bin/"
+      - "/usr/sbin/"
+      - "/sbin/"
+      - "/bin/"
+    found: "/usr/bin/ld"
+    search_context:
+      ENV{PATH}:
+        - "/home/mz/scripts/grub/"
+        - "/root/dotfiles/.config/dwm/dwmblocks/patches"
+        - "/root/scripts"
+        - "/root/.local/bin"
+        - "/root/.config/tmux/templets/bin"
+        - "/home/mz/dotfiles/.config/dwm/dwmblocks/patches"
+        - "/home/mz/scripts"
+        - "/home/mz/.local/bin"
+        - "/home/mz/.config/tmux/templets/bin"
+        - "/home/mohamedzaki/dotfiles/.config/dwm/dwmblocks/patches"
+        - "/home/mohamedzaki/scripts"
+        - "/home/mohamedzaki/.local/bin"
+        - "/home/mohamedzaki/.config/tmux/templets/bin"
+        - "/usr/local/sbin"
+        - "/usr/local/bin"
+        - "/usr/bin"
+        - "/usr/sbin"
+        - "/sbin"
+        - "/bin"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/usr/share/cmake-4.2/Modules/CMakeFindBinUtils.cmake:243 (find_program)"
+      - "/usr/share/cmake-4.2/Modules/CMakeDetermineCXXCompiler.cmake:206 (include)"
+      - "CMakeLists.txt:2 (project)"
+    mode: "program"
+    variable: "CMAKE_NM"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: false
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "nm"
+    candidate_directories:
+      - "/usr/bin/"
+      - "/home/mz/scripts/grub/"
+      - "/root/dotfiles/.config/dwm/dwmblocks/patches/"
+      - "/root/scripts/"
+      - "/root/.local/bin/"
+      - "/root/.config/tmux/templets/bin/"
+      - "/home/mz/dotfiles/.config/dwm/dwmblocks/patches/"
+      - "/home/mz/scripts/"
+      - "/home/mz/.local/bin/"
+      - "/home/mz/.config/tmux/templets/bin/"
+      - "/home/mohamedzaki/dotfiles/.config/dwm/dwmblocks/patches/"
+      - "/home/mohamedzaki/scripts/"
+      - "/home/mohamedzaki/.local/bin/"
+      - "/home/mohamedzaki/.config/tmux/templets/bin/"
+      - "/usr/local/sbin/"
+      - "/usr/local/bin/"
+      - "/usr/sbin/"
+      - "/sbin/"
+      - "/bin/"
+    found: "/usr/bin/nm"
+    search_context:
+      ENV{PATH}:
+        - "/home/mz/scripts/grub/"
+        - "/root/dotfiles/.config/dwm/dwmblocks/patches"
+        - "/root/scripts"
+        - "/root/.local/bin"
+        - "/root/.config/tmux/templets/bin"
+        - "/home/mz/dotfiles/.config/dwm/dwmblocks/patches"
+        - "/home/mz/scripts"
+        - "/home/mz/.local/bin"
+        - "/home/mz/.config/tmux/templets/bin"
+        - "/home/mohamedzaki/dotfiles/.config/dwm/dwmblocks/patches"
+        - "/home/mohamedzaki/scripts"
+        - "/home/mohamedzaki/.local/bin"
+        - "/home/mohamedzaki/.config/tmux/templets/bin"
+        - "/usr/local/sbin"
+        - "/usr/local/bin"
+        - "/usr/bin"
+        - "/usr/sbin"
+        - "/sbin"
+        - "/bin"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/usr/share/cmake-4.2/Modules/CMakeFindBinUtils.cmake:243 (find_program)"
+      - "/usr/share/cmake-4.2/Modules/CMakeDetermineCXXCompiler.cmake:206 (include)"
+      - "CMakeLists.txt:2 (project)"
+    mode: "program"
+    variable: "CMAKE_OBJDUMP"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: false
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "objdump"
+    candidate_directories:
+      - "/usr/bin/"
+      - "/home/mz/scripts/grub/"
+      - "/root/dotfiles/.config/dwm/dwmblocks/patches/"
+      - "/root/scripts/"
+      - "/root/.local/bin/"
+      - "/root/.config/tmux/templets/bin/"
+      - "/home/mz/dotfiles/.config/dwm/dwmblocks/patches/"
+      - "/home/mz/scripts/"
+      - "/home/mz/.local/bin/"
+      - "/home/mz/.config/tmux/templets/bin/"
+      - "/home/mohamedzaki/dotfiles/.config/dwm/dwmblocks/patches/"
+      - "/home/mohamedzaki/scripts/"
+      - "/home/mohamedzaki/.local/bin/"
+      - "/home/mohamedzaki/.config/tmux/templets/bin/"
+      - "/usr/local/sbin/"
+      - "/usr/local/bin/"
+      - "/usr/sbin/"
+      - "/sbin/"
+      - "/bin/"
+    found: "/usr/bin/objdump"
+    search_context:
+      ENV{PATH}:
+        - "/home/mz/scripts/grub/"
+        - "/root/dotfiles/.config/dwm/dwmblocks/patches"
+        - "/root/scripts"
+        - "/root/.local/bin"
+        - "/root/.config/tmux/templets/bin"
+        - "/home/mz/dotfiles/.config/dwm/dwmblocks/patches"
+        - "/home/mz/scripts"
+        - "/home/mz/.local/bin"
+        - "/home/mz/.config/tmux/templets/bin"
+        - "/home/mohamedzaki/dotfiles/.config/dwm/dwmblocks/patches"
+        - "/home/mohamedzaki/scripts"
+        - "/home/mohamedzaki/.local/bin"
+        - "/home/mohamedzaki/.config/tmux/templets/bin"
+        - "/usr/local/sbin"
+        - "/usr/local/bin"
+        - "/usr/bin"
+        - "/usr/sbin"
+        - "/sbin"
+        - "/bin"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/usr/share/cmake-4.2/Modules/CMakeFindBinUtils.cmake:243 (find_program)"
+      - "/usr/share/cmake-4.2/Modules/CMakeDetermineCXXCompiler.cmake:206 (include)"
+      - "CMakeLists.txt:2 (project)"
+    mode: "program"
+    variable: "CMAKE_OBJCOPY"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: false
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "objcopy"
+    candidate_directories:
+      - "/usr/bin/"
+      - "/home/mz/scripts/grub/"
+      - "/root/dotfiles/.config/dwm/dwmblocks/patches/"
+      - "/root/scripts/"
+      - "/root/.local/bin/"
+      - "/root/.config/tmux/templets/bin/"
+      - "/home/mz/dotfiles/.config/dwm/dwmblocks/patches/"
+      - "/home/mz/scripts/"
+      - "/home/mz/.local/bin/"
+      - "/home/mz/.config/tmux/templets/bin/"
+      - "/home/mohamedzaki/dotfiles/.config/dwm/dwmblocks/patches/"
+      - "/home/mohamedzaki/scripts/"
+      - "/home/mohamedzaki/.local/bin/"
+      - "/home/mohamedzaki/.config/tmux/templets/bin/"
+      - "/usr/local/sbin/"
+      - "/usr/local/bin/"
+      - "/usr/sbin/"
+      - "/sbin/"
+      - "/bin/"
+    found: "/usr/bin/objcopy"
+    search_context:
+      ENV{PATH}:
+        - "/home/mz/scripts/grub/"
+        - "/root/dotfiles/.config/dwm/dwmblocks/patches"
+        - "/root/scripts"
+        - "/root/.local/bin"
+        - "/root/.config/tmux/templets/bin"
+        - "/home/mz/dotfiles/.config/dwm/dwmblocks/patches"
+        - "/home/mz/scripts"
+        - "/home/mz/.local/bin"
+        - "/home/mz/.config/tmux/templets/bin"
+        - "/home/mohamedzaki/dotfiles/.config/dwm/dwmblocks/patches"
+        - "/home/mohamedzaki/scripts"
+        - "/home/mohamedzaki/.local/bin"
+        - "/home/mohamedzaki/.config/tmux/templets/bin"
+        - "/usr/local/sbin"
+        - "/usr/local/bin"
+        - "/usr/bin"
+        - "/usr/sbin"
+        - "/sbin"
+        - "/bin"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/usr/share/cmake-4.2/Modules/CMakeFindBinUtils.cmake:243 (find_program)"
+      - "/usr/share/cmake-4.2/Modules/CMakeDetermineCXXCompiler.cmake:206 (include)"
+      - "CMakeLists.txt:2 (project)"
+    mode: "program"
+    variable: "CMAKE_READELF"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: false
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "readelf"
+    candidate_directories:
+      - "/usr/bin/"
+      - "/home/mz/scripts/grub/"
+      - "/root/dotfiles/.config/dwm/dwmblocks/patches/"
+      - "/root/scripts/"
+      - "/root/.local/bin/"
+      - "/root/.config/tmux/templets/bin/"
+      - "/home/mz/dotfiles/.config/dwm/dwmblocks/patches/"
+      - "/home/mz/scripts/"
+      - "/home/mz/.local/bin/"
+      - "/home/mz/.config/tmux/templets/bin/"
+      - "/home/mohamedzaki/dotfiles/.config/dwm/dwmblocks/patches/"
+      - "/home/mohamedzaki/scripts/"
+      - "/home/mohamedzaki/.local/bin/"
+      - "/home/mohamedzaki/.config/tmux/templets/bin/"
+      - "/usr/local/sbin/"
+      - "/usr/local/bin/"
+      - "/usr/sbin/"
+      - "/sbin/"
+      - "/bin/"
+    found: "/usr/bin/readelf"
+    search_context:
+      ENV{PATH}:
+        - "/home/mz/scripts/grub/"
+        - "/root/dotfiles/.config/dwm/dwmblocks/patches"
+        - "/root/scripts"
+        - "/root/.local/bin"
+        - "/root/.config/tmux/templets/bin"
+        - "/home/mz/dotfiles/.config/dwm/dwmblocks/patches"
+        - "/home/mz/scripts"
+        - "/home/mz/.local/bin"
+        - "/home/mz/.config/tmux/templets/bin"
+        - "/home/mohamedzaki/dotfiles/.config/dwm/dwmblocks/patches"
+        - "/home/mohamedzaki/scripts"
+        - "/home/mohamedzaki/.local/bin"
+        - "/home/mohamedzaki/.config/tmux/templets/bin"
+        - "/usr/local/sbin"
+        - "/usr/local/bin"
+        - "/usr/bin"
+        - "/usr/sbin"
+        - "/sbin"
+        - "/bin"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/usr/share/cmake-4.2/Modules/CMakeFindBinUtils.cmake:243 (find_program)"
+      - "/usr/share/cmake-4.2/Modules/CMakeDetermineCXXCompiler.cmake:206 (include)"
+      - "CMakeLists.txt:2 (project)"
+    mode: "program"
+    variable: "CMAKE_DLLTOOL"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: false
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "dlltool"
+    candidate_directories:
+      - "/usr/bin/"
+      - "/home/mz/scripts/grub/"
+      - "/root/dotfiles/.config/dwm/dwmblocks/patches/"
+      - "/root/scripts/"
+      - "/root/.local/bin/"
+      - "/root/.config/tmux/templets/bin/"
+      - "/home/mz/dotfiles/.config/dwm/dwmblocks/patches/"
+      - "/home/mz/scripts/"
+      - "/home/mz/.local/bin/"
+      - "/home/mz/.config/tmux/templets/bin/"
+      - "/home/mohamedzaki/dotfiles/.config/dwm/dwmblocks/patches/"
+      - "/home/mohamedzaki/scripts/"
+      - "/home/mohamedzaki/.local/bin/"
+      - "/home/mohamedzaki/.config/tmux/templets/bin/"
+      - "/usr/local/sbin/"
+      - "/usr/local/bin/"
+      - "/usr/sbin/"
+      - "/sbin/"
+      - "/bin/"
+    searched_directories:
+      - "/usr/bin/dlltool"
+      - "/home/mz/scripts/grub/dlltool"
+      - "/root/dotfiles/.config/dwm/dwmblocks/patches/dlltool"
+      - "/root/scripts/dlltool"
+      - "/root/.local/bin/dlltool"
+      - "/root/.config/tmux/templets/bin/dlltool"
+      - "/home/mz/dotfiles/.config/dwm/dwmblocks/patches/dlltool"
+      - "/home/mz/scripts/dlltool"
+      - "/home/mz/.local/bin/dlltool"
+      - "/home/mz/.config/tmux/templets/bin/dlltool"
+      - "/home/mohamedzaki/dotfiles/.config/dwm/dwmblocks/patches/dlltool"
+      - "/home/mohamedzaki/scripts/dlltool"
+      - "/home/mohamedzaki/.local/bin/dlltool"
+      - "/home/mohamedzaki/.config/tmux/templets/bin/dlltool"
+      - "/usr/local/sbin/dlltool"
+      - "/usr/local/bin/dlltool"
+      - "/usr/sbin/dlltool"
+      - "/sbin/dlltool"
+      - "/bin/dlltool"
+    found: false
+    search_context:
+      ENV{PATH}:
+        - "/home/mz/scripts/grub/"
+        - "/root/dotfiles/.config/dwm/dwmblocks/patches"
+        - "/root/scripts"
+        - "/root/.local/bin"
+        - "/root/.config/tmux/templets/bin"
+        - "/home/mz/dotfiles/.config/dwm/dwmblocks/patches"
+        - "/home/mz/scripts"
+        - "/home/mz/.local/bin"
+        - "/home/mz/.config/tmux/templets/bin"
+        - "/home/mohamedzaki/dotfiles/.config/dwm/dwmblocks/patches"
+        - "/home/mohamedzaki/scripts"
+        - "/home/mohamedzaki/.local/bin"
+        - "/home/mohamedzaki/.config/tmux/templets/bin"
+        - "/usr/local/sbin"
+        - "/usr/local/bin"
+        - "/usr/bin"
+        - "/usr/sbin"
+        - "/sbin"
+        - "/bin"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/usr/share/cmake-4.2/Modules/CMakeFindBinUtils.cmake:243 (find_program)"
+      - "/usr/share/cmake-4.2/Modules/CMakeDetermineCXXCompiler.cmake:206 (include)"
+      - "CMakeLists.txt:2 (project)"
+    mode: "program"
+    variable: "CMAKE_ADDR2LINE"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: false
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "addr2line"
+    candidate_directories:
+      - "/usr/bin/"
+      - "/home/mz/scripts/grub/"
+      - "/root/dotfiles/.config/dwm/dwmblocks/patches/"
+      - "/root/scripts/"
+      - "/root/.local/bin/"
+      - "/root/.config/tmux/templets/bin/"
+      - "/home/mz/dotfiles/.config/dwm/dwmblocks/patches/"
+      - "/home/mz/scripts/"
+      - "/home/mz/.local/bin/"
+      - "/home/mz/.config/tmux/templets/bin/"
+      - "/home/mohamedzaki/dotfiles/.config/dwm/dwmblocks/patches/"
+      - "/home/mohamedzaki/scripts/"
+      - "/home/mohamedzaki/.local/bin/"
+      - "/home/mohamedzaki/.config/tmux/templets/bin/"
+      - "/usr/local/sbin/"
+      - "/usr/local/bin/"
+      - "/usr/sbin/"
+      - "/sbin/"
+      - "/bin/"
+    found: "/usr/bin/addr2line"
+    search_context:
+      ENV{PATH}:
+        - "/home/mz/scripts/grub/"
+        - "/root/dotfiles/.config/dwm/dwmblocks/patches"
+        - "/root/scripts"
+        - "/root/.local/bin"
+        - "/root/.config/tmux/templets/bin"
+        - "/home/mz/dotfiles/.config/dwm/dwmblocks/patches"
+        - "/home/mz/scripts"
+        - "/home/mz/.local/bin"
+        - "/home/mz/.config/tmux/templets/bin"
+        - "/home/mohamedzaki/dotfiles/.config/dwm/dwmblocks/patches"
+        - "/home/mohamedzaki/scripts"
+        - "/home/mohamedzaki/.local/bin"
+        - "/home/mohamedzaki/.config/tmux/templets/bin"
+        - "/usr/local/sbin"
+        - "/usr/local/bin"
+        - "/usr/bin"
+        - "/usr/sbin"
+        - "/sbin"
+        - "/bin"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/usr/share/cmake-4.2/Modules/CMakeFindBinUtils.cmake:243 (find_program)"
+      - "/usr/share/cmake-4.2/Modules/CMakeDetermineCXXCompiler.cmake:206 (include)"
+      - "CMakeLists.txt:2 (project)"
+    mode: "program"
+    variable: "CMAKE_TAPI"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: false
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "tapi"
+    candidate_directories:
+      - "/usr/bin/"
+      - "/home/mz/scripts/grub/"
+      - "/root/dotfiles/.config/dwm/dwmblocks/patches/"
+      - "/root/scripts/"
+      - "/root/.local/bin/"
+      - "/root/.config/tmux/templets/bin/"
+      - "/home/mz/dotfiles/.config/dwm/dwmblocks/patches/"
+      - "/home/mz/scripts/"
+      - "/home/mz/.local/bin/"
+      - "/home/mz/.config/tmux/templets/bin/"
+      - "/home/mohamedzaki/dotfiles/.config/dwm/dwmblocks/patches/"
+      - "/home/mohamedzaki/scripts/"
+      - "/home/mohamedzaki/.local/bin/"
+      - "/home/mohamedzaki/.config/tmux/templets/bin/"
+      - "/usr/local/sbin/"
+      - "/usr/local/bin/"
+      - "/usr/sbin/"
+      - "/sbin/"
+      - "/bin/"
+    searched_directories:
+      - "/usr/bin/tapi"
+      - "/home/mz/scripts/grub/tapi"
+      - "/root/dotfiles/.config/dwm/dwmblocks/patches/tapi"
+      - "/root/scripts/tapi"
+      - "/root/.local/bin/tapi"
+      - "/root/.config/tmux/templets/bin/tapi"
+      - "/home/mz/dotfiles/.config/dwm/dwmblocks/patches/tapi"
+      - "/home/mz/scripts/tapi"
+      - "/home/mz/.local/bin/tapi"
+      - "/home/mz/.config/tmux/templets/bin/tapi"
+      - "/home/mohamedzaki/dotfiles/.config/dwm/dwmblocks/patches/tapi"
+      - "/home/mohamedzaki/scripts/tapi"
+      - "/home/mohamedzaki/.local/bin/tapi"
+      - "/home/mohamedzaki/.config/tmux/templets/bin/tapi"
+      - "/usr/local/sbin/tapi"
+      - "/usr/local/bin/tapi"
+      - "/usr/sbin/tapi"
+      - "/sbin/tapi"
+      - "/bin/tapi"
+    found: false
+    search_context:
+      ENV{PATH}:
+        - "/home/mz/scripts/grub/"
+        - "/root/dotfiles/.config/dwm/dwmblocks/patches"
+        - "/root/scripts"
+        - "/root/.local/bin"
+        - "/root/.config/tmux/templets/bin"
+        - "/home/mz/dotfiles/.config/dwm/dwmblocks/patches"
+        - "/home/mz/scripts"
+        - "/home/mz/.local/bin"
+        - "/home/mz/.config/tmux/templets/bin"
+        - "/home/mohamedzaki/dotfiles/.config/dwm/dwmblocks/patches"
+        - "/home/mohamedzaki/scripts"
+        - "/home/mohamedzaki/.local/bin"
+        - "/home/mohamedzaki/.config/tmux/templets/bin"
+        - "/usr/local/sbin"
+        - "/usr/local/bin"
+        - "/usr/bin"
+        - "/usr/sbin"
+        - "/sbin"
+        - "/bin"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/usr/share/cmake-4.2/Modules/Compiler/GNU-FindBinUtils.cmake:18 (find_program)"
+      - "/usr/share/cmake-4.2/Modules/CMakeDetermineCXXCompiler.cmake:207 (include)"
+      - "CMakeLists.txt:2 (project)"
+    mode: "program"
+    variable: "CMAKE_CXX_COMPILER_AR"
+    description: "A wrapper around 'ar' adding the appropriate '--plugin' option for the GCC compiler"
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: false
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "gcc-ar-14.2"
+      - "gcc-ar-14"
+      - "gcc-ar14"
+      - "gcc-ar"
+    candidate_directories:
+      - "/usr/bin/"
+      - "/home/mz/scripts/grub/"
+      - "/root/dotfiles/.config/dwm/dwmblocks/patches/"
+      - "/root/scripts/"
+      - "/root/.local/bin/"
+      - "/root/.config/tmux/templets/bin/"
+      - "/home/mz/dotfiles/.config/dwm/dwmblocks/patches/"
+      - "/home/mz/scripts/"
+      - "/home/mz/.local/bin/"
+      - "/home/mz/.config/tmux/templets/bin/"
+      - "/home/mohamedzaki/dotfiles/.config/dwm/dwmblocks/patches/"
+      - "/home/mohamedzaki/scripts/"
+      - "/home/mohamedzaki/.local/bin/"
+      - "/home/mohamedzaki/.config/tmux/templets/bin/"
+      - "/usr/local/sbin/"
+      - "/usr/local/bin/"
+      - "/usr/sbin/"
+      - "/sbin/"
+      - "/bin/"
+    searched_directories:
+      - "/usr/bin/gcc-ar-14.2"
+      - "/home/mz/scripts/grub/gcc-ar-14.2"
+      - "/root/dotfiles/.config/dwm/dwmblocks/patches/gcc-ar-14.2"
+      - "/root/scripts/gcc-ar-14.2"
+      - "/root/.local/bin/gcc-ar-14.2"
+      - "/root/.config/tmux/templets/bin/gcc-ar-14.2"
+      - "/home/mz/dotfiles/.config/dwm/dwmblocks/patches/gcc-ar-14.2"
+      - "/home/mz/scripts/gcc-ar-14.2"
+      - "/home/mz/.local/bin/gcc-ar-14.2"
+      - "/home/mz/.config/tmux/templets/bin/gcc-ar-14.2"
+      - "/home/mohamedzaki/dotfiles/.config/dwm/dwmblocks/patches/gcc-ar-14.2"
+      - "/home/mohamedzaki/scripts/gcc-ar-14.2"
+      - "/home/mohamedzaki/.local/bin/gcc-ar-14.2"
+      - "/home/mohamedzaki/.config/tmux/templets/bin/gcc-ar-14.2"
+      - "/usr/local/sbin/gcc-ar-14.2"
+      - "/usr/local/bin/gcc-ar-14.2"
+      - "/usr/sbin/gcc-ar-14.2"
+      - "/sbin/gcc-ar-14.2"
+      - "/bin/gcc-ar-14.2"
+      - "/usr/bin/gcc-ar-14"
+      - "/home/mz/scripts/grub/gcc-ar-14"
+      - "/root/dotfiles/.config/dwm/dwmblocks/patches/gcc-ar-14"
+      - "/root/scripts/gcc-ar-14"
+      - "/root/.local/bin/gcc-ar-14"
+      - "/root/.config/tmux/templets/bin/gcc-ar-14"
+      - "/home/mz/dotfiles/.config/dwm/dwmblocks/patches/gcc-ar-14"
+      - "/home/mz/scripts/gcc-ar-14"
+      - "/home/mz/.local/bin/gcc-ar-14"
+      - "/home/mz/.config/tmux/templets/bin/gcc-ar-14"
+      - "/home/mohamedzaki/dotfiles/.config/dwm/dwmblocks/patches/gcc-ar-14"
+      - "/home/mohamedzaki/scripts/gcc-ar-14"
+      - "/home/mohamedzaki/.local/bin/gcc-ar-14"
+      - "/home/mohamedzaki/.config/tmux/templets/bin/gcc-ar-14"
+      - "/usr/local/sbin/gcc-ar-14"
+      - "/usr/local/bin/gcc-ar-14"
+      - "/usr/sbin/gcc-ar-14"
+      - "/sbin/gcc-ar-14"
+      - "/bin/gcc-ar-14"
+      - "/usr/bin/gcc-ar14"
+      - "/home/mz/scripts/grub/gcc-ar14"
+      - "/root/dotfiles/.config/dwm/dwmblocks/patches/gcc-ar14"
+      - "/root/scripts/gcc-ar14"
+      - "/root/.local/bin/gcc-ar14"
+      - "/root/.config/tmux/templets/bin/gcc-ar14"
+      - "/home/mz/dotfiles/.config/dwm/dwmblocks/patches/gcc-ar14"
+      - "/home/mz/scripts/gcc-ar14"
+      - "/home/mz/.local/bin/gcc-ar14"
+      - "/home/mz/.config/tmux/templets/bin/gcc-ar14"
+      - "/home/mohamedzaki/dotfiles/.config/dwm/dwmblocks/patches/gcc-ar14"
+      - "/home/mohamedzaki/scripts/gcc-ar14"
+      - "/home/mohamedzaki/.local/bin/gcc-ar14"
+      - "/home/mohamedzaki/.config/tmux/templets/bin/gcc-ar14"
+      - "/usr/local/sbin/gcc-ar14"
+      - "/usr/local/bin/gcc-ar14"
+      - "/usr/sbin/gcc-ar14"
+      - "/sbin/gcc-ar14"
+      - "/bin/gcc-ar14"
+    found: "/usr/bin/gcc-ar"
+    search_context:
+      ENV{PATH}:
+        - "/home/mz/scripts/grub/"
+        - "/root/dotfiles/.config/dwm/dwmblocks/patches"
+        - "/root/scripts"
+        - "/root/.local/bin"
+        - "/root/.config/tmux/templets/bin"
+        - "/home/mz/dotfiles/.config/dwm/dwmblocks/patches"
+        - "/home/mz/scripts"
+        - "/home/mz/.local/bin"
+        - "/home/mz/.config/tmux/templets/bin"
+        - "/home/mohamedzaki/dotfiles/.config/dwm/dwmblocks/patches"
+        - "/home/mohamedzaki/scripts"
+        - "/home/mohamedzaki/.local/bin"
+        - "/home/mohamedzaki/.config/tmux/templets/bin"
+        - "/usr/local/sbin"
+        - "/usr/local/bin"
+        - "/usr/bin"
+        - "/usr/sbin"
+        - "/sbin"
+        - "/bin"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/usr/share/cmake-4.2/Modules/Compiler/GNU-FindBinUtils.cmake:30 (find_program)"
+      - "/usr/share/cmake-4.2/Modules/CMakeDetermineCXXCompiler.cmake:207 (include)"
+      - "CMakeLists.txt:2 (project)"
+    mode: "program"
+    variable: "CMAKE_CXX_COMPILER_RANLIB"
+    description: "A wrapper around 'ranlib' adding the appropriate '--plugin' option for the GCC compiler"
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: false
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "gcc-ranlib-14.2"
+      - "gcc-ranlib-14"
+      - "gcc-ranlib14"
+      - "gcc-ranlib"
+    candidate_directories:
+      - "/usr/bin/"
+      - "/home/mz/scripts/grub/"
+      - "/root/dotfiles/.config/dwm/dwmblocks/patches/"
+      - "/root/scripts/"
+      - "/root/.local/bin/"
+      - "/root/.config/tmux/templets/bin/"
+      - "/home/mz/dotfiles/.config/dwm/dwmblocks/patches/"
+      - "/home/mz/scripts/"
+      - "/home/mz/.local/bin/"
+      - "/home/mz/.config/tmux/templets/bin/"
+      - "/home/mohamedzaki/dotfiles/.config/dwm/dwmblocks/patches/"
+      - "/home/mohamedzaki/scripts/"
+      - "/home/mohamedzaki/.local/bin/"
+      - "/home/mohamedzaki/.config/tmux/templets/bin/"
+      - "/usr/local/sbin/"
+      - "/usr/local/bin/"
+      - "/usr/sbin/"
+      - "/sbin/"
+      - "/bin/"
+    searched_directories:
+      - "/usr/bin/gcc-ranlib-14.2"
+      - "/home/mz/scripts/grub/gcc-ranlib-14.2"
+      - "/root/dotfiles/.config/dwm/dwmblocks/patches/gcc-ranlib-14.2"
+      - "/root/scripts/gcc-ranlib-14.2"
+      - "/root/.local/bin/gcc-ranlib-14.2"
+      - "/root/.config/tmux/templets/bin/gcc-ranlib-14.2"
+      - "/home/mz/dotfiles/.config/dwm/dwmblocks/patches/gcc-ranlib-14.2"
+      - "/home/mz/scripts/gcc-ranlib-14.2"
+      - "/home/mz/.local/bin/gcc-ranlib-14.2"
+      - "/home/mz/.config/tmux/templets/bin/gcc-ranlib-14.2"
+      - "/home/mohamedzaki/dotfiles/.config/dwm/dwmblocks/patches/gcc-ranlib-14.2"
+      - "/home/mohamedzaki/scripts/gcc-ranlib-14.2"
+      - "/home/mohamedzaki/.local/bin/gcc-ranlib-14.2"
+      - "/home/mohamedzaki/.config/tmux/templets/bin/gcc-ranlib-14.2"
+      - "/usr/local/sbin/gcc-ranlib-14.2"
+      - "/usr/local/bin/gcc-ranlib-14.2"
+      - "/usr/sbin/gcc-ranlib-14.2"
+      - "/sbin/gcc-ranlib-14.2"
+      - "/bin/gcc-ranlib-14.2"
+      - "/usr/bin/gcc-ranlib-14"
+      - "/home/mz/scripts/grub/gcc-ranlib-14"
+      - "/root/dotfiles/.config/dwm/dwmblocks/patches/gcc-ranlib-14"
+      - "/root/scripts/gcc-ranlib-14"
+      - "/root/.local/bin/gcc-ranlib-14"
+      - "/root/.config/tmux/templets/bin/gcc-ranlib-14"
+      - "/home/mz/dotfiles/.config/dwm/dwmblocks/patches/gcc-ranlib-14"
+      - "/home/mz/scripts/gcc-ranlib-14"
+      - "/home/mz/.local/bin/gcc-ranlib-14"
+      - "/home/mz/.config/tmux/templets/bin/gcc-ranlib-14"
+      - "/home/mohamedzaki/dotfiles/.config/dwm/dwmblocks/patches/gcc-ranlib-14"
+      - "/home/mohamedzaki/scripts/gcc-ranlib-14"
+      - "/home/mohamedzaki/.local/bin/gcc-ranlib-14"
+      - "/home/mohamedzaki/.config/tmux/templets/bin/gcc-ranlib-14"
+      - "/usr/local/sbin/gcc-ranlib-14"
+      - "/usr/local/bin/gcc-ranlib-14"
+      - "/usr/sbin/gcc-ranlib-14"
+      - "/sbin/gcc-ranlib-14"
+      - "/bin/gcc-ranlib-14"
+      - "/usr/bin/gcc-ranlib14"
+      - "/home/mz/scripts/grub/gcc-ranlib14"
+      - "/root/dotfiles/.config/dwm/dwmblocks/patches/gcc-ranlib14"
+      - "/root/scripts/gcc-ranlib14"
+      - "/root/.local/bin/gcc-ranlib14"
+      - "/root/.config/tmux/templets/bin/gcc-ranlib14"
+      - "/home/mz/dotfiles/.config/dwm/dwmblocks/patches/gcc-ranlib14"
+      - "/home/mz/scripts/gcc-ranlib14"
+      - "/home/mz/.local/bin/gcc-ranlib14"
+      - "/home/mz/.config/tmux/templets/bin/gcc-ranlib14"
+      - "/home/mohamedzaki/dotfiles/.config/dwm/dwmblocks/patches/gcc-ranlib14"
+      - "/home/mohamedzaki/scripts/gcc-ranlib14"
+      - "/home/mohamedzaki/.local/bin/gcc-ranlib14"
+      - "/home/mohamedzaki/.config/tmux/templets/bin/gcc-ranlib14"
+      - "/usr/local/sbin/gcc-ranlib14"
+      - "/usr/local/bin/gcc-ranlib14"
+      - "/usr/sbin/gcc-ranlib14"
+      - "/sbin/gcc-ranlib14"
+      - "/bin/gcc-ranlib14"
+    found: "/usr/bin/gcc-ranlib"
+    search_context:
+      ENV{PATH}:
+        - "/home/mz/scripts/grub/"
+        - "/root/dotfiles/.config/dwm/dwmblocks/patches"
+        - "/root/scripts"
+        - "/root/.local/bin"
+        - "/root/.config/tmux/templets/bin"
+        - "/home/mz/dotfiles/.config/dwm/dwmblocks/patches"
+        - "/home/mz/scripts"
+        - "/home/mz/.local/bin"
+        - "/home/mz/.config/tmux/templets/bin"
+        - "/home/mohamedzaki/dotfiles/.config/dwm/dwmblocks/patches"
+        - "/home/mohamedzaki/scripts"
+        - "/home/mohamedzaki/.local/bin"
+        - "/home/mohamedzaki/.config/tmux/templets/bin"
+        - "/usr/local/sbin"
+        - "/usr/local/bin"
+        - "/usr/bin"
+        - "/usr/sbin"
+        - "/sbin"
+        - "/bin"
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/share/cmake-4.2/Modules/CMakeDetermineCompilerABI.cmake:83 (try_compile)"
+      - "/usr/share/cmake-4.2/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:2 (project)"
+    checks:
+      - "Detecting CXX compiler ABI info"
+    directories:
+      source: "/home/mz/dev/hypr-edge-gestures/build/CMakeFiles/CMakeScratch/TryCompile-VDDQah"
+      binary: "/home/mz/dev/hypr-edge-gestures/build/CMakeFiles/CMakeScratch/TryCompile-VDDQah"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: ""
+      CMAKE_CXX_FLAGS_DEBUG: "-g"
+      CMAKE_CXX_SCAN_FOR_MODULES: "OFF"
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "CMAKE_CXX_ABI_COMPILED"
+      cached: true
+      stdout: |
+        Change Dir: '/home/mz/dev/hypr-edge-gestures/build/CMakeFiles/CMakeScratch/TryCompile-VDDQah'
+        
+        Run Build Command(s): /usr/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_030e8/fast
+        /usr/bin/make  -f CMakeFiles/cmTC_030e8.dir/build.make CMakeFiles/cmTC_030e8.dir/build
+        make[1]: Entering directory '/home/mz/dotfiles/dev/hypr-edge-gestures/build/CMakeFiles/CMakeScratch/TryCompile-VDDQah'
+        Building CXX object CMakeFiles/cmTC_030e8.dir/CMakeCXXCompilerABI.cpp.o
+        /usr/bin/c++   -v -o CMakeFiles/cmTC_030e8.dir/CMakeCXXCompilerABI.cpp.o -c /usr/share/cmake-4.2/Modules/CMakeCXXCompilerABI.cpp
+        Using built-in specs.
+        COLLECT_GCC=/usr/bin/c++
+        Target: x86_64-unknown-linux-gnu
+        Configured with: /builddir/gcc-14.2.1+20250405/configure --build=x86_64-unknown-linux-gnu --enable-gnu-unique-object --enable-vtable-verify --prefix=/usr --mandir=/usr/share/man --infodir=/usr/share/info --libexecdir=/usr/lib64 --libdir=/usr/lib64 --enable-threads=posix --enable-__cxa_atexit --disable-multilib --with-system-zlib --enable-shared --enable-lto --enable-plugins --enable-linker-build-id --disable-werror --disable-nls --enable-default-pie --enable-default-ssp --enable-checking=release --disable-libstdcxx-pch --with-isl --with-linker-hash-style=gnu --disable-sjlj-exceptions --disable-target-libiberty --disable-libssp --enable-languages=c,c++,objc,obj-c++,fortran,lto,go,d,ada
+        Thread model: posix
+        Supported LTO compression algorithms: zlib zstd
+        gcc version 14.2.1 20250405 (GCC) 
+        COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_030e8.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_030e8.dir/'
+         /usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/cc1plus -quiet -v -D_GNU_SOURCE /usr/share/cmake-4.2/Modules/CMakeCXXCompilerABI.cpp -quiet -dumpdir CMakeFiles/cmTC_030e8.dir/ -dumpbase CMakeCXXCompilerABI.cpp.cpp -dumpbase-ext .cpp -mtune=generic -march=x86-64 -version -o /tmp/cc7pYzGH.s
+        GNU C++17 (GCC) version 14.2.1 20250405 (x86_64-unknown-linux-gnu)
+        	compiled by GNU C version 14.2.1 20250405, GMP version 6.3.0, MPFR version 4.2.1, MPC version 1.3.1, isl version isl-0.26-GMP
+        
+        GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072
+        ignoring nonexistent directory "/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/../../../../x86_64-unknown-linux-gnu/include"
+        #include "..." search starts here:
+        #include <...> search starts here:
+         /usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/../../../../include/c++/14.2.1
+         /usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/../../../../include/c++/14.2.1/x86_64-unknown-linux-gnu
+         /usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/../../../../include/c++/14.2.1/backward
+         /usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/include
+         /usr/local/include
+         /usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/include-fixed
+         /usr/include
+        End of search list.
+        Compiler executable checksum: 25b25b9618c35d50d8bc42a9a643504e
+        COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_030e8.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_030e8.dir/'
+         as -v --64 -o CMakeFiles/cmTC_030e8.dir/CMakeCXXCompilerABI.cpp.o /tmp/cc7pYzGH.s
+        GNU assembler version 2.44 (x86_64-unknown-linux-gnu) using BFD version (GNU Binutils) 2.44
+        COMPILER_PATH=/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/:/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/:/usr/lib64/gcc/x86_64-unknown-linux-gnu/:/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/:/usr/lib64/gcc/x86_64-unknown-linux-gnu/
+        LIBRARY_PATH=/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/:/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/../../../../lib64/:/lib/../lib64/:/usr/lib/../lib64/:/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/../../../:/lib/:/usr/lib/
+        COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_030e8.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_030e8.dir/CMakeCXXCompilerABI.cpp.'
+        Linking CXX executable cmTC_030e8
+        /usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_030e8.dir/link.txt --verbose=1
+        Using built-in specs.
+        COLLECT_GCC=/usr/bin/c++
+        COLLECT_LTO_WRAPPER=/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/lto-wrapper
+        Target: x86_64-unknown-linux-gnu
+        Configured with: /builddir/gcc-14.2.1+20250405/configure --build=x86_64-unknown-linux-gnu --enable-gnu-unique-object --enable-vtable-verify --prefix=/usr --mandir=/usr/share/man --infodir=/usr/share/info --libexecdir=/usr/lib64 --libdir=/usr/lib64 --enable-threads=posix --enable-__cxa_atexit --disable-multilib --with-system-zlib --enable-shared --enable-lto --enable-plugins --enable-linker-build-id --disable-werror --disable-nls --enable-default-pie --enable-default-ssp --enable-checking=release --disable-libstdcxx-pch --with-isl --with-linker-hash-style=gnu --disable-sjlj-exceptions --disable-target-libiberty --disable-libssp --enable-languages=c,c++,objc,obj-c++,fortran,lto,go,d,ada
+        Thread model: posix
+        Supported LTO compression algorithms: zlib zstd
+        gcc version 14.2.1 20250405 (GCC) 
+        COMPILER_PATH=/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/:/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/:/usr/lib64/gcc/x86_64-unknown-linux-gnu/:/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/:/usr/lib64/gcc/x86_64-unknown-linux-gnu/
+        LIBRARY_PATH=/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/:/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/../../../../lib64/:/lib/../lib64/:/usr/lib/../lib64/:/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/../../../:/lib/:/usr/lib/
+        COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_030e8' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'cmTC_030e8.'
+         /usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/collect2 -plugin /usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/liblto_plugin.so -plugin-opt=/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/lto-wrapper -plugin-opt=-fresolution=/tmp/ccuLbfaz.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --build-id --eh-frame-hdr --hash-style=gnu -m elf_x86_64 -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -o cmTC_030e8 /usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/../../../../lib64/Scrt1.o /usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/../../../../lib64/crti.o /usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/crtbeginS.o -L/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1 -L/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/../../../../lib64 -L/lib/../lib64 -L/usr/lib/../lib64 -L/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/../../.. -v CMakeFiles/cmTC_030e8.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/crtendS.o /usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/../../../../lib64/crtn.o
+        collect2 version 14.2.1 20250405
+        /usr/bin/ld -plugin /usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/liblto_plugin.so -plugin-opt=/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/lto-wrapper -plugin-opt=-fresolution=/tmp/ccuLbfaz.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --build-id --eh-frame-hdr --hash-style=gnu -m elf_x86_64 -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -o cmTC_030e8 /usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/../../../../lib64/Scrt1.o /usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/../../../../lib64/crti.o /usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/crtbeginS.o -L/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1 -L/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/../../../../lib64 -L/lib/../lib64 -L/usr/lib/../lib64 -L/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/../../.. -v CMakeFiles/cmTC_030e8.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/crtendS.o /usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/../../../../lib64/crtn.o
+        GNU ld (GNU Binutils) 2.44
+        COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_030e8' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'cmTC_030e8.'
+        /usr/bin/c++  -v -Wl,-v CMakeFiles/cmTC_030e8.dir/CMakeCXXCompilerABI.cpp.o -o cmTC_030e8
+        make[1]: Leaving directory '/home/mz/dotfiles/dev/hypr-edge-gestures/build/CMakeFiles/CMakeScratch/TryCompile-VDDQah'
+        
+      exitCode: 0
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/usr/share/cmake-4.2/Modules/CMakeDetermineCompilerABI.cmake:217 (message)"
+      - "/usr/share/cmake-4.2/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:2 (project)"
+    message: |
+      Parsed CXX implicit include dir info: rv=done
+        found start of include info
+        found start of implicit include info
+          add: [/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/../../../../include/c++/14.2.1]
+          add: [/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/../../../../include/c++/14.2.1/x86_64-unknown-linux-gnu]
+          add: [/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/../../../../include/c++/14.2.1/backward]
+          add: [/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/include]
+          add: [/usr/local/include]
+          add: [/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/include-fixed]
+          add: [/usr/include]
+        end of search list found
+        collapse include dir [/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/../../../../include/c++/14.2.1] ==> [/usr/include/c++/14.2.1]
+        collapse include dir [/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/../../../../include/c++/14.2.1/x86_64-unknown-linux-gnu] ==> [/usr/include/c++/14.2.1/x86_64-unknown-linux-gnu]
+        collapse include dir [/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/../../../../include/c++/14.2.1/backward] ==> [/usr/include/c++/14.2.1/backward]
+        collapse include dir [/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/include] ==> [/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/include]
+        collapse include dir [/usr/local/include] ==> [/usr/local/include]
+        collapse include dir [/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/include-fixed] ==> [/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/include-fixed]
+        collapse include dir [/usr/include] ==> [/usr/include]
+        implicit include dirs: [/usr/include/c++/14.2.1;/usr/include/c++/14.2.1/x86_64-unknown-linux-gnu;/usr/include/c++/14.2.1/backward;/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/include;/usr/local/include;/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/include-fixed;/usr/include]
+      
+      
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/usr/share/cmake-4.2/Modules/CMakeDetermineCompilerABI.cmake:253 (message)"
+      - "/usr/share/cmake-4.2/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:2 (project)"
+    message: |
+      Parsed CXX implicit link information:
+        link line regex: [^( *|.*[/\\])(ld[0-9]*(|\\.[a-rt-z][a-z]*|\\.s[a-np-z][a-z]*|\\.so[a-z]+)|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\\]+-)?ld|collect2)[^/\\]*( |$)]
+        linker tool regex: [^[ 	]*(->|"|[0-9]+>[ 	-]*Build:[ 	0-9]+ ms[ 	]*)?[ 	]*(([^"]*[/\\])?(ld[0-9]*(|\\.[a-rt-z][a-z]*|\\.s[a-np-z][a-z]*|\\.so[a-z]+)))("|,| |$)]
+        ignore line: [Change Dir: '/home/mz/dev/hypr-edge-gestures/build/CMakeFiles/CMakeScratch/TryCompile-VDDQah']
+        ignore line: []
+        ignore line: [Run Build Command(s): /usr/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_030e8/fast]
+        ignore line: [/usr/bin/make  -f CMakeFiles/cmTC_030e8.dir/build.make CMakeFiles/cmTC_030e8.dir/build]
+        ignore line: [make[1]: Entering directory '/home/mz/dotfiles/dev/hypr-edge-gestures/build/CMakeFiles/CMakeScratch/TryCompile-VDDQah']
+        ignore line: [Building CXX object CMakeFiles/cmTC_030e8.dir/CMakeCXXCompilerABI.cpp.o]
+        ignore line: [/usr/bin/c++   -v -o CMakeFiles/cmTC_030e8.dir/CMakeCXXCompilerABI.cpp.o -c /usr/share/cmake-4.2/Modules/CMakeCXXCompilerABI.cpp]
+        ignore line: [Using built-in specs.]
+        ignore line: [COLLECT_GCC=/usr/bin/c++]
+        ignore line: [Target: x86_64-unknown-linux-gnu]
+        ignore line: [Configured with: /builddir/gcc-14.2.1+20250405/configure --build=x86_64-unknown-linux-gnu --enable-gnu-unique-object --enable-vtable-verify --prefix=/usr --mandir=/usr/share/man --infodir=/usr/share/info --libexecdir=/usr/lib64 --libdir=/usr/lib64 --enable-threads=posix --enable-__cxa_atexit --disable-multilib --with-system-zlib --enable-shared --enable-lto --enable-plugins --enable-linker-build-id --disable-werror --disable-nls --enable-default-pie --enable-default-ssp --enable-checking=release --disable-libstdcxx-pch --with-isl --with-linker-hash-style=gnu --disable-sjlj-exceptions --disable-target-libiberty --disable-libssp --enable-languages=c c++ objc obj-c++ fortran lto go d ada]
+        ignore line: [Thread model: posix]
+        ignore line: [Supported LTO compression algorithms: zlib zstd]
+        ignore line: [gcc version 14.2.1 20250405 (GCC) ]
+        ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_030e8.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_030e8.dir/']
+        ignore line: [ /usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/cc1plus -quiet -v -D_GNU_SOURCE /usr/share/cmake-4.2/Modules/CMakeCXXCompilerABI.cpp -quiet -dumpdir CMakeFiles/cmTC_030e8.dir/ -dumpbase CMakeCXXCompilerABI.cpp.cpp -dumpbase-ext .cpp -mtune=generic -march=x86-64 -version -o /tmp/cc7pYzGH.s]
+        ignore line: [GNU C++17 (GCC) version 14.2.1 20250405 (x86_64-unknown-linux-gnu)]
+        ignore line: [	compiled by GNU C version 14.2.1 20250405  GMP version 6.3.0  MPFR version 4.2.1  MPC version 1.3.1  isl version isl-0.26-GMP]
+        ignore line: []
+        ignore line: [GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072]
+        ignore line: [ignoring nonexistent directory "/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/../../../../x86_64-unknown-linux-gnu/include"]
+        ignore line: [#include "..." search starts here:]
+        ignore line: [#include <...> search starts here:]
+        ignore line: [ /usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/../../../../include/c++/14.2.1]
+        ignore line: [ /usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/../../../../include/c++/14.2.1/x86_64-unknown-linux-gnu]
+        ignore line: [ /usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/../../../../include/c++/14.2.1/backward]
+        ignore line: [ /usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/include]
+        ignore line: [ /usr/local/include]
+        ignore line: [ /usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/include-fixed]
+        ignore line: [ /usr/include]
+        ignore line: [End of search list.]
+        ignore line: [Compiler executable checksum: 25b25b9618c35d50d8bc42a9a643504e]
+        ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_030e8.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_030e8.dir/']
+        ignore line: [ as -v --64 -o CMakeFiles/cmTC_030e8.dir/CMakeCXXCompilerABI.cpp.o /tmp/cc7pYzGH.s]
+        ignore line: [GNU assembler version 2.44 (x86_64-unknown-linux-gnu) using BFD version (GNU Binutils) 2.44]
+        ignore line: [COMPILER_PATH=/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/:/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/:/usr/lib64/gcc/x86_64-unknown-linux-gnu/:/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/:/usr/lib64/gcc/x86_64-unknown-linux-gnu/]
+        ignore line: [LIBRARY_PATH=/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/:/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/../../../../lib64/:/lib/../lib64/:/usr/lib/../lib64/:/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/../../../:/lib/:/usr/lib/]
+        ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_030e8.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_030e8.dir/CMakeCXXCompilerABI.cpp.']
+        ignore line: [Linking CXX executable cmTC_030e8]
+        ignore line: [/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_030e8.dir/link.txt --verbose=1]
+        ignore line: [Using built-in specs.]
+        ignore line: [COLLECT_GCC=/usr/bin/c++]
+        ignore line: [COLLECT_LTO_WRAPPER=/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/lto-wrapper]
+        ignore line: [Target: x86_64-unknown-linux-gnu]
+        ignore line: [Configured with: /builddir/gcc-14.2.1+20250405/configure --build=x86_64-unknown-linux-gnu --enable-gnu-unique-object --enable-vtable-verify --prefix=/usr --mandir=/usr/share/man --infodir=/usr/share/info --libexecdir=/usr/lib64 --libdir=/usr/lib64 --enable-threads=posix --enable-__cxa_atexit --disable-multilib --with-system-zlib --enable-shared --enable-lto --enable-plugins --enable-linker-build-id --disable-werror --disable-nls --enable-default-pie --enable-default-ssp --enable-checking=release --disable-libstdcxx-pch --with-isl --with-linker-hash-style=gnu --disable-sjlj-exceptions --disable-target-libiberty --disable-libssp --enable-languages=c c++ objc obj-c++ fortran lto go d ada]
+        ignore line: [Thread model: posix]
+        ignore line: [Supported LTO compression algorithms: zlib zstd]
+        ignore line: [gcc version 14.2.1 20250405 (GCC) ]
+        ignore line: [COMPILER_PATH=/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/:/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/:/usr/lib64/gcc/x86_64-unknown-linux-gnu/:/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/:/usr/lib64/gcc/x86_64-unknown-linux-gnu/]
+        ignore line: [LIBRARY_PATH=/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/:/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/../../../../lib64/:/lib/../lib64/:/usr/lib/../lib64/:/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/../../../:/lib/:/usr/lib/]
+        ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_030e8' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'cmTC_030e8.']
+        link line: [ /usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/collect2 -plugin /usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/liblto_plugin.so -plugin-opt=/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/lto-wrapper -plugin-opt=-fresolution=/tmp/ccuLbfaz.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --build-id --eh-frame-hdr --hash-style=gnu -m elf_x86_64 -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -o cmTC_030e8 /usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/../../../../lib64/Scrt1.o /usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/../../../../lib64/crti.o /usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/crtbeginS.o -L/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1 -L/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/../../../../lib64 -L/lib/../lib64 -L/usr/lib/../lib64 -L/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/../../.. -v CMakeFiles/cmTC_030e8.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/crtendS.o /usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/../../../../lib64/crtn.o]
+          arg [/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/collect2] ==> ignore
+          arg [-plugin] ==> ignore
+          arg [/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/liblto_plugin.so] ==> ignore
+          arg [-plugin-opt=/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/lto-wrapper] ==> ignore
+          arg [-plugin-opt=-fresolution=/tmp/ccuLbfaz.res] ==> ignore
+          arg [-plugin-opt=-pass-through=-lgcc_s] ==> ignore
+          arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
+          arg [-plugin-opt=-pass-through=-lc] ==> ignore
+          arg [-plugin-opt=-pass-through=-lgcc_s] ==> ignore
+          arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
+          arg [--build-id] ==> ignore
+          arg [--eh-frame-hdr] ==> ignore
+          arg [--hash-style=gnu] ==> ignore
+          arg [-m] ==> ignore
+          arg [elf_x86_64] ==> ignore
+          arg [-dynamic-linker] ==> ignore
+          arg [/lib64/ld-linux-x86-64.so.2] ==> ignore
+          arg [-pie] ==> ignore
+          arg [-o] ==> ignore
+          arg [cmTC_030e8] ==> ignore
+          arg [/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/../../../../lib64/Scrt1.o] ==> obj [/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/../../../../lib64/Scrt1.o]
+          arg [/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/../../../../lib64/crti.o] ==> obj [/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/../../../../lib64/crti.o]
+          arg [/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/crtbeginS.o] ==> obj [/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/crtbeginS.o]
+          arg [-L/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1] ==> dir [/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1]
+          arg [-L/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/../../../../lib64] ==> dir [/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/../../../../lib64]
+          arg [-L/lib/../lib64] ==> dir [/lib/../lib64]
+          arg [-L/usr/lib/../lib64] ==> dir [/usr/lib/../lib64]
+          arg [-L/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/../../..] ==> dir [/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/../../..]
+          arg [-v] ==> ignore
+          arg [CMakeFiles/cmTC_030e8.dir/CMakeCXXCompilerABI.cpp.o] ==> ignore
+          arg [-lstdc++] ==> lib [stdc++]
+          arg [-lm] ==> lib [m]
+          arg [-lgcc_s] ==> lib [gcc_s]
+          arg [-lgcc] ==> lib [gcc]
+          arg [-lc] ==> lib [c]
+          arg [-lgcc_s] ==> lib [gcc_s]
+          arg [-lgcc] ==> lib [gcc]
+          arg [/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/crtendS.o] ==> obj [/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/crtendS.o]
+          arg [/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/../../../../lib64/crtn.o] ==> obj [/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/../../../../lib64/crtn.o]
+        ignore line: [collect2 version 14.2.1 20250405]
+        ignore line: [/usr/bin/ld -plugin /usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/liblto_plugin.so -plugin-opt=/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/lto-wrapper -plugin-opt=-fresolution=/tmp/ccuLbfaz.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --build-id --eh-frame-hdr --hash-style=gnu -m elf_x86_64 -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -o cmTC_030e8 /usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/../../../../lib64/Scrt1.o /usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/../../../../lib64/crti.o /usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/crtbeginS.o -L/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1 -L/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/../../../../lib64 -L/lib/../lib64 -L/usr/lib/../lib64 -L/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/../../.. -v CMakeFiles/cmTC_030e8.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/crtendS.o /usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/../../../../lib64/crtn.o]
+        linker tool for 'CXX': /usr/bin/ld
+        collapse obj [/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/../../../../lib64/Scrt1.o] ==> [/usr/lib64/Scrt1.o]
+        collapse obj [/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/../../../../lib64/crti.o] ==> [/usr/lib64/crti.o]
+        collapse obj [/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/../../../../lib64/crtn.o] ==> [/usr/lib64/crtn.o]
+        collapse library dir [/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1] ==> [/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1]
+        collapse library dir [/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/../../../../lib64] ==> [/usr/lib64]
+        collapse library dir [/lib/../lib64] ==> [/lib64]
+        collapse library dir [/usr/lib/../lib64] ==> [/usr/lib64]
+        collapse library dir [/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/../../..] ==> [/usr/lib64]
+        implicit libs: [stdc++;m;gcc_s;gcc;c;gcc_s;gcc]
+        implicit objs: [/usr/lib64/Scrt1.o;/usr/lib64/crti.o;/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/crtbeginS.o;/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1/crtendS.o;/usr/lib64/crtn.o]
+        implicit dirs: [/usr/lib64/gcc/x86_64-unknown-linux-gnu/14.2.1;/usr/lib64;/lib64]
+        implicit fwks: []
+      
+      
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/usr/share/cmake-4.2/Modules/Internal/CMakeDetermineLinkerId.cmake:38 (message)"
+      - "/usr/share/cmake-4.2/Modules/CMakeDetermineCompilerABI.cmake:299 (cmake_determine_linker_id)"
+      - "/usr/share/cmake-4.2/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:2 (project)"
+    message: |
+      Running the CXX compiler's linker: "/usr/bin/ld" "-v"
+      GNU ld (GNU Binutils) 2.44
+...

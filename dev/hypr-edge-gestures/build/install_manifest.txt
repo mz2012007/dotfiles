@@ -1,0 +1,2 @@
+/usr/local/bin/hypr-edge-gestures
+/usr/local/share/hypr-edge-gestures/config.example

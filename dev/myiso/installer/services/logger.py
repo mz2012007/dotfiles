@@ -2,10 +2,12 @@
 import logging
 from datetime import datetime
 from pathlib import Path
+from typing import Union
 
 class InstallerLogger:
-    def __init__(self, log_dir: Path = Path("logs")):
-        self.log_dir = log_dir
+    def __init__(self, log_dir: Union[str, Path] = Path("logs")):
+        # Convert to Path if a string is provided
+        self.log_dir = Path(log_dir) if not isinstance(log_dir, Path) else log_dir
         self.log_dir.mkdir(parents=True, exist_ok=True)
         self.log_file = self.log_dir / f"installer-{datetime.now().strftime('%Y%m%d-%H%M%S')}.log"
         self._setup_logger()

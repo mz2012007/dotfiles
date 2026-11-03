@@ -1,0 +1,18 @@
+# hypr-edge-gestures config
+
+device = /dev/input/touchpad
+edge_margin = 250
+distance_threshold = 200
+timeout_ms = 500
+verbose = true
+
+# bindings: edge:direction = command
+
+right:up   = brightnessctl set +5%
+right:down = brightnessctl set 5%-
+
+left:up    = wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+
+left:down  = wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-
+
+top:right  = playerctl position +5
+top:left   = playerctl position 5-

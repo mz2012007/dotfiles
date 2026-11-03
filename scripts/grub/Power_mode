@@ -1,0 +1,86 @@
+#!/usr/bin/env bash
+#
+# cmd-palette - Floating command palette for Hyprland.
+# Requirements: Bash, Kitty, fzf.
+#
+
+set -Eeuo pipefail
+
+readonly SCRIPT_PATH="$(readlink -f -- "$0")"
+readonly WINDOW_CLASS="fzf-command-palette"
+
+# Launch the palette in a dedicated Kitty window.
+#if [[ "${1:-}" != "--menu" ]]; then
+#  exec kitty \
+#    --class "$WINDOW_CLASS" \
+#    --title "Command Palette" \
+#    --override initial_window_width=100c \
+#    --override initial_window_height=28c \
+#    bash "$SCRIPT_PATH" --menu
+#fi
+# Launch the palette in a dedicated Kitty window.
+if [[ "${1:-}" != "--menu" ]]; then
+  exec kitty \
+    --class "$WINDOW_CLASS" \
+    --title "Command Palette" \
+    --override initial_window_width=120c \
+    --override initial_window_height=35c \
+    bash "$SCRIPT_PATH" --menu
+fi
+
+# Validate dependencies.
+for cmd in fzf bash; do
+  if ! command -v "$cmd" >/dev/null 2>&1; then
+    printf 'Missing dependency: %s\n' "$cmd" >&2
+    exit 1
+  fi
+done
+
+# Each entry contains a display label and a shell command.
+entries=(
+  $'Power max-save\tPower_save.sh max-save'
+  $'Power performance\tPower_save.sh performance'
+  $'Power balanced\tPower_save.sh balanced'
+  $'Power status\tPower_save.sh status'
+  $'Reload Hyprland\thyprctl reload'
+)
+
+# Display the menu and capture the selected entry.
+if ! selection="$(
+  printf '%s\n' "${entries[@]}" |
+    fzf \
+      --delimiter=$'\t' \
+      --with-nth=1 \
+      --prompt='Run > ' \
+      --height=100% \
+      --layout=reverse \
+      --border=rounded \
+      --padding=1 \
+      --info=inline \
+      --no-multi \
+      --no-sort \
+      --cycle \
+      --pointer='▶' \
+      --marker='✓' \
+      --color='header:italic,label:blue,prompt:cyan,pointer:green'
+)"; then
+  exit 0
+fi
+
+# Extract the selected command.
+IFS=$'\t' read -r label command <<<"$selection"
+
+[[ -n "${command:-}" ]] || exit 0
+
+# Show the selected command.
+printf '\n>>> %s\n\n' "$label"
+
+# Execute the selected command and preserve its exit status.
+set +e
+bash -lc "$command"
+status=$?
+set -e
+
+# Start an interactive Fish shell after the command finishes.
+printf '\nCommand exited with status %d.\n' "$status"
+exec fish -i
