@@ -1,7 +1,8 @@
 sw_volume: 100
 audio_device_state:1:Raspotify
-state: stop
-current: 13
+state: pause
+current: 28
+time: 0
 random: 1
 repeat: 0
 single: 0
@@ -9,7 +10,7 @@ consume: 0
 crossfade: 0
 mixrampdb: 0
 mixrampdelay: -1
-lastloadedplaylist: my
+lastloadedplaylist: myplaylist
 playlist_begin
 0:songs/الى ربي .mp3
 1:songs/أنا العبد السقيم من الخطايا.mp3
@@ -29,4 +30,22 @@ playlist_begin
 15:songs/فيّ حبٌ.mp3
 16:songs/كن على درب التفاؤل.mp3
 17:songs/كشوق الليالي لضوء القمر.mp3
+18:songs/أتدري من يزيل الهم.mp3
+19:songs/الى ربي .mp3
+20:songs/أنا العبد السقيم من الخطايا.mp3
+21:songs/ارحنا بها .mp3
+22:songs/أشتكي لله مني.mp3
+23:songs/أكل الناس تشقيه كاملة.mp3
+24:songs/اكمل مسيرك.mp3
+25:songs/العليل فكيف السبيل إلى أن أتوب.mp3
+26:songs/عاهدتني ألا تميل عن الهــــوى.mp3
+27:songs/انت المثابر _ما بال قلبك يائسٌ.mp3
+28:songs/بكى قلبي.mp3
+29:songs/تمر ببالي كطيف جميل.mp3
+30:songs/تمسك بحلمك.mp3
+31:songs/طويل الشوق.mp3
+32:songs/طال ليلي.mp3
+33:songs/فيّ حبٌ.mp3
+34:songs/كن على درب التفاؤل.mp3
+35:songs/كشوق الليالي لضوء القمر.mp3
 playlist_end

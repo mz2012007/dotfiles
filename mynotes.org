@@ -18,6 +18,10 @@
   - [[#globbing][GLOBBING]]
   - [[#functions][FUNCTIONS]]
 - [[#dates][DATES]]
+- [[#apps][APPS]]
+  - [[#herdr][herdr]]
+  - [[#claude][claude]]
+  - [[#gemini][gemini]]
 
 * GIT'S PROJECTS
 All git's projects ,I care about.
@@ -1920,3 +1924,55 @@ export PATH="$HOME/.nix-profile/bin:$PATH"
 export PATH="$HOME/my\ config/myroot/myhome/.config:$PATH"
 
              
+
+* APPS
+
+** herdr
+#+begin_src bash
+chmod +x herdr-linux-x86_64
+mv herdr-linux-x86_64 ~/.local/bin/herdr
+#update
+herdr update
+#channel
+herdr channel set stable #preview
+herdr server stop
+herdr session stop <name>
+herdr session attach <name>
+#To opt into experimental live server handoff for supported running sessions
+herdr update --handoff
+
+#+end_src
+
+** claude
+#+begin_src bash
+#install
+curl -fsSL https://claude.ai/install.sh | bash #latest 
+curl -fsSL https://claude.ai/install.sh | bash -s stable #stable
+sudo npm install -g @anthropic-ai/claude-code@2.1.112
+
+#fuller health check
+claude doctor
+
+#update
+claude update
+
+#Uninstalling 
+rm -f ~/.local/bin/claude
+rm -rf ~/.local/share/claude
+sudo npm uninstall -g @anthropic-ai/claude-code
+
+#Add PATH to shell
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
+source ~/.bashrc
+
+#+end_src
+
+
+** gemini
+#+begin_src bash
+#install
+curl -fsSL https://antigravity.google/cli/install.sh | bash
+
+#+end_src
+
+

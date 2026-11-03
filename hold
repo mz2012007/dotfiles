@@ -44,6 +44,13 @@ PACK_HOLD=(
   qemu-user-xtensa
   qemu-user-xtensaeb
   linux7.0
+  linux6.18
+
+  linux-firmware-amd
+  linux-firmware-broadcom
+  linux-firmware-intel
+  linux-firmware-network
+  linux-firmware-nvidia
 )
 
 for i in "${PACK_HOLD[@]}"; do
@@ -52,11 +59,6 @@ for i in "${PACK_HOLD[@]}"; do
 done
 
 PACK_UNHOLD=(
-  linux-firmware-amd
-  linux-firmware-broadcom
-  linux-firmware-intel
-  linux-firmware-network
-  linux-firmware-nvidia
 )
 
 for i in "${PACK_UNHOLD[@]}"; do

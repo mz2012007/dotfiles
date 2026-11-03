@@ -1,6 +1,5 @@
-"""Main installer screen."""
+"""Main installer screen (installation progress and pipeline)."""
 import asyncio
-from pathlib import Path
 from textual.screen import Screen
 from textual.widgets import Header, Footer, Static, ProgressBar, Button
 from textual.containers import Vertical, Horizontal
@@ -12,12 +11,13 @@ from installer.services.state import InstallerState, STAGES
 from installer.models.installer_config import InstallerConfig
 
 class MainScreen(Screen):
-    def __init__(self):
+    def __init__(self, config: InstallerConfig, password: str = ""):
         super().__init__()
+        self.config = config
+        self.password = password
         self.logger = InstallerLogger()
         self.runner = BashRunner(self.logger)
         self.state = InstallerState()
-        self.config = InstallerConfig.from_file()
 
     def compose(self):
         yield Header()
@@ -33,22 +33,18 @@ class MainScreen(Screen):
 
     async def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == "start-button":
+            self.query_one("#start-button", Button).disabled = True
             await self.start_installation()
         elif event.button.id == "exit-button":
             self.app.exit()
 
     async def start_installation(self):
-        self.query_one("#start-button", Button).disabled = True
         await self._run_stages()
 
     async def _run_stages(self):
-        # Step 1: Preflight
+        # Stage: Preflight
         await self._run_stage("preflight", "scripts/preflight.sh", [], {})
-
-        # Step 2: Disk selection (only for demonstration, we require config target_disk set)
-        if not self.config.target_disk:
-            self.log_view.write("Error: target_disk not set in config.")
-            return
+        # Stage: Disk listing (informational)
         await self._run_stage("disk", "scripts/list_disks.sh", [], {})
 
         # Confirm destructive operations
@@ -56,7 +52,6 @@ class MainScreen(Screen):
             self.log_view.write("Installation cancelled.")
             return
 
-        # Proceed with other stages
         disk = self.config.target_disk
         root = self.config.mount_root
         profile = self.config.profile
@@ -64,19 +59,23 @@ class MainScreen(Screen):
         arch = self.config.arch
         kernel = self.config.kernel
         bootloader = self.config.bootloader
+        filesystem = self.config.filesystem
+        hostname = self.config.hostname
+        username = self.config.username
+        password = self.password
 
         stages_to_run = [
             ("partition", "scripts/partition.sh", ["--disk", disk]),
-            ("format", "scripts/format.sh", ["--disk", disk, "--filesystem", self.config.filesystem]),
+            ("format", "scripts/format.sh", ["--disk", disk, "--filesystem", filesystem]),
             ("mount", "scripts/mount.sh", ["--disk", disk, "--root", root]),
             ("base", "scripts/base.sh", ["--root", root, "--repo", repo, "--arch", arch]),
             ("packages", "scripts/packages.sh", ["--root", root, "--profile", profile, "--repo", repo]),
             ("kernel", "scripts/kernel.sh", ["--root", root, "--kernel", kernel]),
-            ("network", "scripts/network.sh", ["--root", root, "--hostname", self.config.hostname]),
-            ("users", "scripts/users.sh", ["--root", root, "--username", self.config.username]),
+            ("network", "scripts/network.sh", ["--root", root, "--hostname", hostname]),
+            ("users", "scripts/users.sh", ["--root", root, "--username", username, "--password", password]),
             ("configuration", "scripts/configuration.sh", [
                 "--root", root,
-                "--hostname", self.config.hostname,
+                "--hostname", hostname,
                 "--timezone", self.config.timezone,
                 "--locale", self.config.locale,
                 "--keyboard", self.config.keyboard,
@@ -129,7 +128,6 @@ class MainScreen(Screen):
     def _update_stage_ui(self, stage: str):
         stage_list = self.query_one("#stage-list", StageList)
         stage_list.refresh_stage(stage)
-        # Update progress bar
         total = len(STAGES)
         done = sum(1 for s in STAGES if self.state.get(s) == "done")
         running = 1 if self.state.get(stage) == "running" else 0

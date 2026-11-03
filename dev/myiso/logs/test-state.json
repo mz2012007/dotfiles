@@ -1,0 +1,16 @@
+{
+  "preflight": "done",
+  "disk": "pending",
+  "partition": "pending",
+  "format": "pending",
+  "mount": "pending",
+  "base": "pending",
+  "packages": "pending",
+  "kernel": "pending",
+  "network": "pending",
+  "users": "pending",
+  "configuration": "pending",
+  "bootloader": "pending",
+  "cleanup": "pending",
+  "finalize": "pending"
+}

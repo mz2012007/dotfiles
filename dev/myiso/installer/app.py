@@ -1,7 +1,8 @@
 """Main Textual application."""
 from textual.app import App
 from textual.binding import Binding
-from installer.screens.main_screen import MainScreen
+from installer.screens.config_screen import ConfigScreen
+from installer.models.installer_config import InstallerConfig
 
 class MyISOInstaller(App):
     TITLE = "myiso Installer"
@@ -12,18 +13,16 @@ class MyISOInstaller(App):
         text-style: bold;
         padding: 1;
     }
-    #stage-list {
+    #config-form {
+        padding: 0 2;
         height: 1fr;
-        border: solid $accent;
-        padding: 0 1;
+        overflow-y: auto;
     }
-    #progress-bar {
-        height: 1;
-        margin: 1 0;
+    Label {
+        margin-top: 1;
     }
-    #log-view {
-        height: 12;
-        border: solid $panel;
+    Input, Select {
+        margin-bottom: 0;
     }
     """
 
@@ -35,7 +34,9 @@ class MyISOInstaller(App):
     ]
 
     def on_mount(self) -> None:
-        self.push_screen(MainScreen())
+        # Load default config (for initial values and repo/arch)
+        default_config = InstallerConfig.from_file("config/installer.conf")
+        self.push_screen(ConfigScreen(default_config))
 
     def action_help(self) -> None:
         self.notify("Help: myiso installer – use arrow keys, Enter to select.", title="Help")

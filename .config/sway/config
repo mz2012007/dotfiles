@@ -354,6 +354,7 @@ exec_always ~/scripts/exec/clip_exec
 
 
 exec_always --no-startup-id nm-applet
+exec_always --no-startup-id noctalia
 bindsym $mod+Control+minus gaps inner current minus 1
 bindsym $mod+Control+equal gaps inner current plus 1
 
