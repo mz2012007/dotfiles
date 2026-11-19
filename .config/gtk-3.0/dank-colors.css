@@ -12,28 +12,28 @@
 @define-color destructive_fg_color #690005;
 @define-color error_bg_color #ffb4ab;
 @define-color error_fg_color #690005;
-@define-color accent_color #a1c9ff;
-@define-color accent_fg_color #00325a;
-@define-color accent_bg_color #a1c9ff;
+@define-color accent_color #adc6ff;
+@define-color accent_fg_color #002e69;
+@define-color accent_bg_color #adc6ff;
 /* Bare surface is near black in dark schemes; containers keep Adwaita's view < window < sidebar order */
-@define-color window_bg_color #1e2023;
-@define-color window_fg_color #e2e2e6;
-@define-color view_bg_color #1a1c1f;
-@define-color view_fg_color #e2e2e6;
-@define-color headerbar_bg_color #1e2023;
-@define-color headerbar_fg_color #e2e2e6;
-@define-color sidebar_bg_color #282a2d;
-@define-color sidebar_fg_color #e2e2e6;
-@define-color secondary_sidebar_bg_color #1e2023;
-@define-color secondary_sidebar_fg_color #e2e2e6;
-@define-color card_bg_color #282a2d;
-@define-color card_fg_color #e2e2e6;
-@define-color overview_bg_color #282a2d;
-@define-color overview_fg_color #e2e2e6;
-@define-color popover_bg_color #282a2d;
-@define-color popover_fg_color #e2e2e6;
-@define-color dialog_bg_color #1e2023;
-@define-color dialog_fg_color #e2e2e6;
+@define-color window_bg_color #1d2026;
+@define-color window_fg_color #e1e2eb;
+@define-color view_bg_color #191b22;
+@define-color view_fg_color #e1e2eb;
+@define-color headerbar_bg_color #1d2026;
+@define-color headerbar_fg_color #e1e2eb;
+@define-color sidebar_bg_color #272a31;
+@define-color sidebar_fg_color #e1e2eb;
+@define-color secondary_sidebar_bg_color #1d2026;
+@define-color secondary_sidebar_fg_color #e1e2eb;
+@define-color card_bg_color #272a31;
+@define-color card_fg_color #e1e2eb;
+@define-color overview_bg_color #272a31;
+@define-color overview_fg_color #e1e2eb;
+@define-color popover_bg_color #272a31;
+@define-color popover_fg_color #e1e2eb;
+@define-color dialog_bg_color #1d2026;
+@define-color dialog_fg_color #e1e2eb;
 
 /* Without these, windows flash white on unfocus */
 @define-color headerbar_backdrop_color @window_bg_color;
@@ -49,8 +49,8 @@
 .navigation-sidebar row:selected,
 .navigation-sidebar child:selected,
 .navigation-sidebar flowboxchild:selected {
-  background-color: #3c4a5d;
-  color: #d6e5fd;
+  background-color: #344972;
+  color: #dae4ff;
 }
 
 /* END DMS OVERRIDE */

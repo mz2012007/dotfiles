@@ -57,7 +57,7 @@ complete -c sz -w ls -A
 
 ######################################################################
 function lsize
-    eza -AlioF --color=always --icons --show-symlinks $argv
+    eza -AlioF --color=always --total-size --icons --show-symlinks $argv
 end
 complete -c l -w ls -A
 
