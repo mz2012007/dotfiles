@@ -16,7 +16,6 @@ MODULES=(
   "hyprland"
   "dms"
   "system"
-  "dust"
   "artcraft"
   "opencode-desktop"
   "vscode"

@@ -190,7 +190,7 @@ bind \cq $HOME/.config/tmux/templates/template2
 
 if status is-login; and tty | string match -qr '^/dev/tty[0-9]+$'; and not pgrep -x Hyprland >/dev/null
 
-    #    exec dbus-run-session start-hyprland
+    exec dbus-run-session start-hyprland
 end
 
 if status is-login; and tty | string match -qr '^/dev/tty[0-9]+$'

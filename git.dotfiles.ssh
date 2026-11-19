@@ -352,7 +352,7 @@ dotfiles_sync() {
 
   if [ -x "$HOME/dev/mypkg/src/clean" ]; then
     info "Running mypkg cleaner"
-    $HOME/dev/mypkg/src/clean
+    #$HOME/dev/mypkg/src/clean
     success "mypkg cleaner finshed.\n"
   fi
 

@@ -2756,4 +2756,592 @@ You can use emacsclient to connect to that Emacs process.
 Wrote /home/mz/.config/emacs/recentf.eld
 Error No target file specified; continue? (y or n) End of file during parsing: Error reading from stdin
 Wrote /home/mz/.config/emacs/recentf.eld
-Error No target file specified; continue? (y or n) 
+Error No target file specified; continue? (y or n) [2026-11-20 22:06:43] [INFO ] [1m[34m═══════════════════════════════════════════════════════════[0m
+[2026-11-20 22:06:43] [INFO ] power-save invoked: cmd=balanced argv=(balanced)
+[2026-11-20 22:06:43] [INFO ] config: /home/mz/scripts/grub/power-save.conf
+[2026-11-20 22:06:43] [INFO ] Loaded profile: balanced
+[2026-11-20 22:06:43] [INFO ] profile: balanced
+[2026-11-20 22:06:43] [INFO ] ── CPU ──
+[2026-11-20 22:06:43] [INFO ] FAIL    /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor = schedutil (was: performance)
+[2026-11-20 22:06:43] [INFO ] FAIL    /sys/devices/system/cpu/cpu10/cpufreq/scaling_governor = schedutil (was: performance)
+[2026-11-20 22:06:43] [INFO ] FAIL    /sys/devices/system/cpu/cpu11/cpufreq/scaling_governor = schedutil (was: performance)
+[2026-11-20 22:06:43] [INFO ] FAIL    /sys/devices/system/cpu/cpu12/cpufreq/scaling_governor = schedutil (was: performance)
+[2026-11-20 22:06:43] [INFO ] FAIL    /sys/devices/system/cpu/cpu13/cpufreq/scaling_governor = schedutil (was: performance)
+[2026-11-20 22:06:43] [INFO ] FAIL    /sys/devices/system/cpu/cpu14/cpufreq/scaling_governor = schedutil (was: performance)
+[2026-11-20 22:06:43] [INFO ] FAIL    /sys/devices/system/cpu/cpu15/cpufreq/scaling_governor = schedutil (was: performance)
+[2026-11-20 22:06:43] [INFO ] FAIL    /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor = schedutil (was: performance)
+[2026-11-20 22:06:43] [INFO ] FAIL    /sys/devices/system/cpu/cpu2/cpufreq/scaling_governor = schedutil (was: performance)
+[2026-11-20 22:06:43] [INFO ] FAIL    /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor = schedutil (was: performance)
+[2026-11-20 22:06:43] [INFO ] FAIL    /sys/devices/system/cpu/cpu4/cpufreq/scaling_governor = schedutil (was: performance)
+[2026-11-20 22:06:43] [INFO ] FAIL    /sys/devices/system/cpu/cpu5/cpufreq/scaling_governor = schedutil (was: performance)
+[2026-11-20 22:06:43] [INFO ] FAIL    /sys/devices/system/cpu/cpu6/cpufreq/scaling_governor = schedutil (was: performance)
+[2026-11-20 22:06:43] [INFO ] FAIL    /sys/devices/system/cpu/cpu7/cpufreq/scaling_governor = schedutil (was: performance)
+[2026-11-20 22:06:43] [INFO ] FAIL    /sys/devices/system/cpu/cpu8/cpufreq/scaling_governor = schedutil (was: performance)
+[2026-11-20 22:06:43] [INFO ] FAIL    /sys/devices/system/cpu/cpu9/cpufreq/scaling_governor = schedutil (was: performance)
+[2026-11-20 22:06:43] [INFO ] OK      /sys/devices/system/cpu/amd_pstate/status = active (unchanged)
+[2026-11-20 22:06:43] [INFO ] OK      /sys/devices/system/cpu/cpufreq/boost = 1 (unchanged)
+[2026-11-20 22:06:43] [INFO ] ── iGPU ──
+[2026-11-20 22:06:43] [INFO ] OK      /sys/class/drm/card0/device/power_dpm_force_performance_level = auto (unchanged)
+[2026-11-20 22:06:43] [INFO ] SET     /sys/class/drm/card0-eDP-2/amdgpu/panel_power_savings = 1 (was: 0)
+[2026-11-20 22:06:43] [INFO ] ── Scheduler ──
+[2026-11-20 22:06:43] [INFO ] SCHED   no /etc/sv/scx_loader — using scxctl directly
+[2026-11-20 22:06:43] [INFO ] SCHED   scxctl get (rc=0): no scx scheduler running 
+[2026-11-20 22:06:43] [INFO ] SCHED   action=switch sched=scx_lavd mode=auto
+switched to Lavd in Auto mode
+[2026-11-20 22:06:43] [INFO ] SCHED   switch ok
+[2026-11-20 22:06:43] [INFO ] ── RyzenAdj ──
+detected compatible ryzen_smu kernel module
+Successfully set stapm_limit to 20000
+Successfully set fast_limit to 25000
+Successfully set slow_limit to 22000
+Successfully set tctl_temp to 85
+[2026-11-20 22:06:43] [INFO ] RYZEN   applied: --stapm-limit=20000 --fast-limit=25000 --slow-limit=22000 --tctl-temp=85
+[2026-11-20 22:06:43] [INFO ] ── Fans ──
+[2026-11-20 22:06:43] [INFO ] FAN     set to auto
+[2026-11-20 22:06:43] [INFO ] ── Summary ──
+[2026-11-20 22:06:43] [INFO ] set=1 ok=3 skip=0 fail=16
+[2026-11-20 22:06:43] [INFO ] ✅ Profile 'balanced' applied  ([32mset 1[0m, [2mok 3[0m, [33mskip 0[0m, [31mfail 16[0m)
+[2026-11-20 22:06:43] [INFO ] done: profile=balanced
+[2026-11-20 22:06:43] [INFO ] [1m[34m═══════════════════════════════════════════════════════════[0m
+[2026-11-20 22:06:51] [INFO ] [1m[34m═══════════════════════════════════════════════════════════[0m
+[2026-11-20 22:06:51] [INFO ] power-save invoked: cmd=balanced argv=(balanced)
+[2026-11-20 22:06:51] [INFO ] config: /home/mz/scripts/grub/power-save.conf
+[2026-11-20 22:06:51] [INFO ] Loaded profile: balanced
+[2026-11-20 22:06:51] [INFO ] profile: balanced
+[2026-11-20 22:06:51] [INFO ] ── CPU ──
+[2026-11-20 22:06:51] [INFO ] FAIL    /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor = schedutil (was: performance)
+[2026-11-20 22:06:51] [INFO ] FAIL    /sys/devices/system/cpu/cpu10/cpufreq/scaling_governor = schedutil (was: performance)
+[2026-11-20 22:06:51] [INFO ] FAIL    /sys/devices/system/cpu/cpu11/cpufreq/scaling_governor = schedutil (was: performance)
+[2026-11-20 22:06:51] [INFO ] FAIL    /sys/devices/system/cpu/cpu12/cpufreq/scaling_governor = schedutil (was: performance)
+[2026-11-20 22:06:51] [INFO ] FAIL    /sys/devices/system/cpu/cpu13/cpufreq/scaling_governor = schedutil (was: performance)
+[2026-11-20 22:06:51] [INFO ] FAIL    /sys/devices/system/cpu/cpu14/cpufreq/scaling_governor = schedutil (was: performance)
+[2026-11-20 22:06:51] [INFO ] FAIL    /sys/devices/system/cpu/cpu15/cpufreq/scaling_governor = schedutil (was: performance)
+[2026-11-20 22:06:51] [INFO ] FAIL    /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor = schedutil (was: performance)
+[2026-11-20 22:06:51] [INFO ] FAIL    /sys/devices/system/cpu/cpu2/cpufreq/scaling_governor = schedutil (was: performance)
+[2026-11-20 22:06:51] [INFO ] FAIL    /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor = schedutil (was: performance)
+[2026-11-20 22:06:51] [INFO ] FAIL    /sys/devices/system/cpu/cpu4/cpufreq/scaling_governor = schedutil (was: performance)
+[2026-11-20 22:06:51] [INFO ] FAIL    /sys/devices/system/cpu/cpu5/cpufreq/scaling_governor = schedutil (was: performance)
+[2026-11-20 22:06:51] [INFO ] FAIL    /sys/devices/system/cpu/cpu6/cpufreq/scaling_governor = schedutil (was: performance)
+[2026-11-20 22:06:51] [INFO ] FAIL    /sys/devices/system/cpu/cpu7/cpufreq/scaling_governor = schedutil (was: performance)
+[2026-11-20 22:06:51] [INFO ] FAIL    /sys/devices/system/cpu/cpu8/cpufreq/scaling_governor = schedutil (was: performance)
+[2026-11-20 22:06:51] [INFO ] FAIL    /sys/devices/system/cpu/cpu9/cpufreq/scaling_governor = schedutil (was: performance)
+[2026-11-20 22:06:51] [INFO ] OK      /sys/devices/system/cpu/amd_pstate/status = active (unchanged)
+[2026-11-20 22:06:51] [INFO ] OK      /sys/devices/system/cpu/cpufreq/boost = 1 (unchanged)
+[2026-11-20 22:06:51] [INFO ] ── iGPU ──
+[2026-11-20 22:06:51] [INFO ] OK      /sys/class/drm/card0/device/power_dpm_force_performance_level = auto (unchanged)
+[2026-11-20 22:06:51] [INFO ] OK      /sys/class/drm/card0-eDP-2/amdgpu/panel_power_savings = 1 (unchanged)
+[2026-11-20 22:06:51] [INFO ] ── Scheduler ──
+[2026-11-20 22:06:51] [INFO ] SCHED   no /etc/sv/scx_loader — using scxctl directly
+[2026-11-20 22:06:51] [INFO ] SCHED   scxctl get (rc=0): running Lavd in Auto mode 
+[2026-11-20 22:06:51] [INFO ] SCHED   already on scx_lavd/auto
+[2026-11-20 22:06:51] [INFO ] ── RyzenAdj ──
+detected compatible ryzen_smu kernel module
+Successfully set stapm_limit to 20000
+Successfully set fast_limit to 25000
+Successfully set slow_limit to 22000
+Successfully set tctl_temp to 85
+[2026-11-20 22:06:51] [INFO ] RYZEN   applied: --stapm-limit=20000 --fast-limit=25000 --slow-limit=22000 --tctl-temp=85
+[2026-11-20 22:06:51] [INFO ] ── Fans ──
+[2026-11-20 22:06:51] [INFO ] FAN     set to auto
+[2026-11-20 22:06:51] [INFO ] ── Summary ──
+[2026-11-20 22:06:51] [INFO ] set=0 ok=4 skip=0 fail=16
+[2026-11-20 22:06:51] [INFO ] ✅ Profile 'balanced' applied  ([32mset 0[0m, [2mok 4[0m, [33mskip 0[0m, [31mfail 16[0m)
+[2026-11-20 22:06:51] [INFO ] done: profile=balanced
+[2026-11-20 22:06:51] [INFO ] [1m[34m═══════════════════════════════════════════════════════════[0m
+[2026-11-20 22:06:52] [INFO ] [1m[34m═══════════════════════════════════════════════════════════[0m
+[2026-11-20 22:06:52] [INFO ] power-save invoked: cmd=balanced argv=(balanced)
+[2026-11-20 22:06:52] [INFO ] config: /home/mz/scripts/grub/power-save.conf
+[2026-11-20 22:06:52] [INFO ] Loaded profile: balanced
+[2026-11-20 22:06:52] [INFO ] profile: balanced
+[2026-11-20 22:06:52] [INFO ] ── CPU ──
+[2026-11-20 22:06:52] [INFO ] FAIL    /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor = schedutil (was: performance)
+[2026-11-20 22:06:52] [INFO ] FAIL    /sys/devices/system/cpu/cpu10/cpufreq/scaling_governor = schedutil (was: performance)
+[2026-11-20 22:06:52] [INFO ] FAIL    /sys/devices/system/cpu/cpu11/cpufreq/scaling_governor = schedutil (was: performance)
+[2026-11-20 22:06:53] [INFO ] FAIL    /sys/devices/system/cpu/cpu12/cpufreq/scaling_governor = schedutil (was: performance)
+[2026-11-20 22:06:53] [INFO ] FAIL    /sys/devices/system/cpu/cpu13/cpufreq/scaling_governor = schedutil (was: performance)
+[2026-11-20 22:06:53] [INFO ] FAIL    /sys/devices/system/cpu/cpu14/cpufreq/scaling_governor = schedutil (was: performance)
+[2026-11-20 22:06:53] [INFO ] FAIL    /sys/devices/system/cpu/cpu15/cpufreq/scaling_governor = schedutil (was: performance)
+[2026-11-20 22:06:53] [INFO ] FAIL    /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor = schedutil (was: performance)
+[2026-11-20 22:06:53] [INFO ] FAIL    /sys/devices/system/cpu/cpu2/cpufreq/scaling_governor = schedutil (was: performance)
+[2026-11-20 22:06:53] [INFO ] FAIL    /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor = schedutil (was: performance)
+[2026-11-20 22:06:53] [INFO ] FAIL    /sys/devices/system/cpu/cpu4/cpufreq/scaling_governor = schedutil (was: performance)
+[2026-11-20 22:06:53] [INFO ] FAIL    /sys/devices/system/cpu/cpu5/cpufreq/scaling_governor = schedutil (was: performance)
+[2026-11-20 22:06:53] [INFO ] FAIL    /sys/devices/system/cpu/cpu6/cpufreq/scaling_governor = schedutil (was: performance)
+[2026-11-20 22:06:53] [INFO ] FAIL    /sys/devices/system/cpu/cpu7/cpufreq/scaling_governor = schedutil (was: performance)
+[2026-11-20 22:06:53] [INFO ] FAIL    /sys/devices/system/cpu/cpu8/cpufreq/scaling_governor = schedutil (was: performance)
+[2026-11-20 22:06:53] [INFO ] FAIL    /sys/devices/system/cpu/cpu9/cpufreq/scaling_governor = schedutil (was: performance)
+[2026-11-20 22:06:53] [INFO ] OK      /sys/devices/system/cpu/amd_pstate/status = active (unchanged)
+[2026-11-20 22:06:53] [INFO ] OK      /sys/devices/system/cpu/cpufreq/boost = 1 (unchanged)
+[2026-11-20 22:06:53] [INFO ] ── iGPU ──
+[2026-11-20 22:06:53] [INFO ] OK      /sys/class/drm/card0/device/power_dpm_force_performance_level = auto (unchanged)
+[2026-11-20 22:06:53] [INFO ] OK      /sys/class/drm/card0-eDP-2/amdgpu/panel_power_savings = 1 (unchanged)
+[2026-11-20 22:06:53] [INFO ] ── Scheduler ──
+[2026-11-20 22:06:53] [INFO ] SCHED   no /etc/sv/scx_loader — using scxctl directly
+[2026-11-20 22:06:53] [INFO ] SCHED   scxctl get (rc=0): running Lavd in Auto mode 
+[2026-11-20 22:06:53] [INFO ] SCHED   already on scx_lavd/auto
+[2026-11-20 22:06:53] [INFO ] ── RyzenAdj ──
+detected compatible ryzen_smu kernel module
+Successfully set stapm_limit to 20000
+Successfully set fast_limit to 25000
+Successfully set slow_limit to 22000
+Successfully set tctl_temp to 85
+[2026-11-20 22:06:53] [INFO ] RYZEN   applied: --stapm-limit=20000 --fast-limit=25000 --slow-limit=22000 --tctl-temp=85
+[2026-11-20 22:06:53] [INFO ] ── Fans ──
+[2026-11-20 22:06:53] [INFO ] FAN     set to auto
+[2026-11-20 22:06:53] [INFO ] ── Summary ──
+[2026-11-20 22:06:53] [INFO ] set=0 ok=4 skip=0 fail=16
+[2026-11-20 22:06:53] [INFO ] ✅ Profile 'balanced' applied  ([32mset 0[0m, [2mok 4[0m, [33mskip 0[0m, [31mfail 16[0m)
+[2026-11-20 22:06:53] [INFO ] done: profile=balanced
+[2026-11-20 22:06:53] [INFO ] [1m[34m═══════════════════════════════════════════════════════════[0m
+[2026-11-20 22:48:03] [INFO ] [1m[34m═══════════════════════════════════════════════════════════[0m
+[2026-11-20 22:48:03] [INFO ] power-save invoked: cmd=performance argv=(performance)
+[2026-11-20 22:48:03] [INFO ] config: /home/mz/scripts/grub/power-save.conf
+[2026-11-20 22:48:03] [INFO ] Loaded profile: performance
+[2026-11-20 22:48:03] [INFO ] profile: performance
+[2026-11-20 22:48:03] [INFO ] ── CPU ──
+[2026-11-20 22:48:03] [INFO ] OK      /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor = performance (unchanged)
+[2026-11-20 22:48:03] [INFO ] OK      /sys/devices/system/cpu/cpu10/cpufreq/scaling_governor = performance (unchanged)
+[2026-11-20 22:48:03] [INFO ] OK      /sys/devices/system/cpu/cpu11/cpufreq/scaling_governor = performance (unchanged)
+[2026-11-20 22:48:03] [INFO ] OK      /sys/devices/system/cpu/cpu12/cpufreq/scaling_governor = performance (unchanged)
+[2026-11-20 22:48:03] [INFO ] OK      /sys/devices/system/cpu/cpu13/cpufreq/scaling_governor = performance (unchanged)
+[2026-11-20 22:48:03] [INFO ] OK      /sys/devices/system/cpu/cpu14/cpufreq/scaling_governor = performance (unchanged)
+[2026-11-20 22:48:03] [INFO ] OK      /sys/devices/system/cpu/cpu15/cpufreq/scaling_governor = performance (unchanged)
+[2026-11-20 22:48:03] [INFO ] OK      /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor = performance (unchanged)
+[2026-11-20 22:48:03] [INFO ] OK      /sys/devices/system/cpu/cpu2/cpufreq/scaling_governor = performance (unchanged)
+[2026-11-20 22:48:03] [INFO ] OK      /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor = performance (unchanged)
+[2026-11-20 22:48:03] [INFO ] OK      /sys/devices/system/cpu/cpu4/cpufreq/scaling_governor = performance (unchanged)
+[2026-11-20 22:48:03] [INFO ] OK      /sys/devices/system/cpu/cpu5/cpufreq/scaling_governor = performance (unchanged)
+[2026-11-20 22:48:03] [INFO ] OK      /sys/devices/system/cpu/cpu6/cpufreq/scaling_governor = performance (unchanged)
+[2026-11-20 22:48:03] [INFO ] OK      /sys/devices/system/cpu/cpu7/cpufreq/scaling_governor = performance (unchanged)
+[2026-11-20 22:48:03] [INFO ] OK      /sys/devices/system/cpu/cpu8/cpufreq/scaling_governor = performance (unchanged)
+[2026-11-20 22:48:03] [INFO ] OK      /sys/devices/system/cpu/cpu9/cpufreq/scaling_governor = performance (unchanged)
+[2026-11-20 22:48:03] [INFO ] OK      /sys/devices/system/cpu/amd_pstate/status = active (unchanged)
+[2026-11-20 22:48:03] [INFO ] OK      /sys/devices/system/cpu/cpufreq/boost = 1 (unchanged)
+[2026-11-20 22:48:03] [INFO ] ── iGPU ──
+[2026-11-20 22:48:03] [INFO ] SET     /sys/class/drm/card0/device/power_dpm_force_performance_level = high (was: auto)
+[2026-11-20 22:48:03] [INFO ] OK      /sys/class/drm/card0-eDP-2/amdgpu/panel_power_savings = 0 (unchanged)
+[2026-11-20 22:48:03] [INFO ] ── Scheduler ──
+[2026-11-20 22:48:03] [INFO ] SCHED   no /etc/sv/scx_loader — using scxctl directly
+[2026-11-20 22:48:03] [INFO ] SCHED   scxctl get (rc=0): running Lavd in Auto mode 
+[2026-11-20 22:48:03] [INFO ] SCHED   action=switch sched=scx_lavd mode=gaming
+switched to Lavd in Gaming mode
+[2026-11-20 22:48:03] [INFO ] SCHED   switch ok
+[2026-11-20 22:48:03] [INFO ] ── RyzenAdj ──
+detected compatible ryzen_smu kernel module
+Successfully set stapm_limit to 28000
+Successfully set fast_limit to 35000
+Successfully set slow_limit to 30000
+Successfully set tctl_temp to 95
+[2026-11-20 22:48:03] [INFO ] RYZEN   applied: --stapm-limit=28000 --fast-limit=35000 --slow-limit=30000 --tctl-temp=95
+[2026-11-20 22:48:03] [INFO ] ── Fans ──
+[2026-11-20 22:48:03] [INFO ] FAN     set to gaming
+[2026-11-20 22:48:03] [INFO ] ── Apply commands ──
+[2026-11-20 22:48:03] [INFO ] APPLY   ok: /usr/bin/emacs --daemon& 2>/dev/null || true
+[2026-11-20 22:48:03] [INFO ] APPLY   ok: notify-send "power-save" "performance applied" 2>/dev/null || true
+[2026-11-20 22:48:03] [INFO ] ── Summary ──
+[2026-11-20 22:48:03] [INFO ] set=1 ok=19 skip=0 fail=0
+[2026-11-20 22:48:03] [INFO ] ✅ Profile 'performance' applied  ([32mset 1[0m, [2mok 19[0m, [33mskip 0[0m, [31mfail 0[0m)
+[2026-11-20 22:48:03] [INFO ] done: profile=performance
+[2026-11-20 22:48:03] [INFO ] [1m[34m═══════════════════════════════════════════════════════════[0m
+
+Warning: due to a long standing Gtk+ bug
+https://gitlab.gnome.org/GNOME/gtk/issues/221
+Emacs might crash when run in daemon mode and the X11 connection is unexpectedly lost.
+Using an Emacs configured with --with-x-toolkit=lucid does not have this problem.
+Loading /home/mz/.config/emacs/config.el (source)...
+Loading /home/mz/.config/emacs/config.el (source)...done
+Loaded /home/mz/.config/emacs/config.el
+Loading company (native-compiled elisp)...
+Loading company (native-compiled elisp)...done
+No doc string slot for compiled: handle-switch-frame
+No doc string slot for compiled: select-window
+No doc string slot for compiled: set-window-buffer
+No doc string slot for compiled: read-key-sequence
+No doc string slot for compiled: read-key-sequence-vector
+No doc string slot for compiled: use-global-map
+No doc string slot for compiled: use-local-map
+No doc string slot for compiled: rename-buffer
+No doc string slot for compiled: kill-buffer
+No doc string slot for compiled: all-completions
+No doc string slot for compiled: make-process
+Starting Emacs daemon.
+ ■  Warning (server): Unable to start the Emacs server.
+The existing Emacs server, called "server", could not be stopped.
+To start the server in this Emacs session, stop the existing server or call M-x server-force-delete to forcibly disconnect it.
+Unable to start the daemon.
+Another instance of Emacs is running the server, either as daemon or interactively.
+You can use emacsclient to connect to that Emacs process.
+Wrote /home/mz/.config/emacs/recentf.eld
+Error No target file specified; continue? (y or n) End of file during parsing: Error reading from stdin
+Wrote /home/mz/.config/emacs/recentf.eld
+Error No target file specified; continue? (y or n) [2026-11-20 22:48:17] [INFO ] [1m[34m═══════════════════════════════════════════════════════════[0m
+[2026-11-20 22:48:17] [INFO ] power-save invoked: cmd=performance argv=(performance)
+[2026-11-20 22:48:17] [INFO ] config: /home/mz/scripts/grub/power-save.conf
+[2026-11-20 22:48:17] [INFO ] Loaded profile: performance
+[2026-11-20 22:48:17] [INFO ] profile: performance
+[2026-11-20 22:48:17] [INFO ] ── CPU ──
+[2026-11-20 22:48:17] [INFO ] OK      /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor = performance (unchanged)
+[2026-11-20 22:48:17] [INFO ] OK      /sys/devices/system/cpu/cpu10/cpufreq/scaling_governor = performance (unchanged)
+[2026-11-20 22:48:17] [INFO ] OK      /sys/devices/system/cpu/cpu11/cpufreq/scaling_governor = performance (unchanged)
+[2026-11-20 22:48:17] [INFO ] OK      /sys/devices/system/cpu/cpu12/cpufreq/scaling_governor = performance (unchanged)
+[2026-11-20 22:48:17] [INFO ] OK      /sys/devices/system/cpu/cpu13/cpufreq/scaling_governor = performance (unchanged)
+[2026-11-20 22:48:17] [INFO ] OK      /sys/devices/system/cpu/cpu14/cpufreq/scaling_governor = performance (unchanged)
+[2026-11-20 22:48:17] [INFO ] OK      /sys/devices/system/cpu/cpu15/cpufreq/scaling_governor = performance (unchanged)
+[2026-11-20 22:48:17] [INFO ] OK      /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor = performance (unchanged)
+[2026-11-20 22:48:17] [INFO ] OK      /sys/devices/system/cpu/cpu2/cpufreq/scaling_governor = performance (unchanged)
+[2026-11-20 22:48:17] [INFO ] OK      /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor = performance (unchanged)
+[2026-11-20 22:48:17] [INFO ] OK      /sys/devices/system/cpu/cpu4/cpufreq/scaling_governor = performance (unchanged)
+[2026-11-20 22:48:17] [INFO ] OK      /sys/devices/system/cpu/cpu5/cpufreq/scaling_governor = performance (unchanged)
+[2026-11-20 22:48:17] [INFO ] OK      /sys/devices/system/cpu/cpu6/cpufreq/scaling_governor = performance (unchanged)
+[2026-11-20 22:48:17] [INFO ] OK      /sys/devices/system/cpu/cpu7/cpufreq/scaling_governor = performance (unchanged)
+[2026-11-20 22:48:17] [INFO ] OK      /sys/devices/system/cpu/cpu8/cpufreq/scaling_governor = performance (unchanged)
+[2026-11-20 22:48:17] [INFO ] OK      /sys/devices/system/cpu/cpu9/cpufreq/scaling_governor = performance (unchanged)
+[2026-11-20 22:48:17] [INFO ] OK      /sys/devices/system/cpu/amd_pstate/status = active (unchanged)
+[2026-11-20 22:48:17] [INFO ] OK      /sys/devices/system/cpu/cpufreq/boost = 1 (unchanged)
+[2026-11-20 22:48:17] [INFO ] ── iGPU ──
+[2026-11-20 22:48:17] [INFO ] OK      /sys/class/drm/card0/device/power_dpm_force_performance_level = high (unchanged)
+[2026-11-20 22:48:17] [INFO ] OK      /sys/class/drm/card0-eDP-2/amdgpu/panel_power_savings = 0 (unchanged)
+[2026-11-20 22:48:17] [INFO ] ── Scheduler ──
+[2026-11-20 22:48:17] [INFO ] SCHED   no /etc/sv/scx_loader — using scxctl directly
+[2026-11-20 22:48:17] [INFO ] SCHED   scxctl get (rc=0): running Lavd in Gaming mode 
+[2026-11-20 22:48:17] [INFO ] SCHED   already on scx_lavd/gaming
+[2026-11-20 22:48:17] [INFO ] ── RyzenAdj ──
+detected compatible ryzen_smu kernel module
+Successfully set stapm_limit to 28000
+Successfully set fast_limit to 35000
+Successfully set slow_limit to 30000
+Successfully set tctl_temp to 95
+[2026-11-20 22:48:17] [INFO ] RYZEN   applied: --stapm-limit=28000 --fast-limit=35000 --slow-limit=30000 --tctl-temp=95
+[2026-11-20 22:48:17] [INFO ] ── Fans ──
+[2026-11-20 22:48:17] [INFO ] FAN     set to gaming
+[2026-11-20 22:48:17] [INFO ] ── Apply commands ──
+[2026-11-20 22:48:17] [INFO ] APPLY   ok: /usr/bin/emacs --daemon& 2>/dev/null || true
+[2026-11-20 22:48:17] [INFO ] APPLY   ok: notify-send "power-save" "performance applied" 2>/dev/null || true
+[2026-11-20 22:48:17] [INFO ] ── Summary ──
+[2026-11-20 22:48:17] [INFO ] set=0 ok=20 skip=0 fail=0
+[2026-11-20 22:48:17] [INFO ] ✅ Profile 'performance' applied  ([32mset 0[0m, [2mok 20[0m, [33mskip 0[0m, [31mfail 0[0m)
+[2026-11-20 22:48:17] [INFO ] done: profile=performance
+[2026-11-20 22:48:17] [INFO ] [1m[34m═══════════════════════════════════════════════════════════[0m
+
+Warning: due to a long standing Gtk+ bug
+https://gitlab.gnome.org/GNOME/gtk/issues/221
+Emacs might crash when run in daemon mode and the X11 connection is unexpectedly lost.
+Using an Emacs configured with --with-x-toolkit=lucid does not have this problem.
+Loading /home/mz/.config/emacs/config.el (source)...
+Loading /home/mz/.config/emacs/config.el (source)...done
+Loaded /home/mz/.config/emacs/config.el
+Loading company (native-compiled elisp)...
+Loading company (native-compiled elisp)...done
+No doc string slot for compiled: handle-switch-frame
+No doc string slot for compiled: select-window
+No doc string slot for compiled: set-window-buffer
+No doc string slot for compiled: read-key-sequence
+No doc string slot for compiled: read-key-sequence-vector
+No doc string slot for compiled: use-global-map
+No doc string slot for compiled: use-local-map
+No doc string slot for compiled: rename-buffer
+No doc string slot for compiled: kill-buffer
+No doc string slot for compiled: all-completions
+No doc string slot for compiled: make-process
+Starting Emacs daemon.
+ ■  Warning (server): Unable to start the Emacs server.
+The existing Emacs server, called "server", could not be stopped.
+To start the server in this Emacs session, stop the existing server or call M-x server-force-delete to forcibly disconnect it.
+Unable to start the daemon.
+Another instance of Emacs is running the server, either as daemon or interactively.
+You can use emacsclient to connect to that Emacs process.
+Wrote /home/mz/.config/emacs/recentf.eld
+Error No target file specified; continue? (y or n) End of file during parsing: Error reading from stdin
+Wrote /home/mz/.config/emacs/recentf.eld
+Error No target file specified; continue? (y or n) Wrote /home/mz/.config/emacs/recentf.eld
+Wrote /home/mz/.config/emacs/recentf.eld
+Error No target file specified; continue? (y or n) End of file during parsing: Error reading from stdin
+Wrote /home/mz/.config/emacs/recentf.eld
+Error No target file specified; continue? (y or n) Back to top level
+...mz/.config/emacs/tramp locked by root@mz (pid 26724): (s, q, p, ?)? Error No target file specified; continue? (y or n) End of file during parsing: Error reading from stdin
+Wrote /home/mz/.config/emacs/recentf.eld
+Error No target file specified; continue? (y or n) Back to top level
+[2026-11-25 21:14:58] [INFO ] [1m[34m═══════════════════════════════════════════════════════════[0m
+[2026-11-25 21:14:58] [INFO ] power-save invoked: cmd=max-save argv=(max-save)
+[2026-11-25 21:14:58] [INFO ] config: /home/mz/scripts/grub/power-save.conf
+[2026-11-25 21:14:58] [INFO ] Loaded profile: max-save
+[2026-11-25 21:14:58] [INFO ] profile: max-save
+[2026-11-25 21:14:58] [INFO ] ── CPU ──
+[2026-11-25 21:14:58] [INFO ] SET     /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq = 1000000 (was: 3801000)
+[2026-11-25 21:14:58] [INFO ] SET     /sys/devices/system/cpu/cpu10/cpufreq/scaling_max_freq = 1000000 (was: 3801000)
+[2026-11-25 21:14:58] [INFO ] SET     /sys/devices/system/cpu/cpu11/cpufreq/scaling_max_freq = 1000000 (was: 3801000)
+[2026-11-25 21:14:58] [INFO ] SET     /sys/devices/system/cpu/cpu12/cpufreq/scaling_max_freq = 1000000 (was: 3801000)
+[2026-11-25 21:14:58] [INFO ] SET     /sys/devices/system/cpu/cpu13/cpufreq/scaling_max_freq = 1000000 (was: 3801000)
+[2026-11-25 21:14:58] [INFO ] SET     /sys/devices/system/cpu/cpu14/cpufreq/scaling_max_freq = 1000000 (was: 3801000)
+[2026-11-25 21:14:58] [INFO ] SET     /sys/devices/system/cpu/cpu15/cpufreq/scaling_max_freq = 1000000 (was: 3801000)
+[2026-11-25 21:14:58] [INFO ] SET     /sys/devices/system/cpu/cpu1/cpufreq/scaling_max_freq = 1000000 (was: 3801000)
+[2026-11-25 21:14:58] [INFO ] SET     /sys/devices/system/cpu/cpu2/cpufreq/scaling_max_freq = 1000000 (was: 3801000)
+[2026-11-25 21:14:58] [INFO ] SET     /sys/devices/system/cpu/cpu3/cpufreq/scaling_max_freq = 1000000 (was: 3801000)
+[2026-11-25 21:14:58] [INFO ] SET     /sys/devices/system/cpu/cpu4/cpufreq/scaling_max_freq = 1000000 (was: 3801000)
+[2026-11-25 21:14:58] [INFO ] SET     /sys/devices/system/cpu/cpu5/cpufreq/scaling_max_freq = 1000000 (was: 3801000)
+[2026-11-25 21:14:58] [INFO ] SET     /sys/devices/system/cpu/cpu6/cpufreq/scaling_max_freq = 1000000 (was: 3801000)
+[2026-11-25 21:14:58] [INFO ] SET     /sys/devices/system/cpu/cpu7/cpufreq/scaling_max_freq = 1000000 (was: 3801000)
+[2026-11-25 21:14:58] [INFO ] SET     /sys/devices/system/cpu/cpu8/cpufreq/scaling_max_freq = 1000000 (was: 3801000)
+[2026-11-25 21:14:58] [INFO ] SET     /sys/devices/system/cpu/cpu9/cpufreq/scaling_max_freq = 1000000 (was: 3801000)
+[2026-11-25 21:14:58] [INFO ] OK      /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor = powersave (unchanged)
+[2026-11-25 21:14:58] [INFO ] OK      /sys/devices/system/cpu/cpu10/cpufreq/scaling_governor = powersave (unchanged)
+[2026-11-25 21:14:58] [INFO ] OK      /sys/devices/system/cpu/cpu11/cpufreq/scaling_governor = powersave (unchanged)
+[2026-11-25 21:14:58] [INFO ] OK      /sys/devices/system/cpu/cpu12/cpufreq/scaling_governor = powersave (unchanged)
+[2026-11-25 21:14:58] [INFO ] OK      /sys/devices/system/cpu/cpu13/cpufreq/scaling_governor = powersave (unchanged)
+[2026-11-25 21:14:58] [INFO ] OK      /sys/devices/system/cpu/cpu14/cpufreq/scaling_governor = powersave (unchanged)
+[2026-11-25 21:14:58] [INFO ] OK      /sys/devices/system/cpu/cpu15/cpufreq/scaling_governor = powersave (unchanged)
+[2026-11-25 21:14:58] [INFO ] OK      /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor = powersave (unchanged)
+[2026-11-25 21:14:58] [INFO ] OK      /sys/devices/system/cpu/cpu2/cpufreq/scaling_governor = powersave (unchanged)
+[2026-11-25 21:14:58] [INFO ] OK      /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor = powersave (unchanged)
+[2026-11-25 21:14:58] [INFO ] OK      /sys/devices/system/cpu/cpu4/cpufreq/scaling_governor = powersave (unchanged)
+[2026-11-25 21:14:58] [INFO ] OK      /sys/devices/system/cpu/cpu5/cpufreq/scaling_governor = powersave (unchanged)
+[2026-11-25 21:14:58] [INFO ] OK      /sys/devices/system/cpu/cpu6/cpufreq/scaling_governor = powersave (unchanged)
+[2026-11-25 21:14:58] [INFO ] OK      /sys/devices/system/cpu/cpu7/cpufreq/scaling_governor = powersave (unchanged)
+[2026-11-25 21:14:58] [INFO ] OK      /sys/devices/system/cpu/cpu8/cpufreq/scaling_governor = powersave (unchanged)
+[2026-11-25 21:14:58] [INFO ] OK      /sys/devices/system/cpu/cpu9/cpufreq/scaling_governor = powersave (unchanged)
+[2026-11-25 21:14:59] [INFO ] SET     /sys/devices/system/cpu/amd_pstate/status = passive (was: active)
+[2026-11-25 21:14:59] [INFO ] SET     /sys/devices/system/cpu/cpufreq/boost = 0 (was: 1)
+[2026-11-25 21:14:59] [INFO ] ── iGPU ──
+[2026-11-25 21:14:59] [INFO ] OK      /sys/class/drm/card0/device/power_dpm_force_performance_level = low (unchanged)
+[2026-11-25 21:14:59] [INFO ] OK      /sys/class/drm/card0-eDP-1/amdgpu/panel_power_savings = 4 (unchanged)
+[2026-11-25 21:14:59] [INFO ] ── Scheduler ──
+[2026-11-25 21:14:59] [INFO ] SCHED   no /etc/sv/scx_loader — using scxctl directly
+[2026-11-25 21:14:59] [INFO ] SCHED   scxctl get (rc=0): no scx scheduler running 
+[2026-11-25 21:14:59] [INFO ] SCHED   action=switch sched=scx_lavd mode=powersave
+switched to Lavd in PowerSave mode
+[2026-11-25 21:14:59] [INFO ] SCHED   switch ok
+[2026-11-25 21:14:59] [INFO ] ── RyzenAdj ──
+detected compatible ryzen_smu kernel module
+Successfully set stapm_limit to 5000
+Successfully set fast_limit to 5000
+Successfully set slow_limit to 5000
+Successfully set tctl_temp to 50
+Successfully enable power_saving
+[2026-11-25 21:14:59] [INFO ] RYZEN   applied: --stapm-limit=5000 --fast-limit=5000 --slow-limit=5000 --tctl-temp=50 --power-saving
+[2026-11-25 21:14:59] [INFO ] ── Fans ──
+[2026-11-25 21:14:59] [INFO ] FAN     set to silent
+[2026-11-25 21:14:59] [INFO ] ── Apply commands ──
+[2026-11-25 21:14:59] [INFO ] APPLY   ok: pkill emacs 2>/dev/null || true
+[2026-11-25 21:14:59] [INFO ] APPLY   ok: notify-send "power-save" "max-save applied" 2>/dev/null || true
+[2026-11-25 21:14:59] [INFO ] ── Summary ──
+[2026-11-25 21:14:59] [INFO ] set=18 ok=18 skip=0 fail=0
+[2026-11-25 21:14:59] [INFO ] ✅ Profile 'max-save' applied  ([32mset 18[0m, [2mok 18[0m, [33mskip 0[0m, [31mfail 0[0m)
+[2026-11-25 21:14:59] [INFO ] done: profile=max-save
+[2026-11-25 21:14:59] [INFO ] [1m[34m═══════════════════════════════════════════════════════════[0m
+[2026-11-25 21:15:06] [INFO ] [1m[34m═══════════════════════════════════════════════════════════[0m
+[2026-11-25 21:15:06] [INFO ] power-save invoked: cmd=max-save argv=(max-save)
+[2026-11-25 21:15:06] [INFO ] config: /home/mz/scripts/grub/power-save.conf
+[2026-11-25 21:15:06] [INFO ] Loaded profile: max-save
+[2026-11-25 21:15:06] [INFO ] profile: max-save
+[2026-11-25 21:15:06] [INFO ] ── CPU ──
+[2026-11-25 21:15:06] [INFO ] SET     /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq = 1000000 (was: 3801000)
+[2026-11-25 21:15:06] [INFO ] SET     /sys/devices/system/cpu/cpu10/cpufreq/scaling_max_freq = 1000000 (was: 3801000)
+[2026-11-25 21:15:06] [INFO ] SET     /sys/devices/system/cpu/cpu11/cpufreq/scaling_max_freq = 1000000 (was: 3801000)
+[2026-11-25 21:15:06] [INFO ] SET     /sys/devices/system/cpu/cpu12/cpufreq/scaling_max_freq = 1000000 (was: 3801000)
+[2026-11-25 21:15:06] [INFO ] SET     /sys/devices/system/cpu/cpu13/cpufreq/scaling_max_freq = 1000000 (was: 3801000)
+[2026-11-25 21:15:06] [INFO ] SET     /sys/devices/system/cpu/cpu14/cpufreq/scaling_max_freq = 1000000 (was: 3801000)
+[2026-11-25 21:15:06] [INFO ] SET     /sys/devices/system/cpu/cpu15/cpufreq/scaling_max_freq = 1000000 (was: 3801000)
+[2026-11-25 21:15:06] [INFO ] SET     /sys/devices/system/cpu/cpu1/cpufreq/scaling_max_freq = 1000000 (was: 3801000)
+[2026-11-25 21:15:06] [INFO ] SET     /sys/devices/system/cpu/cpu2/cpufreq/scaling_max_freq = 1000000 (was: 3801000)
+[2026-11-25 21:15:06] [INFO ] SET     /sys/devices/system/cpu/cpu3/cpufreq/scaling_max_freq = 1000000 (was: 3801000)
+[2026-11-25 21:15:06] [INFO ] SET     /sys/devices/system/cpu/cpu4/cpufreq/scaling_max_freq = 1000000 (was: 3801000)
+[2026-11-25 21:15:06] [INFO ] SET     /sys/devices/system/cpu/cpu5/cpufreq/scaling_max_freq = 1000000 (was: 3801000)
+[2026-11-25 21:15:06] [INFO ] SET     /sys/devices/system/cpu/cpu6/cpufreq/scaling_max_freq = 1000000 (was: 3801000)
+[2026-11-25 21:15:06] [INFO ] SET     /sys/devices/system/cpu/cpu7/cpufreq/scaling_max_freq = 1000000 (was: 3801000)
+[2026-11-25 21:15:06] [INFO ] SET     /sys/devices/system/cpu/cpu8/cpufreq/scaling_max_freq = 1000000 (was: 3801000)
+[2026-11-25 21:15:06] [INFO ] SET     /sys/devices/system/cpu/cpu9/cpufreq/scaling_max_freq = 1000000 (was: 3801000)
+[2026-11-25 21:15:06] [INFO ] SET     /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor = powersave (was: schedutil)
+[2026-11-25 21:15:06] [INFO ] SET     /sys/devices/system/cpu/cpu10/cpufreq/scaling_governor = powersave (was: schedutil)
+[2026-11-25 21:15:06] [INFO ] SET     /sys/devices/system/cpu/cpu11/cpufreq/scaling_governor = powersave (was: schedutil)
+[2026-11-25 21:15:06] [INFO ] SET     /sys/devices/system/cpu/cpu12/cpufreq/scaling_governor = powersave (was: schedutil)
+[2026-11-25 21:15:06] [INFO ] SET     /sys/devices/system/cpu/cpu13/cpufreq/scaling_governor = powersave (was: schedutil)
+[2026-11-25 21:15:06] [INFO ] SET     /sys/devices/system/cpu/cpu14/cpufreq/scaling_governor = powersave (was: schedutil)
+[2026-11-25 21:15:06] [INFO ] SET     /sys/devices/system/cpu/cpu15/cpufreq/scaling_governor = powersave (was: schedutil)
+[2026-11-25 21:15:06] [INFO ] SET     /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor = powersave (was: schedutil)
+[2026-11-25 21:15:06] [INFO ] SET     /sys/devices/system/cpu/cpu2/cpufreq/scaling_governor = powersave (was: schedutil)
+[2026-11-25 21:15:06] [INFO ] SET     /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor = powersave (was: schedutil)
+[2026-11-25 21:15:06] [INFO ] SET     /sys/devices/system/cpu/cpu4/cpufreq/scaling_governor = powersave (was: schedutil)
+[2026-11-25 21:15:06] [INFO ] SET     /sys/devices/system/cpu/cpu5/cpufreq/scaling_governor = powersave (was: schedutil)
+[2026-11-25 21:15:06] [INFO ] SET     /sys/devices/system/cpu/cpu6/cpufreq/scaling_governor = powersave (was: schedutil)
+[2026-11-25 21:15:06] [INFO ] SET     /sys/devices/system/cpu/cpu7/cpufreq/scaling_governor = powersave (was: schedutil)
+[2026-11-25 21:15:06] [INFO ] SET     /sys/devices/system/cpu/cpu8/cpufreq/scaling_governor = powersave (was: schedutil)
+[2026-11-25 21:15:06] [INFO ] SET     /sys/devices/system/cpu/cpu9/cpufreq/scaling_governor = powersave (was: schedutil)
+[2026-11-25 21:15:06] [INFO ] OK      /sys/devices/system/cpu/amd_pstate/status = passive (unchanged)
+[2026-11-25 21:15:06] [INFO ] OK      /sys/devices/system/cpu/cpufreq/boost = 0 (unchanged)
+[2026-11-25 21:15:06] [INFO ] ── iGPU ──
+[2026-11-25 21:15:06] [INFO ] OK      /sys/class/drm/card0/device/power_dpm_force_performance_level = low (unchanged)
+[2026-11-25 21:15:06] [INFO ] OK      /sys/class/drm/card0-eDP-1/amdgpu/panel_power_savings = 4 (unchanged)
+[2026-11-25 21:15:06] [INFO ] ── Scheduler ──
+[2026-11-25 21:15:06] [INFO ] SCHED   no /etc/sv/scx_loader — using scxctl directly
+[2026-11-25 21:15:06] [INFO ] SCHED   scxctl get (rc=0): running Lavd in PowerSave mode 
+[2026-11-25 21:15:06] [INFO ] SCHED   already on scx_lavd/powersave
+[2026-11-25 21:15:06] [INFO ] ── RyzenAdj ──
+detected compatible ryzen_smu kernel module
+Successfully set stapm_limit to 5000
+Successfully set fast_limit to 5000
+Successfully set slow_limit to 5000
+Successfully set tctl_temp to 50
+Successfully enable power_saving
+[2026-11-25 21:15:06] [INFO ] RYZEN   applied: --stapm-limit=5000 --fast-limit=5000 --slow-limit=5000 --tctl-temp=50 --power-saving
+[2026-11-25 21:15:06] [INFO ] ── Fans ──
+[2026-11-25 21:15:06] [INFO ] FAN     set to silent
+[2026-11-25 21:15:06] [INFO ] ── Apply commands ──
+[2026-11-25 21:15:07] [INFO ] APPLY   ok: pkill emacs 2>/dev/null || true
+[2026-11-25 21:15:07] [INFO ] APPLY   ok: notify-send "power-save" "max-save applied" 2>/dev/null || true
+[2026-11-25 21:15:07] [INFO ] ── Summary ──
+[2026-11-25 21:15:07] [INFO ] set=32 ok=4 skip=0 fail=0
+[2026-11-25 21:15:07] [INFO ] ✅ Profile 'max-save' applied  ([32mset 32[0m, [2mok 4[0m, [33mskip 0[0m, [31mfail 0[0m)
+[2026-11-25 21:15:07] [INFO ] done: profile=max-save
+[2026-11-25 21:15:07] [INFO ] [1m[34m═══════════════════════════════════════════════════════════[0m
+[2026-11-25 21:15:08] [INFO ] [1m[34m═══════════════════════════════════════════════════════════[0m
+[2026-11-25 21:15:08] [INFO ] power-save invoked: cmd=max-save argv=(max-save)
+[2026-11-25 21:15:08] [INFO ] config: /home/mz/scripts/grub/power-save.conf
+[2026-11-25 21:15:08] [INFO ] Loaded profile: max-save
+[2026-11-25 21:15:08] [INFO ] profile: max-save
+[2026-11-25 21:15:08] [INFO ] ── CPU ──
+[2026-11-25 21:15:08] [INFO ] OK      /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq = 1000000 (unchanged)
+[2026-11-25 21:15:08] [INFO ] OK      /sys/devices/system/cpu/cpu10/cpufreq/scaling_max_freq = 1000000 (unchanged)
+[2026-11-25 21:15:08] [INFO ] OK      /sys/devices/system/cpu/cpu11/cpufreq/scaling_max_freq = 1000000 (unchanged)
+[2026-11-25 21:15:08] [INFO ] OK      /sys/devices/system/cpu/cpu12/cpufreq/scaling_max_freq = 1000000 (unchanged)
+[2026-11-25 21:15:08] [INFO ] OK      /sys/devices/system/cpu/cpu13/cpufreq/scaling_max_freq = 1000000 (unchanged)
+[2026-11-25 21:15:08] [INFO ] OK      /sys/devices/system/cpu/cpu14/cpufreq/scaling_max_freq = 1000000 (unchanged)
+[2026-11-25 21:15:08] [INFO ] OK      /sys/devices/system/cpu/cpu15/cpufreq/scaling_max_freq = 1000000 (unchanged)
+[2026-11-25 21:15:09] [INFO ] OK      /sys/devices/system/cpu/cpu1/cpufreq/scaling_max_freq = 1000000 (unchanged)
+[2026-11-25 21:15:09] [INFO ] OK      /sys/devices/system/cpu/cpu2/cpufreq/scaling_max_freq = 1000000 (unchanged)
+[2026-11-25 21:15:09] [INFO ] OK      /sys/devices/system/cpu/cpu3/cpufreq/scaling_max_freq = 1000000 (unchanged)
+[2026-11-25 21:15:09] [INFO ] OK      /sys/devices/system/cpu/cpu4/cpufreq/scaling_max_freq = 1000000 (unchanged)
+[2026-11-25 21:15:09] [INFO ] OK      /sys/devices/system/cpu/cpu5/cpufreq/scaling_max_freq = 1000000 (unchanged)
+[2026-11-25 21:15:09] [INFO ] OK      /sys/devices/system/cpu/cpu6/cpufreq/scaling_max_freq = 1000000 (unchanged)
+[2026-11-25 21:15:09] [INFO ] OK      /sys/devices/system/cpu/cpu7/cpufreq/scaling_max_freq = 1000000 (unchanged)
+[2026-11-25 21:15:09] [INFO ] OK      /sys/devices/system/cpu/cpu8/cpufreq/scaling_max_freq = 1000000 (unchanged)
+[2026-11-25 21:15:09] [INFO ] OK      /sys/devices/system/cpu/cpu9/cpufreq/scaling_max_freq = 1000000 (unchanged)
+[2026-11-25 21:15:09] [INFO ] OK      /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor = powersave (unchanged)
+[2026-11-25 21:15:09] [INFO ] OK      /sys/devices/system/cpu/cpu10/cpufreq/scaling_governor = powersave (unchanged)
+[2026-11-25 21:15:09] [INFO ] OK      /sys/devices/system/cpu/cpu11/cpufreq/scaling_governor = powersave (unchanged)
+[2026-11-25 21:15:09] [INFO ] OK      /sys/devices/system/cpu/cpu12/cpufreq/scaling_governor = powersave (unchanged)
+[2026-11-25 21:15:09] [INFO ] OK      /sys/devices/system/cpu/cpu13/cpufreq/scaling_governor = powersave (unchanged)
+[2026-11-25 21:15:09] [INFO ] OK      /sys/devices/system/cpu/cpu14/cpufreq/scaling_governor = powersave (unchanged)
+[2026-11-25 21:15:09] [INFO ] OK      /sys/devices/system/cpu/cpu15/cpufreq/scaling_governor = powersave (unchanged)
+[2026-11-25 21:15:09] [INFO ] OK      /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor = powersave (unchanged)
+[2026-11-25 21:15:09] [INFO ] OK      /sys/devices/system/cpu/cpu2/cpufreq/scaling_governor = powersave (unchanged)
+[2026-11-25 21:15:09] [INFO ] OK      /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor = powersave (unchanged)
+[2026-11-25 21:15:09] [INFO ] OK      /sys/devices/system/cpu/cpu4/cpufreq/scaling_governor = powersave (unchanged)
+[2026-11-25 21:15:09] [INFO ] OK      /sys/devices/system/cpu/cpu5/cpufreq/scaling_governor = powersave (unchanged)
+[2026-11-25 21:15:09] [INFO ] OK      /sys/devices/system/cpu/cpu6/cpufreq/scaling_governor = powersave (unchanged)
+[2026-11-25 21:15:09] [INFO ] OK      /sys/devices/system/cpu/cpu7/cpufreq/scaling_governor = powersave (unchanged)
+[2026-11-25 21:15:09] [INFO ] OK      /sys/devices/system/cpu/cpu8/cpufreq/scaling_governor = powersave (unchanged)
+[2026-11-25 21:15:09] [INFO ] OK      /sys/devices/system/cpu/cpu9/cpufreq/scaling_governor = powersave (unchanged)
+[2026-11-25 21:15:09] [INFO ] OK      /sys/devices/system/cpu/amd_pstate/status = passive (unchanged)
+[2026-11-25 21:15:09] [INFO ] OK      /sys/devices/system/cpu/cpufreq/boost = 0 (unchanged)
+[2026-11-25 21:15:09] [INFO ] ── iGPU ──
+[2026-11-25 21:15:10] [INFO ] OK      /sys/class/drm/card0/device/power_dpm_force_performance_level = low (unchanged)
+[2026-11-25 21:15:10] [INFO ] OK      /sys/class/drm/card0-eDP-1/amdgpu/panel_power_savings = 4 (unchanged)
+[2026-11-25 21:15:10] [INFO ] ── Scheduler ──
+[2026-11-25 21:15:10] [INFO ] SCHED   no /etc/sv/scx_loader — using scxctl directly
+[2026-11-25 21:15:10] [INFO ] SCHED   scxctl get (rc=0): running Lavd in PowerSave mode 
+[2026-11-25 21:15:10] [INFO ] SCHED   already on scx_lavd/powersave
+[2026-11-25 21:15:10] [INFO ] ── RyzenAdj ──
+detected compatible ryzen_smu kernel module
+Successfully set stapm_limit to 5000
+Successfully set fast_limit to 5000
+Successfully set slow_limit to 5000
+Successfully set tctl_temp to 50
+Successfully enable power_saving
+[2026-11-25 21:15:10] [INFO ] RYZEN   applied: --stapm-limit=5000 --fast-limit=5000 --slow-limit=5000 --tctl-temp=50 --power-saving
+[2026-11-25 21:15:10] [INFO ] ── Fans ──
+[2026-11-25 21:15:10] [INFO ] FAN     set to silent
+[2026-11-25 21:15:10] [INFO ] ── Apply commands ──
+[2026-11-25 21:15:10] [INFO ] APPLY   ok: pkill emacs 2>/dev/null || true
+[2026-11-25 21:15:10] [INFO ] APPLY   ok: notify-send "power-save" "max-save applied" 2>/dev/null || true
+[2026-11-25 21:15:10] [INFO ] ── Summary ──
+[2026-11-25 21:15:10] [INFO ] set=0 ok=36 skip=0 fail=0
+[2026-11-25 21:15:10] [INFO ] ✅ Profile 'max-save' applied  ([32mset 0[0m, [2mok 36[0m, [33mskip 0[0m, [31mfail 0[0m)
+[2026-11-25 21:15:10] [INFO ] done: profile=max-save
+[2026-11-25 21:15:10] [INFO ] [1m[34m═══════════════════════════════════════════════════════════[0m
+[2026-11-25 21:15:12] [INFO ] [1m[34m═══════════════════════════════════════════════════════════[0m
+[2026-11-25 21:15:12] [INFO ] power-save invoked: cmd=max-save argv=(max-save)
+[2026-11-25 21:15:12] [INFO ] config: /home/mz/scripts/grub/power-save.conf
+[2026-11-25 21:15:12] [INFO ] Loaded profile: max-save
+[2026-11-25 21:15:12] [INFO ] profile: max-save
+[2026-11-25 21:15:12] [INFO ] ── CPU ──
+[2026-11-25 21:15:12] [INFO ] OK      /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq = 1000000 (unchanged)
+[2026-11-25 21:15:12] [INFO ] OK      /sys/devices/system/cpu/cpu10/cpufreq/scaling_max_freq = 1000000 (unchanged)
+[2026-11-25 21:15:12] [INFO ] OK      /sys/devices/system/cpu/cpu11/cpufreq/scaling_max_freq = 1000000 (unchanged)
+[2026-11-25 21:15:12] [INFO ] OK      /sys/devices/system/cpu/cpu12/cpufreq/scaling_max_freq = 1000000 (unchanged)
+[2026-11-25 21:15:12] [INFO ] OK      /sys/devices/system/cpu/cpu13/cpufreq/scaling_max_freq = 1000000 (unchanged)
+[2026-11-25 21:15:12] [INFO ] OK      /sys/devices/system/cpu/cpu14/cpufreq/scaling_max_freq = 1000000 (unchanged)
+[2026-11-25 21:15:12] [INFO ] OK      /sys/devices/system/cpu/cpu15/cpufreq/scaling_max_freq = 1000000 (unchanged)
+[2026-11-25 21:15:12] [INFO ] OK      /sys/devices/system/cpu/cpu1/cpufreq/scaling_max_freq = 1000000 (unchanged)
+[2026-11-25 21:15:12] [INFO ] OK      /sys/devices/system/cpu/cpu2/cpufreq/scaling_max_freq = 1000000 (unchanged)
+[2026-11-25 21:15:12] [INFO ] OK      /sys/devices/system/cpu/cpu3/cpufreq/scaling_max_freq = 1000000 (unchanged)
+[2026-11-25 21:15:12] [INFO ] OK      /sys/devices/system/cpu/cpu4/cpufreq/scaling_max_freq = 1000000 (unchanged)
+[2026-11-25 21:15:12] [INFO ] OK      /sys/devices/system/cpu/cpu5/cpufreq/scaling_max_freq = 1000000 (unchanged)
+[2026-11-25 21:15:12] [INFO ] OK      /sys/devices/system/cpu/cpu6/cpufreq/scaling_max_freq = 1000000 (unchanged)
+[2026-11-25 21:15:12] [INFO ] OK      /sys/devices/system/cpu/cpu7/cpufreq/scaling_max_freq = 1000000 (unchanged)
+[2026-11-25 21:15:12] [INFO ] OK      /sys/devices/system/cpu/cpu8/cpufreq/scaling_max_freq = 1000000 (unchanged)
+[2026-11-25 21:15:12] [INFO ] OK      /sys/devices/system/cpu/cpu9/cpufreq/scaling_max_freq = 1000000 (unchanged)
+[2026-11-25 21:15:12] [INFO ] OK      /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor = powersave (unchanged)
+[2026-11-25 21:15:13] [INFO ] OK      /sys/devices/system/cpu/cpu10/cpufreq/scaling_governor = powersave (unchanged)
+[2026-11-25 21:15:13] [INFO ] OK      /sys/devices/system/cpu/cpu11/cpufreq/scaling_governor = powersave (unchanged)
+[2026-11-25 21:15:13] [INFO ] OK      /sys/devices/system/cpu/cpu12/cpufreq/scaling_governor = powersave (unchanged)
+[2026-11-25 21:15:13] [INFO ] OK      /sys/devices/system/cpu/cpu13/cpufreq/scaling_governor = powersave (unchanged)
+[2026-11-25 21:15:13] [INFO ] OK      /sys/devices/system/cpu/cpu14/cpufreq/scaling_governor = powersave (unchanged)
+[2026-11-25 21:15:13] [INFO ] OK      /sys/devices/system/cpu/cpu15/cpufreq/scaling_governor = powersave (unchanged)
+[2026-11-25 21:15:13] [INFO ] OK      /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor = powersave (unchanged)
+[2026-11-25 21:15:13] [INFO ] OK      /sys/devices/system/cpu/cpu2/cpufreq/scaling_governor = powersave (unchanged)
+[2026-11-25 21:15:13] [INFO ] OK      /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor = powersave (unchanged)
+[2026-11-25 21:15:13] [INFO ] OK      /sys/devices/system/cpu/cpu4/cpufreq/scaling_governor = powersave (unchanged)
+[2026-11-25 21:15:13] [INFO ] OK      /sys/devices/system/cpu/cpu5/cpufreq/scaling_governor = powersave (unchanged)
+[2026-11-25 21:15:13] [INFO ] OK      /sys/devices/system/cpu/cpu6/cpufreq/scaling_governor = powersave (unchanged)
+[2026-11-25 21:15:13] [INFO ] OK      /sys/devices/system/cpu/cpu7/cpufreq/scaling_governor = powersave (unchanged)
+[2026-11-25 21:15:13] [INFO ] OK      /sys/devices/system/cpu/cpu8/cpufreq/scaling_governor = powersave (unchanged)
+[2026-11-25 21:15:13] [INFO ] OK      /sys/devices/system/cpu/cpu9/cpufreq/scaling_governor = powersave (unchanged)
+[2026-11-25 21:15:13] [INFO ] OK      /sys/devices/system/cpu/amd_pstate/status = passive (unchanged)
+[2026-11-25 21:15:13] [INFO ] OK      /sys/devices/system/cpu/cpufreq/boost = 0 (unchanged)
+[2026-11-25 21:15:13] [INFO ] ── iGPU ──
+[2026-11-25 21:15:13] [INFO ] OK      /sys/class/drm/card0/device/power_dpm_force_performance_level = low (unchanged)
+[2026-11-25 21:15:13] [INFO ] OK      /sys/class/drm/card0-eDP-1/amdgpu/panel_power_savings = 4 (unchanged)
+[2026-11-25 21:15:13] [INFO ] ── Scheduler ──
+[2026-11-25 21:15:13] [INFO ] SCHED   no /etc/sv/scx_loader — using scxctl directly
+[2026-11-25 21:15:13] [INFO ] SCHED   scxctl get (rc=0): running Lavd in PowerSave mode 
+[2026-11-25 21:15:13] [INFO ] SCHED   already on scx_lavd/powersave
+[2026-11-25 21:15:13] [INFO ] ── RyzenAdj ──
+detected compatible ryzen_smu kernel module
+Successfully set stapm_limit to 5000
+Successfully set fast_limit to 5000
+Successfully set slow_limit to 5000
+Successfully set tctl_temp to 50
+Successfully enable power_saving
+[2026-11-25 21:15:13] [INFO ] RYZEN   applied: --stapm-limit=5000 --fast-limit=5000 --slow-limit=5000 --tctl-temp=50 --power-saving
+[2026-11-25 21:15:13] [INFO ] ── Fans ──
+[2026-11-25 21:15:13] [INFO ] FAN     set to silent
+[2026-11-25 21:15:13] [INFO ] ── Apply commands ──
+[2026-11-25 21:15:13] [INFO ] APPLY   ok: pkill emacs 2>/dev/null || true
+[2026-11-25 21:15:14] [INFO ] APPLY   ok: notify-send "power-save" "max-save applied" 2>/dev/null || true
+[2026-11-25 21:15:14] [INFO ] ── Summary ──
+[2026-11-25 21:15:14] [INFO ] set=0 ok=36 skip=0 fail=0
+[2026-11-25 21:15:14] [INFO ] ✅ Profile 'max-save' applied  ([32mset 0[0m, [2mok 36[0m, [33mskip 0[0m, [31mfail 0[0m)
+[2026-11-25 21:15:14] [INFO ] done: profile=max-save
+[2026-11-25 21:15:14] [INFO ] [1m[34m═══════════════════════════════════════════════════════════[0m
+[2026-11-25 21:26:45] [INFO ] [1m[34m═══════════════════════════════════════════════════════════[0m
+[2026-11-25 21:26:45] [INFO ] power-save invoked: cmd=balanced argv=(balanced)
+[2026-11-25 21:26:45] [INFO ] config: /home/mz/scripts/grub/power-save.conf
+[2026-11-25 21:26:45] [INFO ] Loaded profile: balanced
+[2026-11-25 21:26:45] [INFO ] profile: balanced
+[2026-11-25 21:26:45] [INFO ] ── CPU ──
+[2026-11-25 21:26:45] [INFO ] SET     /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor = schedutil (was: powersave)
+[2026-11-25 21:26:45] [INFO ] SET     /sys/devices/system/cpu/cpu10/cpufreq/scaling_governor = schedutil (was: powersave)
+[2026-11-25 21:26:45] [INFO ] SET     /sys/devices/system/cpu/cpu11/cpufreq/scaling_governor = schedutil (was: powersave)
+[2026-11-25 21:26:45] [INFO ] SET     /sys/devices/system/cpu/cpu12/cpufreq/scaling_governor = schedutil (was: powersave)
+[2026-11-25 21:26:45] [INFO ] SET     /sys/devices/system/cpu/cpu13/cpufreq/scaling_governor = schedutil (was: powersave)
+[2026-11-25 21:26:45] [INFO ] SET     /sys/devices/system/cpu/cpu14/cpufreq/scaling_governor = schedutil (was: powersave)
+[2026-11-25 21:26:45] [INFO ] SET     /sys/devices/system/cpu/cpu15/cpufreq/scaling_governor = schedutil (was: powersave)
+[2026-11-25 21:26:45] [INFO ] SET     /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor = schedutil (was: powersave)
+[2026-11-25 21:26:45] [INFO ] SET     /sys/devices/system/cpu/cpu2/cpufreq/scaling_governor = schedutil (was: powersave)
+[2026-11-25 21:26:45] [INFO ] SET     /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor = schedutil (was: powersave)
+[2026-11-25 21:26:45] [INFO ] SET     /sys/devices/system/cpu/cpu4/cpufreq/scaling_governor = schedutil (was: powersave)
+[2026-11-25 21:26:45] [INFO ] SET     /sys/devices/system/cpu/cpu5/cpufreq/scaling_governor = schedutil (was: powersave)
+[2026-11-25 21:26:45] [INFO ] SET     /sys/devices/system/cpu/cpu6/cpufreq/scaling_governor = schedutil (was: powersave)
+[2026-11-25 21:26:45] [INFO ] SET     /sys/devices/system/cpu/cpu7/cpufreq/scaling_governor = schedutil (was: powersave)
+[2026-11-25 21:26:45] [INFO ] SET     /sys/devices/system/cpu/cpu8/cpufreq/scaling_governor = schedutil (was: powersave)
+[2026-11-25 21:26:45] [INFO ] SET     /sys/devices/system/cpu/cpu9/cpufreq/scaling_governor = schedutil (was: powersave)

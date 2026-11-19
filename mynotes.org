@@ -3030,3 +3030,25 @@ GIGABYTE GAMING A16 3VH
 
 
 git log --oneline --graph --decorate --all -20
+
+
+
+
+
+
+
+
+
+
+
+--------------------------------------------
+git clone https://github.com/Luminous418/Gigabyte-Gaming-A16-Linux-KB-Drivers.git
+cd Gigabyte-Gaming-A16-Linux-KB-Drivers
+chmod +x scripts/gigabyte-kbd
+# Detect the LampArray device
+sudo ./scripts/gigabyte-kbd detect
+# Read keyboard RGB capabilities
+sudo ./scripts/gigabyte-kbd info
+
+sudo ./scripts/gigabyte-kbd color 00aaff --intensity 64
+sudo ./scripts/gigabyte-kbd off
